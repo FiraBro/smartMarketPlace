@@ -1,14 +1,36 @@
-import dotenv from "dotenv";
-import { connectDB } from "./config/db.js";
+import http from "http";
+import { Server } from "socket.io";
 import app from "./app.js";
-
-dotenv.config();
-
-// Connect to DB
+import { protectSocket } from "./middlewares/socketAuthMiddleware.js";
+import { connectDB } from "./config/db.js";
+import { configDotenv } from "dotenv";
+configDotenv(); // Load environment variables from .env file
 connectDB();
+const server = http.createServer(app);
+const io = new Server(server, { cors: { origin: "*" } });
 
-// Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+// Socket authentication
+io.use(protectSocket);
+
+io.on("connection", (socket) => {
+  console.log(`User connected: ${socket.user.name}`);
+
+  socket.on("joinChat", (chatId) => {
+    socket.join(`chat:${chatId}`);
+  });
+
+  socket.on("sendMessage", (message) => {
+    io.to(`chat:${message.chatId}`).emit("messageReceived", message);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected");
+  });
+});
+
+// Make io accessible in controllers
+app.set("io", io);
+
+server.listen(process.env.PORT, () => {
+  console.log(`Server running on port ${process.env.PORT}`);
 });
