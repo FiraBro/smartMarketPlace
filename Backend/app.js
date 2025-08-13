@@ -6,6 +6,8 @@ import AppError from "./utils/AppError.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import listingRoutes from "./routes/listingRoutes.js";
+import chatRoutes from "./routes/chatRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 const app = express();
 
 // Middleware
@@ -16,6 +18,8 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/listings", listingRoutes);
+app.use("/api/chats", chatRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Handle unhandled routes
 // app.all("*", (req, res, next) => {
