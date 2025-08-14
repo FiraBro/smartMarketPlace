@@ -1,4 +1,5 @@
 import Listing from "../models/Listing.js";
+import ProductView from "../models/ProductView.js";
 import fs from "fs";
 import path from "path";
 
@@ -59,6 +60,16 @@ export const listListings = async (req, res) => {
 export const getListingById = async (req, res) => {
   const listing = await Listing.findById(req.params.id).lean();
   if (!listing) return res.status(404).json({ message: "Listing not found" });
+
+  // Increment view count
+  let view = await ProductView.findOne({ product: req.params.id });
+  if (!view) {
+    view = new ProductView({ product: req.params.id, views: 1 });
+  } else {
+    view.views += 1;
+  }
+  await view.save();
+
   res.json(listing);
 };
 
