@@ -3,6 +3,8 @@ import { Router } from "express";
 import {
   trackView,
   getPopularProducts,
+  getTopSellingProducts,
+  getNewProducts,
 } from "../controllers/matricsController.js";
 import { cacheTTL } from "../middlewares/cacheTTL.js";
 
@@ -16,6 +18,20 @@ router.get(
     2 * 60_000
   ),
   getPopularProducts
+);
+
+// GET most sold products
+router.get(
+  "/most-sold",
+  cacheTTL(() => `home:most-sold`, 2 * 60_000),
+  getTopSellingProducts
+);
+
+// GET new products
+router.get(
+  "/new",
+  cacheTTL(() => `home:new-products`, 2 * 60_000),
+  getNewProducts
 );
 
 // Track a product view
