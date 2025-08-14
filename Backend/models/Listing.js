@@ -18,6 +18,9 @@ const ListingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+
+    isPopular: { type: Boolean, default: false },
+    isMostSold: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
