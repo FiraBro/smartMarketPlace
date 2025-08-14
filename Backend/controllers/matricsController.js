@@ -1,6 +1,7 @@
 // controllers/metrics.controller.js
 import ProductView from "../models/ProductView.js";
 import Product from "../models/Listing.js";
+import Order from "../models/Order.js";
 
 // Track a single product view
 export const trackView = async (req, res) => {
@@ -50,9 +51,9 @@ export const getPopularProducts = async (req, res) => {
   }
 };
 
-export const getMostSoldProducts = async (req, res) => {
+export const getTopSellingProducts = async (req, res) => {
   try {
-    const orders = await Order.aggregate([
+    const topSelling = await Order.aggregate([
       { $unwind: "$products" },
       {
         $group: {
@@ -61,18 +62,25 @@ export const getMostSoldProducts = async (req, res) => {
         },
       },
       { $sort: { totalSold: -1 } },
-      { $limit: 10 },
+      { $limit: 5 },
       {
         $lookup: {
-          from: "products",
+          from: "listings", // your collection name in lowercase & plural
           localField: "_id",
           foreignField: "_id",
           as: "product",
         },
       },
       { $unwind: "$product" },
+      {
+        $project: {
+          totalSold: 1,
+          product: 1, // keep the full product object
+        },
+      },
     ]);
-    res.json(orders.map((o) => o.product));
+
+    res.json(topSelling);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
