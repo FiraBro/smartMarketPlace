@@ -2,6 +2,8 @@ import Listing from "../models/Listing.js";
 import ProductView from "../models/ProductView.js";
 import fs from "fs";
 import path from "path";
+import catchAsync from "../utils/catchAsync.js";
+import AppError from "../utils/AppError.js";
 
 const buildQuery = ({ q, category, minPrice, maxPrice, owner, condition }) => {
   const query = {};
@@ -17,7 +19,8 @@ const buildQuery = ({ q, category, minPrice, maxPrice, owner, condition }) => {
   return query;
 };
 
-export const listListings = async (req, res) => {
+// List all listings with filters and pagination
+export const listListings = catchAsync(async (req, res, next) => {
   const {
     page = 1,
     limit = 12,
@@ -29,6 +32,7 @@ export const listListings = async (req, res) => {
     owner,
     condition,
   } = req.query;
+
   const query = buildQuery({
     q,
     category,
@@ -55,13 +59,14 @@ export const listListings = async (req, res) => {
     hasNextPage: skip + items.length < total,
     items,
   });
-};
+});
 
-export const getListingById = async (req, res) => {
+// Get single listing by ID
+export const getListingById = catchAsync(async (req, res, next) => {
   const listing = await Listing.findById(req.params.id).lean();
-  if (!listing) return res.status(404).json({ message: "Listing not found" });
+  if (!listing) return next(new AppError("Listing not found", 404));
 
-  // Increment view count
+  // Track views
   let view = await ProductView.findOne({ product: req.params.id });
   if (!view) {
     view = new ProductView({ product: req.params.id, views: 1 });
@@ -71,15 +76,17 @@ export const getListingById = async (req, res) => {
   await view.save();
 
   res.json(listing);
-};
+});
 
-export const createListing = async (req, res) => {
+// Create listing
+export const createListing = catchAsync(async (req, res, next) => {
   const { title, description, price, category, condition, location } = req.body;
   if (!title || !description || !price) {
-    return res
-      .status(400)
-      .json({ message: "title, description, and price are required" });
+    return next(
+      new AppError("title, description, and price are required", 400)
+    );
   }
+
   const files = req.files || [];
   const filePaths = files.map((f) => `/uploads/${f.filename}`);
 
@@ -93,10 +100,12 @@ export const createListing = async (req, res) => {
     images: filePaths,
     owner: req.user._id,
   });
-  res.status(201).json(listing);
-};
 
-export const updateListing = async (req, res) => {
+  res.status(201).json(listing);
+});
+
+// Update listing
+export const updateListing = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const {
     title,
@@ -107,10 +116,12 @@ export const updateListing = async (req, res) => {
     location,
     removeFiles,
   } = req.body;
+
   const listing = await Listing.findById(id);
-  if (!listing) return res.status(404).json({ message: "Listing not found" });
-  if (String(listing.owner) !== String(req.user._id))
-    return res.status(403).json({ message: "Not allowed" });
+  if (!listing) return next(new AppError("Listing not found", 404));
+  if (String(listing.owner) !== String(req.user._id)) {
+    return next(new AppError("Not allowed", 403));
+  }
 
   let images = listing.images;
   const toRemove = Array.isArray(removeFiles)
@@ -147,16 +158,20 @@ export const updateListing = async (req, res) => {
     location,
     images,
   });
+
   const saved = await listing.save();
   res.json(saved);
-};
+});
 
-export const deleteListing = async (req, res) => {
+// Delete listing
+export const deleteListing = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+
   const listing = await Listing.findById(id);
-  if (!listing) return res.status(404).json({ message: "Listing not found" });
-  if (String(listing.owner) !== String(req.user._id))
-    return res.status(403).json({ message: "Not allowed" });
+  if (!listing) return next(new AppError("Listing not found", 404));
+  if (String(listing.owner) !== String(req.user._id)) {
+    return next(new AppError("Not allowed", 403));
+  }
 
   listing.images.forEach((imgPath) => {
     const fullPath = path.join(process.cwd(), imgPath);
@@ -164,6 +179,7 @@ export const deleteListing = async (req, res) => {
       if (err) console.error(err);
     });
   });
+
   await listing.deleteOne();
   res.json({ message: "Listing deleted" });
-};
+});
