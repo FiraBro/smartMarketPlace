@@ -1,96 +1,83 @@
-// controllers/metrics.controller.js
 import ProductView from "../models/ProductView.js";
 import Product from "../models/Listing.js";
 import Order from "../models/Order.js";
+import catchAsync from "../utils/catchAsync.js";
 
 // Track a single product view
-export const trackView = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    let view = await ProductView.findOne({ product: productId });
-    if (!view) {
-      view = new ProductView({ product: productId, views: 1 });
-    } else {
-      view.views += 1;
-    }
-    await view.save();
-    res.json(view);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+export const trackView = catchAsync(async (req, res, next) => {
+  const { productId } = req.params;
+
+  let view = await ProductView.findOne({ product: productId });
+  if (!view) {
+    view = new ProductView({ product: productId, views: 1 });
+  } else {
+    view.views += 1;
   }
-};
+  await view.save();
+
+  res.json(view);
+});
 
 // Get popular products
-export const getPopularProducts = async (req, res) => {
-  try {
-    const limit = parseInt(req.query.limit) || 12;
+export const getPopularProducts = catchAsync(async (req, res, next) => {
+  const limit = parseInt(req.query.limit) || 12;
 
-    // Aggregation pipeline
-    const popular = await ProductView.aggregate([
-      {
-        $lookup: {
-          from: "listings", // must match the actual MongoDB collection name
-          localField: "product", // field in ProductView
-          foreignField: "_id", // field in Listing
-          as: "product",
-        },
+  const popular = await ProductView.aggregate([
+    {
+      $lookup: {
+        from: "listings", // must match your MongoDB collection name
+        localField: "product",
+        foreignField: "_id",
+        as: "product",
       },
-      {
-        $unwind: {
-          path: "$product",
-          preserveNullAndEmptyArrays: false, // only include views with valid listings
-        },
+    },
+    {
+      $unwind: {
+        path: "$product",
+        preserveNullAndEmptyArrays: false, // only include if listing exists
       },
-      { $sort: { views: -1 } }, // most viewed first
-      { $limit: limit },
-    ]);
+    },
+    { $sort: { views: -1 } },
+    { $limit: limit },
+  ]);
 
-    res.json(popular);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+  res.json(popular);
+});
 
-export const getTopSellingProducts = async (req, res) => {
-  try {
-    const topSelling = await Order.aggregate([
-      { $unwind: "$products" },
-      {
-        $group: {
-          _id: "$products.product",
-          totalSold: { $sum: "$products.quantity" },
-        },
+// Get top selling products
+export const getTopSellingProducts = catchAsync(async (req, res, next) => {
+  const topSelling = await Order.aggregate([
+    { $unwind: "$products" },
+    {
+      $group: {
+        _id: "$products.product",
+        totalSold: { $sum: "$products.quantity" },
       },
-      { $sort: { totalSold: -1 } },
-      { $limit: 5 },
-      {
-        $lookup: {
-          from: "listings", // your collection name in lowercase & plural
-          localField: "_id",
-          foreignField: "_id",
-          as: "product",
-        },
+    },
+    { $sort: { totalSold: -1 } },
+    { $limit: 5 },
+    {
+      $lookup: {
+        from: "listings", // must match your MongoDB collection name
+        localField: "_id",
+        foreignField: "_id",
+        as: "product",
       },
-      { $unwind: "$product" },
-      {
-        $project: {
-          totalSold: 1,
-          product: 1, // keep the full product object
-        },
+    },
+    { $unwind: "$product" },
+    {
+      $project: {
+        totalSold: 1,
+        product: 1,
       },
-    ]);
+    },
+  ]);
 
-    res.json(topSelling);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+  res.json(topSelling);
+});
 
-export const getNewProducts = async (req, res) => {
-  try {
-    const products = await Product.find().sort({ createdAt: -1 }).limit(10);
-    res.json(products);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-};
+// Get newly added products
+export const getNewProducts = catchAsync(async (req, res, next) => {
+  const products = await Product.find().sort({ createdAt: -1 }).limit(10);
+  res.json(products);
+});
