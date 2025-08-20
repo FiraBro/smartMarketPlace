@@ -7,13 +7,24 @@ import { Footer } from "../components/Footer";
 import PopularProducts from "../components/PopularProducts";
 import Navbar from "../components/Navbar";
 
-export default function HomePage({ openCart, cartItems, total }) {
+export default function HomePage({
+  openCart,
+  cartItems,
+  total,
+  openFav,
+  favorites,
+}) {
   return (
     <div className="bg-[#fff]">
       {/* Page Wrapper with width 85rem */}
       <div className="max-w-[85rem] mx-auto px-4">
         {/* ✅ Pass openCart & cartItems into Navbar */}
-        <Navbar openCart={openCart} cartItems={cartItems} total={total} />
+        <Navbar
+          openCart={openCart}
+          cartItems={cartItems}
+          openFav={openFav}
+          favorites={favorites}
+        />
 
         <HeroSection />
         <FeaturesBanner />
