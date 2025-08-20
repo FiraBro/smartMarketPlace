@@ -7,9 +7,9 @@ import {
   FaTimes,
 } from "react-icons/fa";
 
-export default function Navbar() {
+export default function Navbar({ openCart, cartItems }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [showLogin, setShowLogin] = useState(true); // toggle state
+  const [showLogin, setShowLogin] = useState(true);
 
   return (
     <nav className="bg-white shadow-md px-6 py-3">
@@ -38,8 +38,18 @@ export default function Navbar() {
           <button className="relative">
             <FaHeart className="w-6 h-6 text-gray-700" />
           </button>
-          <button className="relative">
+
+          {/* ✅ Cart Button */}
+          <button
+            onClick={openCart}
+            className="relative flex items-center justify-center"
+          >
             <FaShoppingCart className="w-6 h-6 text-gray-700" />
+            {cartItems?.length > 0 && (
+              <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
+                {cartItems.length}
+              </span>
+            )}
           </button>
 
           {/* Toggle Login/Register */}
