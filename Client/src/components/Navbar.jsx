@@ -6,10 +6,13 @@ import {
   FaBars,
   FaTimes,
 } from "react-icons/fa";
+import AuthModal from "./AuthModel";
 
-export default function Navbar({ openCart, cartItems }) {
+export default function Navbar({ openCart, cartItems, openFav, favorites }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showLogin, setShowLogin] = useState(true);
+
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   return (
     <nav className="bg-white shadow-md px-6 py-3">
@@ -35,8 +38,16 @@ export default function Navbar({ openCart, cartItems }) {
 
         {/* Right Side Icons */}
         <div className="flex items-center gap-4">
-          <button className="relative">
-            <FaHeart className="w-6 h-6 text-gray-700" />
+          <button
+            onClick={openFav}
+            className="relative flex items-center justify-center"
+          >
+            <FaHeart className="w-6 h-6 text-gray-700 cursor-pointer hover:text-red-600 transition" />
+            {favorites?.length > 0 && (
+              <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
+                {favorites.length}
+              </span>
+            )}
           </button>
 
           {/* ✅ Cart Button */}
@@ -44,7 +55,7 @@ export default function Navbar({ openCart, cartItems }) {
             onClick={openCart}
             className="relative flex items-center justify-center"
           >
-            <FaShoppingCart className="w-6 h-6 text-gray-700" />
+            <FaShoppingCart className="w-6 h-6 text-gray-700 cursor-pointer" />
             {cartItems?.length > 0 && (
               <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
                 {cartItems.length}
@@ -53,16 +64,29 @@ export default function Navbar({ openCart, cartItems }) {
           </button>
 
           {/* Toggle Login/Register */}
-          <button
-            onClick={() => setShowLogin(!showLogin)}
-            className={`hidden md:inline-block px-4 py-1 rounded-full text-sm transition-all duration-300 ${
-              showLogin
-                ? "border text-gray-700 hover:bg-gray-100"
-                : "bg-blue-600 text-white hover:bg-blue-700"
-            }`}
-          >
-            {showLogin ? "Login" : "Register"}
-          </button>
+          <div className="flex items-center gap-3">
+            {/* Login Button */}
+            <div className="flex rounded-full overflow-hidden border border-gray-300 ">
+              {/* Login Button */}
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="px-6 py-2 bg-white text-[#000]  font-medium  transition-all duration-300 cursor-pointer"
+              >
+                Login
+              </button>
+
+              {/* Register Button */}
+              <button
+                onClick={() => setIsAuthOpen(true)}
+                className="px-6 py-2 bg-purple-600 text-white font-medium hover:bg-purple-700 transition-all duration-300 rounded-full cursor-pointer"
+              >
+                Register
+              </button>
+            </div>
+          </div>
+
+          {/* Auth Modal */}
+          <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
 
           {/* Mobile Menu Button */}
           <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
