@@ -6,7 +6,7 @@ import {
   FaBars,
   FaTimes,
 } from "react-icons/fa";
-import AuthModal from "./AuthModel";
+import AuthModal from "./AuthModal";
 
 export default function Navbar({ openCart, cartItems, openFav, favorites }) {
   const [menuOpen, setMenuOpen] = useState(false);
