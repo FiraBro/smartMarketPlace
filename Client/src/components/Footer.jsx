@@ -13,7 +13,7 @@ import {
 
 export const Footer = () => {
   return (
-    <footer className="bg-[#000] text-white pt-12 pb-6 px-4">
+    <footer className="bg-[#250902] text-white pt-12 pb-6 px-4">
       <div className="container mx-auto">
         {/* Grid Sections */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
