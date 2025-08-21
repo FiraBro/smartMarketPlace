@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 
 export const HeroSection = () => {
   const images = [
@@ -30,7 +31,12 @@ export const HeroSection = () => {
     <section className="relative bg-gradient-to-r from-[#F9A03F] to-purple-600 text-white py-20 px-4 rounded-2xl mt-10">
       <div className="container mx-auto flex flex-col md:flex-row items-center">
         {/* Left Text */}
-        <div className="md:w-1/2 mb-10 md:mb-0">
+        <motion.div
+          className="md:w-1/2 mb-10 md:mb-0"
+          initial={{ x: -50, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          transition={{ duration: 0.8 }}
+        >
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Welcome to SmartMarketPlace
           </h1>
@@ -38,23 +44,35 @@ export const HeroSection = () => {
             Discover amazing products at unbeatable prices
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              className="bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition duration-300"
+            >
               Shop Now
-            </button>
-            <button className="border-2 border-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition duration-300">
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              className="border-2 border-white px-6 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition duration-300"
+            >
               Learn More
-            </button>
+            </motion.button>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Image Carousel */}
-        <div className="md:w-1/2 relative flex justify-center items-center">
-          {/* Image */}
-          <img
-            src={images[currentIndex]}
-            alt="Hero Slide"
-            className="rounded-lg shadow-2xl w-full h-96 object-cover transition-all duration-700"
-          />
+        <div className="md:w-1/2 relative flex justify-center items-center overflow-hidden">
+          <AnimatePresence mode="wait">
+            <motion.img
+              key={currentIndex}
+              src={images[currentIndex]}
+              alt="Hero Slide"
+              className="rounded-lg shadow-2xl w-full h-96 object-cover"
+              initial={{ opacity: 0, scale: 1.1 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.8 }}
+            />
+          </AnimatePresence>
 
           {/* Left Button */}
           <button
