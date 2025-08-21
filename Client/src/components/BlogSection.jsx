@@ -54,7 +54,7 @@ export const BlogSection = () => {
                   className="w-full h-56 object-cover transform hover:scale-110 transition duration-500"
                 />
                 {/* Date Badge */}
-                <span className="absolute top-4 left-4 bg-blue-600 text-white text-xs px-3 py-1 rounded-full shadow-md">
+                <span className="absolute top-4 left-4 bg-[#f9a03f] text-white text-xs px-3 py-1 rounded-full shadow-md">
                   {post.date}
                 </span>
               </div>
@@ -67,7 +67,7 @@ export const BlogSection = () => {
                 <p className="text-gray-600 text-sm mb-5">{post.excerpt}</p>
                 <a
                   href="#"
-                  className="inline-block text-blue-600 font-medium hover:underline"
+                  className="inline-block text-[#f9a03f] font-medium hover:underline"
                 >
                   Read More →
                 </a>
