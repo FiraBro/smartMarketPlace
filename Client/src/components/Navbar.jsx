@@ -19,7 +19,7 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="text-2xl font-bold text-blue-600 cursor-pointer">
-          TINA<span className="text-gray-800">MART</span>
+          SMART<span className="text-gray-800">MARKET</span>
         </div>
 
         {/* Search Bar (center for desktop) */}
@@ -78,7 +78,7 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
               {/* Register Button */}
               <button
                 onClick={() => setIsAuthOpen(true)}
-                className="px-6 py-2 bg-purple-600 text-white font-medium hover:bg-purple-700 transition-all duration-300 rounded-full cursor-pointer"
+                className="px-6 py-2 bg-[#F9A03F] text-white font-medium hover:bg-purple-700 transition-all duration-300 rounded-full cursor-pointer"
               >
                 Register
               </button>
