@@ -29,7 +29,7 @@ const CartPopup = ({ isOpen, onClose, cartItems, onRemove, onCheckout }) => {
               <h2 className="text-xl font-semibold">Your Cart</h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
                 aria-label="Close cart"
               >
                 <FaTimes className="w-6 h-6" />
