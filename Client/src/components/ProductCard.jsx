@@ -58,7 +58,7 @@ const ProductCard = ({ product, onAddToCart }) => {
         {/* Round Add to Cart Button */}
         <button
           onClick={() => onAddToCart(product)}
-          className="bg-blue-600 text-white p-3 rounded-full hover:bg-blue-700 transition-colors duration-300"
+          className="bg-[#F9A03F] text-white p-3 rounded-full hover:bg-amber-500 transition-colors duration-300 cursor-pointer"
         >
           <FaShoppingCart className="h-5 w-5" />
         </button>
