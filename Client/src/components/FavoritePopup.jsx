@@ -29,7 +29,7 @@ const FavoritePopup = ({ isOpen, onClose, favorites, onRemove }) => {
               <h2 className="text-xl font-semibold">Your Favorites ❤️</h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full"
+                className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
               >
                 <FaTimes className="w-6 h-6" />
               </button>
