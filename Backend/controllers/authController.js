@@ -35,3 +35,8 @@ export const loginUser = catchAsync(async (req, res, next) => {
     user: { id: user._id, name: user.name, email: user.email },
   });
 });
+
+export const getMe = catchAsync(async (req, res, next) => {
+  const user = await req.user;
+  res.json({ user });
+});
