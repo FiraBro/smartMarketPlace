@@ -37,6 +37,8 @@ export const loginUser = catchAsync(async (req, res, next) => {
 });
 
 export const getMe = catchAsync(async (req, res, next) => {
-  const user = await req.user;
-  res.json({ user });
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authorized" });
+  }
+  res.json({ user: req.user });
 });
