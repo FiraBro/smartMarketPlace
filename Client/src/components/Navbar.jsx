@@ -8,20 +8,27 @@ import {
   FaChevronDown,
 } from "react-icons/fa";
 import AuthModal from "./AuthModal";
-import { useAuth } from "../context/AuthContext"; // ✅ import auth hook
-
+import { useAuth } from "../context/AuthContext";
+import { searchListings } from "../service/listingService";
 export default function Navbar({ openCart, cartItems, openFav, favorites }) {
-  const { user, logout } = useAuth(); // ✅ get logged-in user
+  const { user, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
+
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
+
   const categories = ["Cosmetics", "Footwear", "Accessories", "Clothing"];
 
-  // close dropdown on outside click
   const catRef = useRef(null);
+  const popupRef = useRef(null);
+
+  // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (catRef.current && !catRef.current.contains(e.target)) {
@@ -32,13 +39,44 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Live search with debounce
+  useEffect(() => {
+    const delayDebounce = setTimeout(async () => {
+      if (query.trim()) {
+        try {
+          const data = await searchListings(query, selectedCategory);
+          setResults(data.items || []);
+          setShowPopup(true);
+        } catch (err) {
+          console.error("Search error:", err);
+        }
+      } else {
+        setResults([]);
+        setShowPopup(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(delayDebounce);
+  }, [query, selectedCategory]);
+
+  // Close popup on outside click
+  useEffect(() => {
+    const handler = (e) => {
+      if (popupRef.current && !popupRef.current.contains(e.target)) {
+        setShowPopup(false);
+      }
+    };
+    document.addEventListener("click", handler);
+    return () => document.removeEventListener("click", handler);
+  }, []);
+
   const openAuthModal = (mode) => {
     setAuthMode(mode);
     setIsAuthOpen(true);
   };
 
   return (
-    <nav className="bg-white px-6 py-3 shadow-sm">
+    <nav className="bg-white px-6 py-3 shadow-sm relative">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="text-2xl font-bold text-blue-600 cursor-pointer">
@@ -46,7 +84,10 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
         </div>
 
         {/* Search Bar */}
-        <div className="hidden md:flex flex-1 max-w-2xl mx-6">
+        <div
+          className="hidden md:flex flex-1 max-w-2xl mx-6 relative"
+          ref={popupRef}
+        >
           <div className="relative w-full" ref={catRef}>
             <div className="flex w-full border border-gray-300 rounded-full">
               <button
@@ -62,6 +103,8 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
               <input
                 type="text"
                 placeholder="Search products..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
                 className="min-w-0 flex-1 px-4 py-2 outline-none text-sm"
               />
               <button
@@ -72,6 +115,7 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
               </button>
             </div>
 
+            {/* Category dropdown */}
             {dropdownOpen && (
               <div
                 role="menu"
@@ -94,6 +138,47 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
               </div>
             )}
           </div>
+
+          {/* Popup search results */}
+          {showPopup && (
+            <div className="absolute top-14 left-0 w-full bg-white border border-gray-200 rounded-xl shadow-lg z-50 max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+              {results.length > 0 ? (
+                results.map((item) => (
+                  <div
+                    key={item._id}
+                    className="flex items-center gap-4 p-4 hover:bg-gray-50 transition-all cursor-pointer border-b last:border-b-0"
+                  >
+                    <img
+                      src={
+                        item.images?.[0]
+                          ? `${
+                              import.meta.env.VITE_API_URL ||
+                              "http://localhost:5000"
+                            }${item.images[0]}`
+                          : "https://via.placeholder.com/50"
+                      }
+                      alt={item.title}
+                      className="w-16 h-16 object-cover rounded-lg"
+                      onError={(e) =>
+                        (e.currentTarget.src = "https://via.placeholder.com/50")
+                      }
+                    />
+                    <div className="flex flex-col">
+                      <p className="font-semibold text-gray-800 line-clamp-1">
+                        {item.title}
+                      </p>
+                      <p className="text-sm text-gray-500">${item.price}</p>
+                      <p className="text-xs text-gray-400">{item.category}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-6 text-gray-500 text-center">
+                  No products found
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right Side */}
