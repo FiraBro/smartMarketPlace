@@ -7,34 +7,14 @@ import { Footer } from "../components/Footer";
 import PopularProducts from "../components/PopularProducts";
 import Navbar from "../components/Navbar";
 
-export default function HomePage({
-  openCart,
-  cartItems,
-  total,
-  openFav,
-  favorites,
-}) {
+export default function HomePage() {
   return (
-    <div className="bg-[#fff]">
-      {/* Page Wrapper with width 85rem */}
-      <div className="max-w-[85rem] mx-auto px-4">
-        {/* ✅ Pass openCart & cartItems into Navbar */}
-        <Navbar
-          openCart={openCart}
-          cartItems={cartItems}
-          openFav={openFav}
-          favorites={favorites}
-        />
-
-        <HeroSection />
-        <FeaturesBanner />
-        <PopularProducts />
-        <MostSoldProductSection />
-        <BlogSection />
-      </div>
-
-      {/* Footer Full Width */}
-      <Footer />
+    <div className="max-w-[85rem] mx-auto px-4 bg-[#fff]">
+      <HeroSection />
+      <FeaturesBanner />
+      <PopularProducts />
+      <MostSoldProductSection />
+      <BlogSection />
     </div>
   );
 }
