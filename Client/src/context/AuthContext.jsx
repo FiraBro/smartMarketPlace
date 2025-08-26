@@ -15,11 +15,17 @@ export const AuthProvider = ({ children }) => {
   // Load user on first render (if token exists)
   useEffect(() => {
     const fetchUser = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setLoading(false);
+        return;
+      }
       try {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
       } catch (err) {
-        setUser(null); // no valid token
+        setUser(null); // invalid token
+        localStorage.removeItem("token"); // remove expired/invalid token
       } finally {
         setLoading(false);
       }
