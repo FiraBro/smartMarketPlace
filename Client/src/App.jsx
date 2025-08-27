@@ -6,6 +6,7 @@ import AuthModal from "./components/AuthModal";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from "./util/Layout";
 import { AuthProvider } from "./context/AuthContext";
+import ProductDetail from "./pages/ProductDetail";
 export default function App() {
   const [cartItems, setCartItems] = useState([
     {
@@ -56,7 +57,13 @@ export default function App() {
           openCart={openCart}
         />
       ),
-      children: [{ index: true, element: <HomePage /> }],
+      children: [
+        { index: true, element: <HomePage /> },
+        {
+          path: "/product/:id",
+          element: <ProductDetail />,
+        },
+      ],
     },
   ]);
 
