@@ -1,9 +1,15 @@
 import React from "react";
 import { FaShoppingCart, FaStar } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 const ProductCard = ({ product, onAddToCart }) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="bg-white rounded-lg shadow-md w-60 flex-shrink-0 hover:shadow-2xl transition-shadow duration-300">
+    <div
+      className="bg-white rounded-lg shadow-md w-60 flex-shrink-0 hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
+      onClick={() => navigate(`/listings/${product.id}`)} // ✅ Correct navigation
+    >
       {/* Product Image */}
       <div className="relative">
         <img
@@ -22,7 +28,7 @@ const ProductCard = ({ product, onAddToCart }) => {
       <div className="p-4 flex flex-col items-start">
         <h3 className="text-lg font-semibold mb-2">{product.name}</h3>
 
-        {/* Rating (optional) */}
+        {/* Rating */}
         {product.rating && (
           <div className="flex items-center mb-2">
             {[...Array(5)].map((_, i) => (
@@ -55,9 +61,12 @@ const ProductCard = ({ product, onAddToCart }) => {
           )}
         </div>
 
-        {/* Round Add to Cart Button */}
+        {/* Add to Cart Button */}
         <button
-          onClick={() => onAddToCart(product)}
+          onClick={(e) => {
+            e.stopPropagation(); // Prevent triggering parent onClick
+            onAddToCart(product);
+          }}
           className="bg-[#F9A03F] text-white p-3 rounded-full hover:bg-amber-500 transition-colors duration-300 cursor-pointer"
         >
           <FaShoppingCart className="h-5 w-5" />
