@@ -26,3 +26,10 @@ export const searchListings = async (query, category) => {
   console.log(data.items);
   return data; // { items: [...], total, page, ... }
 };
+
+// Get single listing by ID
+export const getListingById = async (id) => {
+  if (!id) throw new Error("Listing ID is required");
+  const { data } = await LISTING_API.get(`/listings/${id}`);
+  return data; // single product object
+};
