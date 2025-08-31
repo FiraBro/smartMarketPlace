@@ -1,83 +1,49 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import ProductCard from "./ProductCard"; // import the reusable card
-
-// Sample data
-const popularProducts = [
-  {
-    id: 1,
-    name: "Smartphone X100",
-    price: 45000,
-    image: "https://via.placeholder.com/200x200?text=Phone",
-    rating: 4,
-    reviews: 120,
-    onSale: true,
-    oldPrice: 50000,
-  },
-  {
-    id: 2,
-    name: "Laptop Pro 15",
-    price: 120000,
-    image: "https://via.placeholder.com/200x200?text=Laptop",
-    rating: 5,
-    reviews: 87,
-  },
-  {
-    id: 3,
-    name: "Wireless Headphones",
-    price: 8000,
-    image: "https://via.placeholder.com/200x200?text=Headphones",
-    rating: 4,
-    reviews: 64,
-    onSale: true,
-    oldPrice: 10000,
-  },
-  {
-    id: 4,
-    name: "Smartwatch Series 5",
-    price: 15000,
-    image: "https://via.placeholder.com/200x200?text=Watch",
-  },
-  {
-    id: 5,
-    name: "Tablet A10",
-    price: 25000,
-    image: "https://via.placeholder.com/200x200?text=Tablet",
-    rating: 3,
-    reviews: 15,
-  },
-  {
-    id: 6,
-    name: "Tablet A10",
-    price: 25000,
-    image: "https://via.placeholder.com/200x200?text=Tablet",
-    rating: 3,
-    reviews: 15,
-  },
-];
-
+import ProductCard from "./ProductCard";
+import { getPopularProducts } from "../service/productService";
 const PopularProducts = ({ onAddToCart }) => {
   const carouselRef = useRef(null);
- 
-   const scroll = (direction) => {
-     if (!carouselRef.current) return;
- 
-     const container = carouselRef.current;
-     const card = container.firstChild;
-     const cardStyle = getComputedStyle(card);
-     const cardWidth = card.offsetWidth + parseInt(cardStyle.marginRight);
- 
-     // Calculate max scroll
-     const maxScroll = container.scrollWidth - container.clientWidth;
- 
-     // Calculate next scroll position
-     let nextScroll =
-       direction === "next"
-         ? Math.min(container.scrollLeft + cardWidth, maxScroll)
-         : Math.max(container.scrollLeft - cardWidth, 0);
- 
-     container.scrollTo({ left: nextScroll, behavior: "smooth" });
-   };
+  const [popularProducts, setPopularProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch popular products
+  useEffect(() => {
+    const fetchPopular = async () => {
+      try {
+        const data = await getPopularProducts(12); // you can adjust limit
+        // data looks like [{ product: {...}, views: 20 }, ...]
+        setPopularProducts(data.map((item) => item.product));
+      } catch (err) {
+        console.error("Failed to fetch popular products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPopular();
+  }, []);
+
+  const scroll = (direction) => {
+    if (!carouselRef.current) return;
+
+    const container = carouselRef.current;
+    const card = container.firstChild;
+    if (!card) return;
+
+    const cardStyle = getComputedStyle(card);
+    const cardWidth = card.offsetWidth + parseInt(cardStyle.marginRight);
+
+    // Calculate max scroll
+    const maxScroll = container.scrollWidth - container.clientWidth;
+
+    // Calculate next scroll position
+    let nextScroll =
+      direction === "next"
+        ? Math.min(container.scrollLeft + cardWidth, maxScroll)
+        : Math.max(container.scrollLeft - cardWidth, 0);
+
+    container.scrollTo({ left: nextScroll, behavior: "smooth" });
+  };
 
   return (
     <section className="py-6 bg-[#fff]">
@@ -105,13 +71,19 @@ const PopularProducts = ({ onAddToCart }) => {
           ref={carouselRef}
           className="flex space-x-6 overflow-hidden scroll-smooth p-4"
         >
-          {popularProducts.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAddToCart={onAddToCart}
-            />
-          ))}
+          {loading ? (
+            <p className="text-center w-full">Loading popular products...</p>
+          ) : popularProducts.length > 0 ? (
+            popularProducts.map((product) => (
+              <ProductCard
+                key={product._id}
+                product={product}
+                onAddToCart={onAddToCart}
+              />
+            ))
+          ) : (
+            <p className="text-center w-full">No popular products found</p>
+          )}
         </div>
       </div>
     </section>
