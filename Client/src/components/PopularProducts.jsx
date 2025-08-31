@@ -6,13 +6,14 @@ const PopularProducts = ({ onAddToCart }) => {
   const carouselRef = useRef(null);
   const [popularProducts, setPopularProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-
+console.log(popularProducts)
   // Fetch popular products
   useEffect(() => {
     const fetchPopular = async () => {
       try {
         const data = await getPopularProducts(12); // you can adjust limit
         // data looks like [{ product: {...}, views: 20 }, ...]
+        // console.log(data);
         setPopularProducts(data.map((item) => item.product));
       } catch (err) {
         console.error("Failed to fetch popular products", err);
