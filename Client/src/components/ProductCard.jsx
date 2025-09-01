@@ -1,6 +1,10 @@
 import React from "react";
+import { FaShoppingCart } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 export default function ProductCard({ product, onAddToCart }) {
+  const navigate = useNavigate();
+
   if (!product) return null;
 
   // Normalize inside the card itself
@@ -18,7 +22,15 @@ export default function ProductCard({ product, onAddToCart }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg transition duration-300">
+    // <div
+    //   // className="bg-white rounded-lg shadow-md w-60 flex-shrink-0 hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
+
+    //   onClick={() => navigate(`/listings/${normalized.id}`)} // ✅ Correct navigation
+    // >
+    <div
+      className="bg-white rounded-lg shadow-md hover:shadow-2xl transition-shadow duration-300 cursor-pointer w-full"
+      onClick={() => navigate(`/listings/${normalized.id}`)}
+    >
       <img
         src={normalized.image}
         alt={normalized.name}
@@ -26,16 +38,24 @@ export default function ProductCard({ product, onAddToCart }) {
       />
       <div className="p-4">
         <h3 className="text-lg font-semibold">{normalized.name}</h3>
-        <p className="text-gray-600">${normalized.price}</p>
-        <div className="flex items-center text-yellow-500 text-sm">
-          ⭐ {normalized.rating} ({normalized.reviews} reviews)
+        <div className="flex items-center justify-between text-yellow-500 text-sm">
+          <span>⭐ {normalized.rating}</span>
+          <span>({normalized.reviews} reviews)</span>
         </div>
-        <button
-          onClick={() => onAddToCart(normalized)}
-          className="mt-2 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
-        >
-          Add to Cart
-        </button>
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-[#000] font-bold text-2xl">
+            Br {normalized.price}
+          </p>
+          <button
+            onClick={(e) => {
+              e.stopPropagation(); // ✅ Prevent card click navigation
+              onAddToCart(normalized);
+            }}
+            className="text-yellow-500 hover:text-yellow-700 transition cursor-pointer"
+          >
+            <FaShoppingCart />
+          </button>
+        </div>
       </div>
     </div>
   );
