@@ -25,9 +25,10 @@ export const trackProductView = async (productId) => {
 // Get popular products
 export const getPopularProducts = async (limit = 12) => {
   const { data } = await PRODUCT_API.get(`/metrics/popular`, {
-    params: { limit },
+    // params: { limit },
   });
-  return data; // [{ product, views }, ...]
+  // console.log(data);
+  return data; // ✅ always an array
 };
 
 // Get top selling products
