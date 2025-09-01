@@ -74,7 +74,7 @@ const MostSoldProductSection = ({ title, icon, onAddToCart }) => {
         </button>
 
         {/* Carousel */}
-        <div ref={carouselRef} className="flex space-x-6 overflow-hidden p-4">
+        <div ref={carouselRef} className="flex space-x-6 overflow-hidden p-4 w-60">
           {loading ? (
             <p className="text-center w-full">
               Loading top selling products...
