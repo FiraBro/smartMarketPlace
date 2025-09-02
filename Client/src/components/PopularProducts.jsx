@@ -2,43 +2,25 @@ import React, { useRef, useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import ProductCard from "./ProductCard";
 import { getPopularProducts } from "../service/productService";
+
 const PopularProducts = ({ onAddToCart }) => {
   const carouselRef = useRef(null);
   const [popularProducts, setPopularProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  console.log(popularProducts);
-  // Fetch popular products
-  // useEffect(() => {
-  //   const fetchPopular = async () => {
-  //     try {
-  //       const data = await getPopularProducts(12); // you can adjust limit
-  //       // data looks like [{ product: {...}, views: 20 }, ...]
-  //       console.log(data);
-  //       setPopularProducts(data.popular.map((item) => item.product));
-  //     } catch (err) {
-  //       console.error("Failed to fetch popular products", err);
-  //     } finally {
-  //       setLoading(false);
-  //     }
-  //   };
-  //   fetchPopular();
-  // }, []);
 
-useEffect(() => {
-  const fetchPopular = async () => {
-    try {
-      const products = await getPopularProducts(12);
-      setPopularProducts(products.map((item) => item.product));
-      
-    } catch (err) {
-      console.error("Failed to fetch popular products", err);
-    } finally {
-      setLoading(false);
-    }
-  };
-  fetchPopular();
-}, []);
-
+  useEffect(() => {
+    const fetchPopular = async () => {
+      try {
+        const products = await getPopularProducts(12);
+        setPopularProducts(products.map((item) => item.product));
+      } catch (err) {
+        console.error("Failed to fetch popular products", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPopular();
+  }, []);
 
   const scroll = (direction) => {
     if (!carouselRef.current) return;
@@ -50,14 +32,11 @@ useEffect(() => {
     const cardStyle = getComputedStyle(card);
     const cardWidth = card.offsetWidth + parseInt(cardStyle.marginRight);
 
-    // Calculate max scroll
-    const maxScroll = container.scrollWidth - container.clientWidth;
-
-    // Calculate next scroll position
+    // scroll one card at a time
     let nextScroll =
       direction === "next"
-        ? Math.min(container.scrollLeft + cardWidth, maxScroll)
-        : Math.max(container.scrollLeft - cardWidth, 0);
+        ? container.scrollLeft + cardWidth
+        : container.scrollLeft - cardWidth;
 
     container.scrollTo({ left: nextScroll, behavior: "smooth" });
   };
@@ -84,19 +63,23 @@ useEffect(() => {
         </button>
 
         {/* Carousel */}
-        <div
-          ref={carouselRef}
-          className="flex space-x-6 overflow-hidden scroll-smooth p-4 w-60"
-        >
+        <div ref={carouselRef} className="flex overflow-hidden scroll-smooth">
           {loading ? (
             <p className="text-center w-full">Loading popular products...</p>
           ) : popularProducts.length > 0 ? (
             popularProducts.map((product) => (
-              <ProductCard
+              <div
                 key={product._id}
-                product={product}
-                onAddToCart={onAddToCart}
-              />
+                className="
+          flex-shrink-0 
+          w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5 
+          px-4   /* 👉 bigger gap */
+        "
+              >
+                <div className="bg-white rounded-2xl shadow-amber-50 mb-0.5 transition-shadow duration-300">
+                  <ProductCard product={product} onAddToCart={onAddToCart} />
+                </div>
+              </div>
             ))
           ) : (
             <p className="text-center w-full">No popular products found</p>
