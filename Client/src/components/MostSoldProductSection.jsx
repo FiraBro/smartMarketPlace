@@ -12,7 +12,6 @@ const MostSoldProductSection = ({ title, icon, onAddToCart }) => {
     const fetchTopSelling = async () => {
       try {
         const data = await getTopSellingProducts();
-        // API returns [{ product: {...}, totalSold: 25 }, ...]
         setProducts(data.map((item) => item.product));
       } catch (err) {
         console.error("Failed to fetch top selling products", err);
