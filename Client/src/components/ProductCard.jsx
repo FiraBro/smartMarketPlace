@@ -22,27 +22,30 @@ export default function ProductCard({ product, onAddToCart }) {
   };
 
   return (
-    // <div
-    //   // className="bg-white rounded-lg shadow-md w-60 flex-shrink-0 hover:shadow-2xl transition-shadow duration-300 cursor-pointer"
-
-    //   onClick={() => navigate(`/listings/${normalized.id}`)} // ✅ Correct navigation
-    // >
     <div
-      className="bg-white rounded-lg shadow-md hover:shadow-2xl transition-shadow duration-300 cursor-pointer w-full"
+      className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-shadow duration-300 cursor-pointer w-full h-full flex flex-col"
       onClick={() => navigate(`/listings/${normalized.id}`)}
     >
-      <img
-        src={normalized.image}
-        alt={normalized.name}
-        className="w-full h-48 object-cover"
-      />
-      <div className="p-4">
+      {/* Image (fixed height so all equal) */}
+      <div className="w-full h-48">
+        <img
+          src={normalized.image}
+          alt={normalized.name}
+          className="w-full h-full object-cover rounded-t-2xl"
+        />
+      </div>
+
+      {/* Content (fills rest of height) */}
+      <div className="p-4 flex flex-col flex-grow">
         <h3 className="text-lg font-semibold">{normalized.name}</h3>
-        <div className="flex items-center justify-between text-yellow-500 text-sm">
+
+        <div className="flex items-center justify-between text-yellow-500 text-sm mt-1">
           <span>⭐ {normalized.rating}</span>
           <span>({normalized.reviews} reviews)</span>
         </div>
-        <div className="mt-4 flex items-center justify-between">
+
+        {/* Price + Cart stays at bottom */}
+        <div className="mt-auto flex items-center justify-between">
           <p className="text-[#000] font-bold text-2xl">
             Br {normalized.price}
           </p>
