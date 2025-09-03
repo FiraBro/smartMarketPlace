@@ -1,15 +1,16 @@
 import React from "react";
 import { FaShoppingCart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-
-export default function ProductCard({ product, onAddToCart }) {
+import { addToCart } from "../service/cartService";
+export default function ProductCard({ product }) {
   const navigate = useNavigate();
 
   if (!product) return null;
 
   // Normalize inside the card itself
+  // Normalize inside the card itself
   const normalized = {
-    id: product._id || product.id,
+    _id: product._id || product.id, // ensure backend gets MongoDB _id
     name: product.title || product.name || "Unnamed Product",
     price: product.price || 0,
     image: product.images?.[0]
@@ -20,6 +21,19 @@ export default function ProductCard({ product, onAddToCart }) {
     rating: product.rating || 0,
     reviews: product.reviews || 0,
   };
+
+  // ✅ Add to cart handler
+const handleAddToCart = async (e) => {
+  e.stopPropagation(); // prevent navigation when clicking cart button
+  try {
+    await addToCart(normalized._id, 1); // use _id, not id
+    alert(`${normalized.name} added to cart ✅`);
+  } catch (error) {
+    console.error("Failed to add to cart:", error);
+    alert("Something went wrong while adding to cart ❌");
+  }
+};
+
 
   return (
     <div
@@ -50,10 +64,7 @@ export default function ProductCard({ product, onAddToCart }) {
             Br {normalized.price}
           </p>
           <button
-            onClick={(e) => {
-              e.stopPropagation(); // ✅ Prevent card click navigation
-              onAddToCart(normalized);
-            }}
+            onClick={handleAddToCart}
             className="text-yellow-500 hover:text-yellow-700 transition cursor-pointer"
           >
             <FaShoppingCart />
