@@ -1,9 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
-import { FaChevronLeft, FaChevronRight ,FaShoppingCart} from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import ProductCard from "./ProductCard";
 import { getPopularProducts } from "../service/productService";
+import { addToCart } from "../service/cartService"; // ✅ integrate service
 
-const PopularProducts = ({ onAddToCart }) => {
+const PopularProducts = () => {
   const carouselRef = useRef(null);
   const [popularProducts, setPopularProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,13 +33,29 @@ const PopularProducts = ({ onAddToCart }) => {
     const cardStyle = getComputedStyle(card);
     const cardWidth = card.offsetWidth + parseInt(cardStyle.marginRight);
 
-    // scroll one card at a time
     let nextScroll =
       direction === "next"
         ? container.scrollLeft + cardWidth
         : container.scrollLeft - cardWidth;
 
     container.scrollTo({ left: nextScroll, behavior: "smooth" });
+  };
+
+  // ✅ Handler to add to cart via service
+  const handleAddToCart = async (product) => {
+    try {
+      const listingId = product._id || product.id;
+      if (!listingId) {
+        console.error("Product missing ID:", product);
+        return alert("Product ID not found ❌");
+      }
+
+      await addToCart(listingId, 1);
+      alert(`${product.title || product.name} added to cart ✅`);
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      alert("Something went wrong while adding to cart ❌");
+    }
   };
 
   return (
@@ -66,7 +83,7 @@ const PopularProducts = ({ onAddToCart }) => {
         <div
           ref={carouselRef}
           className="flex overflow-hidden scroll-smooth p-4"
-          style={{ minHeight: "380px" }} // ensures carousel has a base height
+          style={{ minHeight: "380px" }}
         >
           {loading ? (
             <p className="text-center w-full">Loading popular products...</p>
@@ -76,44 +93,8 @@ const PopularProducts = ({ onAddToCart }) => {
                 key={product._id}
                 className="flex-shrink-0 w-[20%] px-3 flex"
               >
-                {/* Card fills parent */}
-                <div className="bg-white rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 cursor-pointer flex flex-col w-full h-full">
-                  <img
-                    src={
-                      product.images?.[0]
-                        ? `${
-                            import.meta.env.VITE_API_URL ||
-                            "http://localhost:5000"
-                          }${product.images[0]}`
-                        : "https://via.placeholder.com/200"
-                    }
-                    alt={product.title}
-                    className="w-full h-48 object-cover rounded-t-2xl"
-                  />
-
-                  <div className="p-4 flex flex-col flex-grow">
-                    <h3 className="text-lg font-semibold">{product.title}</h3>
-                    <div className="flex items-center justify-between text-yellow-500 text-sm mt-1">
-                      <span>⭐ {product.rating || 0}</span>
-                      <span>({product.reviews || 0} reviews)</span>
-                    </div>
-
-                    <div className="mt-auto flex items-center justify-between">
-                      <p className="text-[#000] font-bold text-2xl">
-                        Br {product.price}
-                      </p>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onAddToCart(product);
-                        }}
-                        className="text-yellow-500 hover:text-yellow-700 transition cursor-pointer"
-                      >
-                        <FaShoppingCart />
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                {/* ✅ Use ProductCard here */}
+                <ProductCard product={product} onAddToCart={handleAddToCart} />
               </div>
             ))
           ) : (
