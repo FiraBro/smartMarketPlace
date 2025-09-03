@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import HomePage from "./pages/HomePage";
 import CartPopup from "./components/CartPopup";
 import FavoritePopup from "./components/FavoritePopup";
@@ -7,25 +7,27 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from "./util/Layout";
 import { AuthProvider } from "./context/AuthContext";
 import ProductDetail from "./pages/ProductDetail";
+import { getCart, removeFromCart, clearCart } from "./service/cartService"; // ✅ use cartService
+
 export default function App() {
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: "Wireless Headphones",
-      price: 89,
-      quantity: 2,
-      image: "/img1.jpg",
-    },
-    { id: 2, name: "Smart Watch", price: 199, quantity: 1, image: "/img2.jpg" },
-  ]);
-
-  const [favorites, setFavorites] = useState([
-    { id: 3, name: "Sneakers", price: 120, image: "/img3.jpg" },
-    { id: 4, name: "Smartphone", price: 699, image: "/img4.jpg" },
-  ]);
-
+  const [cartItems, setCartItems] = useState([]);
+  const [favorites, setFavorites] = useState([]); // can later connect to a favoriteService
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavOpen, setIsFavOpen] = useState(false);
+
+  // ✅ Fetch cart from backend when app loads
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+  const fetchCart = async () => {
+    try {
+      const data = await getCart();
+      setCartItems(data.items || []);
+    } catch (error) {
+      console.error("Failed to fetch cart:", error);
+    }
+  };
 
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
@@ -33,8 +35,23 @@ export default function App() {
   const openFav = () => setIsFavOpen(true);
   const closeFav = () => setIsFavOpen(false);
 
-  const handleRemoveCart = (id) =>
-    setCartItems((prev) => prev.filter((i) => i.id !== id));
+  const handleRemoveCart = async (id) => {
+    try {
+      await removeFromCart(id);
+      fetchCart(); // refresh after removal
+    } catch (error) {
+      console.error("Failed to remove item:", error);
+    }
+  };
+
+  const handleClearCart = async () => {
+    try {
+      await clearCart();
+      setCartItems([]);
+    } catch (error) {
+      console.error("Failed to clear cart:", error);
+    }
+  };
 
   const handleRemoveFav = (id) =>
     setFavorites((prev) => prev.filter((i) => i.id !== id));
@@ -44,8 +61,7 @@ export default function App() {
     closeCart();
   };
 
-  // ✅ Wrap routes inside AuthProvider context
-
+  // ✅ Routes
   const router = createBrowserRouter([
     {
       path: "/",
@@ -70,13 +86,15 @@ export default function App() {
   return (
     <AuthProvider>
       <RouterProvider router={router} />
-      {/* Modals live outside the router so they overlay */}
+
+      {/* Modals live outside router so they overlay */}
       <CartPopup
         isOpen={isCartOpen}
         onClose={closeCart}
         cartItems={cartItems}
         onRemove={handleRemoveCart}
         onCheckout={handleCheckout}
+        onClear={handleClearCart} // ✅ extra prop for "clear all"
       />
       <FavoritePopup
         isOpen={isFavOpen}
