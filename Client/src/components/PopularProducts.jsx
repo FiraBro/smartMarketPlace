@@ -82,7 +82,7 @@ const PopularProducts = () => {
         {/* Carousel */}
         <div
           ref={carouselRef}
-          className="flex overflow-hidden scroll-smooth p-4"
+          className="flex overflow-hidden scroll-smooth p-2"
           style={{ minHeight: "380px" }}
         >
           {loading ? (
