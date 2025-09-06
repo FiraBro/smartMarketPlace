@@ -23,22 +23,21 @@ export default function ProductCard({ product }) {
   };
 
   // ✅ Add to cart handler
-const handleAddToCart = async (e) => {
-  e.stopPropagation(); // prevent navigation when clicking cart button
-  try {
-    await addToCart(normalized._id, 1); // use _id, not id
-    alert(`${normalized.name} added to cart ✅`);
-  } catch (error) {
-    console.error("Failed to add to cart:", error);
-    alert("Something went wrong while adding to cart ❌");
-  }
-};
-
+  const handleAddToCart = async (e) => {
+    e.stopPropagation(); // prevent navigation when clicking cart button
+    try {
+      await addToCart(normalized._id, 1); // use _id, not id
+      alert(`${normalized.name} added to cart ✅`);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+      alert("Something went wrong while adding to cart ❌");
+    }
+  };
 
   return (
     <div
       className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-shadow duration-300 cursor-pointer w-full h-full flex flex-col"
-      onClick={() => navigate(`/listings/${normalized.id}`)}
+      onClick={() => navigate(`/listings/${normalized._id}`)}
     >
       {/* Image (fixed height so all equal) */}
       <div className="w-full h-48">
