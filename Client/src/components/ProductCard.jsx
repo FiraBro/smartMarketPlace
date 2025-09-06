@@ -1,16 +1,16 @@
 import React from "react";
 import { FaShoppingCart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { addToCart } from "../service/cartService";
+import { useCart } from "../context/CartContext";
+
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
+  const { addItem } = useCart();
 
   if (!product) return null;
 
-  // Normalize inside the card itself
-  // Normalize inside the card itself
   const normalized = {
-    _id: product._id || product.id, // ensure backend gets MongoDB _id
+    _id: product._id || product.id,
     name: product.title || product.name || "Unnamed Product",
     price: product.price || 0,
     image: product.images?.[0]
@@ -22,16 +22,9 @@ export default function ProductCard({ product }) {
     reviews: product.reviews || 0,
   };
 
-  // ✅ Add to cart handler
   const handleAddToCart = async (e) => {
-    e.stopPropagation(); // prevent navigation when clicking cart button
-    try {
-      await addToCart(normalized._id, 1); // use _id, not id
-      alert(`${normalized.name} added to cart ✅`);
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-      alert("Something went wrong while adding to cart ❌");
-    }
+    e.stopPropagation();
+    addItem(normalized._id, 1); // ✅ use context function
   };
 
   return (
@@ -39,7 +32,6 @@ export default function ProductCard({ product }) {
       className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-shadow duration-300 cursor-pointer w-full h-full flex flex-col"
       onClick={() => navigate(`/listings/${normalized._id}`)}
     >
-      {/* Image (fixed height so all equal) */}
       <div className="w-full h-48">
         <img
           src={normalized.image}
@@ -48,7 +40,6 @@ export default function ProductCard({ product }) {
         />
       </div>
 
-      {/* Content (fills rest of height) */}
       <div className="p-4 flex flex-col flex-grow">
         <h3 className="text-lg font-semibold">{normalized.name}</h3>
 
@@ -57,7 +48,6 @@ export default function ProductCard({ product }) {
           <span>({normalized.reviews} reviews)</span>
         </div>
 
-        {/* Price + Cart stays at bottom */}
         <div className="mt-auto flex items-center justify-between">
           <p className="text-[#000] font-bold text-2xl">
             Br {normalized.price}
