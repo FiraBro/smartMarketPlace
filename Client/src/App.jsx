@@ -76,7 +76,7 @@ export default function App() {
       children: [
         { index: true, element: <HomePage /> },
         {
-          path: "/product/:id",
+          path: "/listings/:id",
           element: <ProductDetail />,
         },
       ],
