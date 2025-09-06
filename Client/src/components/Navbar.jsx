@@ -20,7 +20,9 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Logo */}
         <div className="text-2xl font-bold text-blue-600 cursor-pointer">
-          Nexa<span className="text-[#f9A03f]">Mart</span>
+          <a href="/">
+            Nexa<span className="text-[#f9A03f]">Mart</span>
+          </a>
         </div>
 
         {/* Search Bar */}
