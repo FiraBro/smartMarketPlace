@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { FaShoppingCart, FaHeart, FaBars, FaTimes } from "react-icons/fa";
 import AuthModal from "./AuthModal";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext"; // 🔥 use CartContext
 import SearchBar from "./SearchBar";
 
-export default function Navbar({ openCart, cartItems, openFav, favorites }) {
+export default function Navbar({ openCart, openFav, favorites }) {
   const { user, logout } = useAuth();
+  const { cart } = useCart(); 
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
@@ -14,6 +16,9 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
     setAuthMode(mode);
     setIsAuthOpen(true);
   };
+
+  // ✅ calculate total items (instead of just array length)
+  const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <nav className="bg-white px-6 py-3 shadow-sm relative">
@@ -45,9 +50,9 @@ export default function Navbar({ openCart, cartItems, openFav, favorites }) {
               {/* Cart */}
               <button onClick={openCart} className="relative">
                 <FaShoppingCart className="w-6 h-6 text-gray-700" />
-                {cartItems?.length > 0 && (
+                {totalCartItems > 0 && (
                   <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
-                    {cartItems.length}
+                    {totalCartItems}
                   </span>
                 )}
               </button>
