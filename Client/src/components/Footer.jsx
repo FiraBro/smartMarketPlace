@@ -11,6 +11,7 @@ import {
   FaBlog,
   FaRegEnvelope,
 } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { FAQ, Contact, Blog } from "../pages/FooterPage"; // import your components
 
@@ -128,12 +129,31 @@ export const Footer = () => {
         </div>
       </footer>
 
-      {/* Render the active page below the footer */}
-      {activePage && (
-        <div className="mt-8 container mx-auto">
-          {pageComponents[activePage]}
-        </div>
-      )}
+      {/* Popup Modal with Animation */}
+      <AnimatePresence>
+        {activePage && (
+          <motion.div
+            className="fixed inset-0  bg-black/40  bg-opacity-70 flex justify-center items-start z-50"
+            initial={{ y: "-100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "-100%", opacity: 0 }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
+          >
+            <div className="bg-white rounded-2xl shadow-lg w-11/12 md:w-3/4 lg:w-1/2 p-6 mt-10 relative">
+              {/* Close button */}
+              <button
+                onClick={() => setActivePage(null)}
+                className="absolute top-4 right-4 text-gray-600 hover:text-red-500 text-xl"
+              >
+                ✕
+              </button>
+
+              {/* Render Component */}
+              {pageComponents[activePage]}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
