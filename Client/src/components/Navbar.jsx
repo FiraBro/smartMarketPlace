@@ -7,7 +7,7 @@ import SearchBar from "./SearchBar";
 
 export default function Navbar({ openCart, openFav, favorites }) {
   const { user, logout } = useAuth();
-  const { cart } = useCart(); 
+  const { cart } = useCart();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
