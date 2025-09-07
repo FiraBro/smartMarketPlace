@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import ProductCard from "./ProductCard";
 import { getPopularProducts } from "../service/productService";
-import { addToCart } from "../service/cartService"; // ✅ integrate service
+import { addToCart } from "../service/cartService";
 
 const PopularProducts = () => {
   const carouselRef = useRef(null);
@@ -41,7 +41,6 @@ const PopularProducts = () => {
     container.scrollTo({ left: nextScroll, behavior: "smooth" });
   };
 
-  // ✅ Handler to add to cart via service
   const handleAddToCart = async (product) => {
     try {
       const listingId = product._id || product.id;
@@ -59,8 +58,8 @@ const PopularProducts = () => {
   };
 
   return (
-    <section className="py-6 bg-[#fff]">
-      <div className="max-w-[85rem] mx-auto relative">
+    <section className="py-6 bg-white">
+      <div className="max-w-[85rem] mx-auto relative px-4">
         <h2 className="text-3xl font-bold mb-6">Popular Products</h2>
 
         {/* Left Button */}
@@ -91,9 +90,9 @@ const PopularProducts = () => {
             popularProducts.map((product) => (
               <div
                 key={product._id}
-                className="flex-shrink-0 w-[20%] px-3 flex"
+                className="flex-shrink-0 px-3 flex 
+                  w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5"
               >
-                {/* ✅ Use ProductCard here */}
                 <ProductCard product={product} onAddToCart={handleAddToCart} />
               </div>
             ))
