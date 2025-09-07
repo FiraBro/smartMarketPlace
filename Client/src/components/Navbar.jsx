@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { FaShoppingCart, FaHeart, FaBars, FaTimes } from "react-icons/fa";
 import AuthModal from "./AuthModal";
 import { useAuth } from "../context/AuthContext";
-import { useCart } from "../context/CartContext"; // 🔥 use CartContext
+import { useCart } from "../context/CartContext";
 import SearchBar from "./SearchBar";
 
 export default function Navbar({ openCart, openFav, favorites }) {
@@ -17,7 +17,6 @@ export default function Navbar({ openCart, openFav, favorites }) {
     setIsAuthOpen(true);
   };
 
-  // ✅ calculate total items (instead of just array length)
   const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
@@ -30,15 +29,17 @@ export default function Navbar({ openCart, openFav, favorites }) {
           </a>
         </div>
 
-        {/* Search Bar */}
-        <SearchBar />
+        {/* Search Bar (hidden on small screens) */}
+        <div className="hidden md:block">
+          <SearchBar />
+        </div>
 
         {/* Right Side */}
         <div className="flex items-center gap-4">
           {user ? (
             <>
               {/* Favorites */}
-              <button onClick={openFav} className="relative">
+              <button onClick={openFav} className="relative hidden md:block">
                 <FaHeart className="w-6 h-6 text-gray-700 hover:text-red-600 transition" />
                 {favorites?.length > 0 && (
                   <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
@@ -48,7 +49,7 @@ export default function Navbar({ openCart, openFav, favorites }) {
               </button>
 
               {/* Cart */}
-              <button onClick={openCart} className="relative">
+              <button onClick={openCart} className="relative hidden md:block">
                 <FaShoppingCart className="w-6 h-6 text-gray-700" />
                 {totalCartItems > 0 && (
                   <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
@@ -60,7 +61,7 @@ export default function Navbar({ openCart, openFav, favorites }) {
               {/* Logout */}
               <button
                 onClick={logout}
-                className="px-4 py-2 bg-red-500 text-white rounded-full text-sm hover:bg-red-600"
+                className="hidden md:block px-4 py-2 bg-red-500 text-white rounded-full text-sm hover:bg-red-600"
               >
                 Logout
               </button>
@@ -94,7 +95,7 @@ export default function Navbar({ openCart, openFav, favorites }) {
             }
           />
 
-          {/* Mobile Menu */}
+          {/* Mobile Menu Toggle */}
           <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
             {menuOpen ? (
               <FaTimes className="w-6 h-6" />
@@ -104,6 +105,52 @@ export default function Navbar({ openCart, openFav, favorites }) {
           </button>
         </div>
       </div>
+
+      {/* ✅ Mobile Dropdown Menu */}
+      {menuOpen && (
+        <div className="md:hidden mt-4 bg-gray-50 shadow-lg rounded-lg p-4 space-y-3">
+          <SearchBar />
+          {user ? (
+            <>
+              <button
+                onClick={openFav}
+                className="flex items-center gap-2 w-full text-left"
+              >
+                <FaHeart className="text-red-500" /> Favorites (
+                {favorites?.length || 0})
+              </button>
+              <button
+                onClick={openCart}
+                className="flex items-center gap-2 w-full text-left"
+              >
+                <FaShoppingCart className="text-blue-500" /> Cart (
+                {totalCartItems})
+              </button>
+              <button
+                onClick={logout}
+                className="w-full px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                onClick={() => openAuthModal("login")}
+                className="w-full px-4 py-2 bg-white border rounded-lg text-gray-800 font-medium hover:bg-gray-100"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => openAuthModal("register")}
+                className="w-full px-4 py-2 bg-[#F9A03F] text-white rounded-lg font-medium hover:bg-orange-600"
+              >
+                Register
+              </button>
+            </>
+          )}
+        </div>
+      )}
     </nav>
   );
 }
