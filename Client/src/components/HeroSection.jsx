@@ -1,31 +1,52 @@
 import { useState, useEffect } from "react";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { getBanners } from "../service/bannerService"; // ✅ import service
 
 export const HeroSection = () => {
-  const images = [
-    "https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1503602642458-232111445657?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1585386959984-a4155224a1b5?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
-  ];
-
+  const [images, setImages] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Fetch banners on mount
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const banners = await getBanners();
+        // Map to proper image URLs (adjust host if needed)
+        const bannerUrls = banners.map(
+          (banner) =>
+            `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/${
+              banner.image
+            }`
+        );
+        setImages(bannerUrls);
+      } catch (error) {
+        console.error("Failed to fetch banners:", error);
+      }
+    };
+    fetchBanners();
+  }, []);
 
   // Next & Prev functions
   const nextImage = () => {
-    setCurrentIndex((prev) => (prev + 1) % images.length);
+    if (images.length > 0) {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }
   };
 
   const prevImage = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    if (images.length > 0) {
+      setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    }
   };
 
   // Auto scroll every 10s
   useEffect(() => {
-    const interval = setInterval(nextImage, 10000);
-    return () => clearInterval(interval);
-  }, []);
+    if (images.length > 0) {
+      const interval = setInterval(nextImage, 10000);
+      return () => clearInterval(interval);
+    }
+  }, [images]);
 
   return (
     <section className="relative bg-gradient-to-r from-[#F9A03F] to-purple-600 text-white py-20 px-4 rounded-2xl mt-10">
@@ -61,34 +82,44 @@ export const HeroSection = () => {
 
         {/* Right Image Carousel */}
         <div className="md:w-1/2 relative flex justify-center items-center overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.img
-              key={currentIndex}
-              src={images[currentIndex]}
-              alt="Hero Slide"
-              className="rounded-lg shadow-2xl w-full h-96 object-cover"
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }}
-              transition={{ duration: 0.8 }}
-            />
-          </AnimatePresence>
+          {images.length > 0 ? (
+            <AnimatePresence mode="wait">
+              <motion.img
+                key={currentIndex}
+                src={images[currentIndex]}
+                alt="Hero Slide"
+                className="rounded-lg shadow-2xl w-full h-96 object-cover"
+                initial={{ opacity: 0, scale: 1.1 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{ duration: 0.8 }}
+              />
+            </AnimatePresence>
+          ) : (
+            <div className="w-full h-96 flex items-center justify-center bg-gray-200 text-gray-600 rounded-lg">
+              Loading banners...
+            </div>
+          )}
 
           {/* Left Button */}
-          <button
-            onClick={prevImage}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/70 transition"
-          >
-            <FaChevronLeft size={20} />
-          </button>
+          {images.length > 1 && (
+            <button
+              onClick={prevImage}
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/70 transition"
+            >
+              <FaChevronLeft size={20} />
+            </button>
+          )}
 
           {/* Right Button */}
-          <button
-            onClick={nextImage}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/70 transition"
-          >
-            <FaChevronRight size={20} />
-          </button>
+          {images.length > 1 && (
+            <button
+              onClick={nextImage}
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 text-white p-2 rounded-full hover:bg-black/70 transition"
+            >
+              <FaChevronRight size={20} />
+            </button>
+          )}
         </div>
       </div>
     </section>
