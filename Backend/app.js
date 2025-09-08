@@ -11,6 +11,8 @@ import messageRoutes from "./routes/messageRoutes.js";
 import matricsRoutes from "./routes/matricsRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
+import bannerRoutes from "./routes/bannerRoutes.js";
+
 const app = express();
 
 // Middleware
@@ -26,6 +28,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/metrics", matricsRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/banners", bannerRoutes);
 
 // Handle unhandled routes
 // app.all("*", (req, res, next) => {
