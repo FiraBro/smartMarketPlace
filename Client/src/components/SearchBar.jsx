@@ -60,10 +60,7 @@ export default function SearchBar() {
   }, []);
 
   return (
-    <div
-      className="hidden md:flex flex-1 max-w-2xl mx-6 relative"
-      ref={popupRef}
-    >
+    <div className="hidden md:flex flex-1 mx-6 relative" ref={popupRef}>
       <div className="relative w-full" ref={catRef}>
         <div className="flex w-full border border-gray-300 rounded-full">
           <button
@@ -110,7 +107,12 @@ export default function SearchBar() {
       </div>
 
       {/* Popup results */}
-      <SearchPopup results={results} showPopup={showPopup} />
+      {/* <SearchPopup results={results} showPopup={showPopup} /> */}
+      <SearchPopup
+        results={results}
+        showPopup={showPopup}
+        onClose={() => setShowPopup(false)} // <-- hide popup when card clicked
+      />
     </div>
   );
 }
