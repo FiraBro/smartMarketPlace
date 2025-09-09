@@ -107,7 +107,6 @@ export default function SearchBar() {
       </div>
 
       {/* Popup results */}
-      {/* <SearchPopup results={results} showPopup={showPopup} /> */}
       <SearchPopup
         results={results}
         showPopup={showPopup}
