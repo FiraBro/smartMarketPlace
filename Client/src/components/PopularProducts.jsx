@@ -3,6 +3,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import ProductCard from "./ProductCard";
 import { getPopularProducts } from "../service/productService";
 import { addToCart } from "../service/cartService";
+import Spinner from "./Spinner";
 
 const PopularProducts = () => {
   const carouselRef = useRef(null);
@@ -22,6 +23,10 @@ const PopularProducts = () => {
     };
     fetchPopular();
   }, []);
+
+  if (loading) {
+    return <Spinner />; 
+  }
 
   const scroll = (direction) => {
     if (!carouselRef.current) return;
