@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import HomePage from "./pages/HomePage";
 import CartPopup from "./components/CartPopup";
 import FavoritePopup from "./components/FavoritePopup";
@@ -9,6 +9,7 @@ import { AuthProvider } from "./context/AuthContext";
 import ProductDetail from "./pages/ProductDetail";
 import { FavoriteProvider } from "./context/FavoriteContext";
 import { CartProvider } from "./context/CartContext";
+import Spinner from "./components/Spinner";
 
 export default function App() {
   const [favorites, setFavorites] = useState([]);
@@ -37,10 +38,7 @@ export default function App() {
       ),
       children: [
         { index: true, element: <HomePage /> },
-        {
-          path: "/listings/:id",
-          element: <ProductDetail />,
-        },
+        { path: "/listings/:id", element: <ProductDetail /> },
       ],
     },
   ]);
@@ -49,9 +47,12 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
         <FavoriteProvider>
-          <RouterProvider router={router} />
+          {/* Suspense fallback shows Spinner while routes/components load */}
+          <Suspense fallback={<Spinner />}>
+            <RouterProvider router={router} />
+          </Suspense>
 
-          {/* Popups use useCart() inside */}
+          {/* Popups */}
           <CartPopup
             isOpen={isCartOpen}
             onClose={closeCart}
