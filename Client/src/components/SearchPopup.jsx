@@ -1,4 +1,5 @@
 import ProductCard from "./ProductCard";
+
 export default function SearchPopup({
   results,
   showPopup,
@@ -16,23 +17,9 @@ export default function SearchPopup({
           {results.map((item) => (
             <div
               key={item._id}
-              onClick={() => onClose && onClose()} // <-- close popup when clicked
+              onClick={() => onClose && onClose()} // close popup when clicked
             >
-              <ProductCard
-                product={{
-                  id: item._id,
-                  name: item.title,
-                  price: item.price,
-                  image: item.images?.[0]
-                    ? `${
-                        import.meta.env.VITE_API_URL || "http://localhost:5000"
-                      }${item.images[0]}`
-                    : "https://via.placeholder.com/200",
-                  rating: item.rating || 0,
-                  reviews: item.reviews || 0,
-                }}
-                onAddToCart={onAddToCart}
-              />
+              <ProductCard product={item} onAddToCart={onAddToCart} />
             </div>
           ))}
         </div>
