@@ -36,6 +36,7 @@ export default function ProductCard({ product }) {
         <img
           src={normalized.image}
           alt={normalized.name}
+          loading="lazy"
           className="w-full h-full object-cover rounded-t-2xl"
         />
       </div>
