@@ -1,39 +1,87 @@
+// context/FavoriteContext.js
 import { createContext, useContext, useState, useEffect } from "react";
+import {
+  getFavorites,
+  addFavorite,
+  removeFavorite,
+  clearFavorites,
+} from "../service/favoriteService";
 
 const FavoriteContext = createContext();
 
 export const FavoriteProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
 
-  // Load from localStorage
   useEffect(() => {
-    const savedFavorites = localStorage.getItem("favorites");
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
-    }
+    fetchFavorites();
   }, []);
 
-  // Sync to localStorage
-  useEffect(() => {
-    localStorage.setItem("favorites", JSON.stringify(favorites));
-  }, [favorites]);
+  const fetchFavorites = async () => {
+    try {
+      const data = await getFavorites();
+      setFavorites(data.items || []);
+    } catch (err) {
+      console.error("Failed to fetch favorites:", err);
+    }
+  };
 
-  const addToFavorites = (product) => {
+  const addToFavoritesContext = async (product) => {
+    const normalized = {
+      _id: product._id || product.id,
+      name: product.name || product.title || "Unnamed Product",
+      image:
+        product.image ||
+        product.images?.[0] ||
+        "https://via.placeholder.com/200",
+      price: product.price || 0,
+    };
+
+    // Optimistically update local state
     setFavorites((prev) => {
-      if (prev.find((item) => item.id === product.id)) return prev; // avoid duplicates
-      return [...prev, product];
+      if (prev.find((item) => item._id === normalized._id)) return prev;
+      return [...prev, normalized];
     });
+
+    try {
+      await addFavorite(normalized);
+      fetchFavorites(); // sync with backend
+    } catch (err) {
+      console.error("Failed to add favorite:", err);
+      fetchFavorites(); // rollback on error
+    }
   };
 
-  const removeFromFavorites = (id) => {
-    setFavorites((prev) => prev.filter((item) => item.id !== id));
+  const removeFromFavoritesContext = async (_id) => {
+    setFavorites((prev) => prev.filter((item) => item._id !== _id));
+
+    try {
+      await removeFavorite(_id); // now backend receives listingId
+      fetchFavorites(); // keep frontend synced
+    } catch (err) {
+      console.error("Failed to remove favorite:", err);
+      fetchFavorites(); // rollback in case of error
+    }
   };
 
-  const clearFavorites = () => setFavorites([]);
+  const clearAllFavorites = async () => {
+    setFavorites([]); // clear instantly
+    try {
+      await clearFavorites();
+    } catch (err) {
+      console.error("Failed to clear favorites:", err);
+      fetchFavorites();
+    }
+  };
 
   return (
     <FavoriteContext.Provider
-      value={{ favorites, addToFavorites, removeFromFavorites, clearFavorites }}
+      value={{
+        favorites,
+        fetchFavorites,
+        addToFavorites: addToFavoritesContext,
+        removeFromFavorites: removeFromFavoritesContext,
+        clearFavorites: clearAllFavorites,
+      }}
     >
       {children}
     </FavoriteContext.Provider>
