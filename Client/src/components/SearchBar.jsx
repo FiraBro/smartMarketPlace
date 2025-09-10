@@ -60,7 +60,7 @@ export default function SearchBar() {
   }, []);
 
   return (
-    <div className="hidden md:flex flex-1 mx-6 relative" ref={popupRef}>
+    <div className="md:flex flex-1 mx-6 relative" ref={popupRef}>
       <div className="relative w-full" ref={catRef}>
         <div className="flex w-full border border-gray-300 rounded-full">
           <button
