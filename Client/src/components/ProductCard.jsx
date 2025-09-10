@@ -1,29 +1,18 @@
 import React from "react";
-import { FaShoppingCart } from "react-icons/fa";
+import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
+import { useFavorites } from "../context/FavoriteContext"; // ✅ use your context
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const { addItem } = useCart();
+  const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
 
   if (!product) return null;
 
-  // const normalized = {
-  //   _id: product._id || product.id,
-  //   name: product.title || product.name || "Unnamed Product",
-  //   price: product.price || 0,
-  //   image: product.images?.[0]?.url
-  //     ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${
-  //         product.images[0].url
-  //       }`
-  //     : product.image || "https://via.placeholder.com/200",
-  //   placeholder: product.images?.[0]?.placeholder || "", // blur placeholder
-  //   rating: product.rating || 0,
-  //   reviews: product.reviews || 0,
-  // };
   const normalized = {
     _id: product._id || product.id,
     name: product.title || product.name || "Unnamed Product",
@@ -33,8 +22,21 @@ export default function ProductCard({ product }) {
           product.images[0]
         }`
       : "https://via.placeholder.com/200",
-    // If your backend does not generate placeholder yet, you can skip or use placeholder image
     placeholder: "https://via.placeholder.com/20",
+    rating: product.rating || 0,
+    reviews: product.reviews || 0,
+  };
+
+  const isFavorite = favorites.some((item) => item._id === normalized._id);
+
+  const toggleFavorite = (e) => {
+    e.stopPropagation();
+    if (isFavorite) {
+      removeFromFavorites(normalized._id);
+    } else {
+      addToFavorites(normalized);
+      alert("Added to favorites!");
+    }
   };
 
   const handleAddToCart = (e) => {
@@ -58,6 +60,18 @@ export default function ProductCard({ product }) {
           alt={normalized.name}
           className="w-full h-full object-cover"
         />
+
+        {/* ❤️ Favorite Button */}
+        <button
+          onClick={toggleFavorite}
+          className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md hover:bg-red-100 transition"
+        >
+          <FaHeart
+            className={`w-5 h-5 ${
+              isFavorite ? "text-red-500" : "text-gray-500"
+            }`}
+          />
+        </button>
       </div>
 
       {/* Content */}
@@ -74,10 +88,7 @@ export default function ProductCard({ product }) {
             Br {normalized.price}
           </p>
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addItem(normalized._id, 1);
-            }}
+            onClick={handleAddToCart}
             className="text-yellow-500 hover:text-yellow-700 transition cursor-pointer"
           >
             <FaShoppingCart />
