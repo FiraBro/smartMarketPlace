@@ -12,6 +12,7 @@ import matricsRoutes from "./routes/matricsRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
+import favoriteRouter from "./routes/favoriteRoutes.js";
 
 const app = express();
 
@@ -29,6 +30,7 @@ app.use("/api/metrics", matricsRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/banners", bannerRoutes);
+app.use("/api/favorites", favoriteRouter);
 
 // Handle unhandled routes
 // app.all("*", (req, res, next) => {
