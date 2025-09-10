@@ -1,8 +1,11 @@
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
+import { useFavorites } from "../context/FavoriteContext";
 
-const FavoritePopup = ({ isOpen, onClose, favorites, onRemove }) => {
+const FavoritePopup = ({ isOpen, onClose }) => {
+  const { favorites, removeFromFavorites, clearFavorites } = useFavorites();
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -27,12 +30,22 @@ const FavoritePopup = ({ isOpen, onClose, favorites, onRemove }) => {
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b">
               <h2 className="text-xl font-semibold">Your Favorites ❤️</h2>
-              <button
-                onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
-              >
-                <FaTimes className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                {favorites.length > 0 && (
+                  <button
+                    onClick={clearFavorites}
+                    className="text-sm text-red-500 hover:underline"
+                  >
+                    Clear All
+                  </button>
+                )}
+                <button
+                  onClick={onClose}
+                  className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
+                >
+                  <FaTimes className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             {/* Favorites List */}
@@ -44,7 +57,7 @@ const FavoritePopup = ({ isOpen, onClose, favorites, onRemove }) => {
               ) : (
                 favorites.map((item) => (
                   <div
-                    key={item.id}
+                    key={item._id}
                     className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl shadow-sm"
                   >
                     <img
@@ -54,10 +67,10 @@ const FavoritePopup = ({ isOpen, onClose, favorites, onRemove }) => {
                     />
                     <div className="flex-1 min-w-0">
                       <h3 className="font-medium truncate">{item.name}</h3>
-                      <p className="text-sm text-gray-500">${item.price}</p>
+                      <p className="text-sm text-gray-500">Br {item.price}</p>
                     </div>
                     <button
-                      onClick={() => onRemove(item.id)}
+                      onClick={() => removeFromFavorites(item._id)}
                       className="text-red-500 hover:text-red-600 text-sm font-semibold"
                     >
                       Remove
