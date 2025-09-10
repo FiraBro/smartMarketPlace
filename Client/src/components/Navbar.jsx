@@ -20,26 +20,25 @@ export default function Navbar({ openCart, openFav, favorites }) {
   const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <nav className="bg-white px-6 py-3 shadow-sm relative">
-      <div className="max-w-7xl mx-auto flex items-center justify-between">
+    <nav className="bg-white px-4 md:px-6 py-3 shadow-sm relative">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Logo */}
-        <div className="text-2xl font-bold text-blue-600 cursor-pointer">
+        <div className="text-2xl font-bold text-blue-600 flex-shrink-0">
           <a href="/">
             Nexa<span className="text-[#f9A03f]">Mart</span>
           </a>
         </div>
 
-        {/* Search Bar (hidden on small screens) */}
-        <div className="hidden md:block">
+        {/* Desktop Search */}
+        <div className="hidden md:flex flex-1 mx-4">
           <SearchBar />
         </div>
 
-        {/* Right Side */}
-        <div className="flex items-center gap-4">
+        {/* Desktop Icons */}
+        <div className="hidden sm:flex items-center gap-3">
           {user ? (
             <>
-              {/* Favorites */}
-              <button onClick={openFav} className="relative hidden md:block">
+              <button onClick={openFav} className="relative">
                 <FaHeart className="w-6 h-6 text-gray-700 hover:text-red-600 transition" />
                 {favorites?.length > 0 && (
                   <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
@@ -48,8 +47,7 @@ export default function Navbar({ openCart, openFav, favorites }) {
                 )}
               </button>
 
-              {/* Cart */}
-              <button onClick={openCart} className="relative hidden md:block">
+              <button onClick={openCart} className="relative">
                 <FaShoppingCart className="w-6 h-6 text-gray-700" />
                 {totalCartItems > 0 && (
                   <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
@@ -58,58 +56,55 @@ export default function Navbar({ openCart, openFav, favorites }) {
                 )}
               </button>
 
-              {/* Logout */}
               <button
                 onClick={logout}
-                className="hidden md:block px-4 py-2 bg-red-500 text-white rounded-full text-sm hover:bg-red-600"
+                className="px-4 py-2 bg-red-500 text-white rounded-full text-sm hover:bg-red-600"
               >
                 Logout
               </button>
             </>
           ) : (
-            <div className="hidden md:flex items-center gap-3">
-              <div className="flex rounded-full overflow-hidden border border-gray-300">
-                <button
-                  onClick={() => openAuthModal("login")}
-                  className="px-6 py-2 bg-white text-gray-800 font-medium hover:bg-gray-100 transition"
-                >
-                  Login
-                </button>
-                <button
-                  onClick={() => openAuthModal("register")}
-                  className="px-6 py-2 bg-[#F9A03F] text-white font-medium hover:bg-orange-600 transition"
-                >
-                  Register
-                </button>
-              </div>
-            </div>
+            <>
+              <button
+                onClick={() => openAuthModal("login")}
+                className="px-4 py-2 bg-white border rounded-lg text-gray-800 hover:bg-gray-100"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => openAuthModal("register")}
+                className="px-4 py-2 bg-[#F9A03F] text-white rounded-lg hover:bg-orange-600"
+              >
+                Register
+              </button>
+            </>
           )}
-
-          {/* Auth Modal */}
-          <AuthModal
-            isOpen={isAuthOpen}
-            onClose={() => setIsAuthOpen(false)}
-            mode={authMode}
-            onSwitchMode={() =>
-              setAuthMode(authMode === "login" ? "register" : "login")
-            }
-          />
-
-          {/* Mobile Menu Toggle */}
-          <button className="md:hidden" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? (
-              <FaTimes className="w-6 h-6" />
-            ) : (
-              <FaBars className="w-6 h-6" />
-            )}
-          </button>
         </div>
+
+        {/* Mobile Menu Toggle */}
+        <button className="sm:hidden" onClick={() => setMenuOpen(!menuOpen)}>
+          {menuOpen ? (
+            <FaTimes className="w-6 h-6" />
+          ) : (
+            <FaBars className="w-6 h-6" />
+          )}
+        </button>
       </div>
 
-      {/* ✅ Mobile Dropdown Menu */}
-      {menuOpen && (
-        <div className="md:hidden mt-4 bg-gray-50 shadow-lg rounded-lg p-4 space-y-3">
-          <SearchBar />
+      {/* Mobile Menu */}
+      <div
+        className={`sm:hidden transition-all duration-300 ease-in-out ${
+          menuOpen
+            ? "max-h-96 opacity-100 mt-3"
+            : "max-h-0 opacity-0 overflow-hidden"
+        }`}
+      >
+        <div className="bg-gray-50 shadow-lg rounded-lg p-4 space-y-3">
+          {/* Mobile Search Bar - Always rendered but conditionally visible */}
+          <div className="w-full">
+            <SearchBar />
+          </div>
+
           {user ? (
             <>
               <button
@@ -137,20 +132,30 @@ export default function Navbar({ openCart, openFav, favorites }) {
             <>
               <button
                 onClick={() => openAuthModal("login")}
-                className="w-full px-4 py-2 bg-white border rounded-lg text-gray-800 font-medium hover:bg-gray-100"
+                className="w-full px-4 py-2 bg-white border rounded-lg text-gray-800 hover:bg-gray-100"
               >
                 Login
               </button>
               <button
                 onClick={() => openAuthModal("register")}
-                className="w-full px-4 py-2 bg-[#F9A03F] text-white rounded-lg font-medium hover:bg-orange-600"
+                className="w-full px-4 py-2 bg-[#F9A03F] text-white rounded-lg hover:bg-orange-600"
               >
                 Register
               </button>
             </>
           )}
         </div>
-      )}
+      </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        mode={authMode}
+        onSwitchMode={() =>
+          setAuthMode(authMode === "login" ? "register" : "login")
+        }
+      />
     </nav>
   );
 }
