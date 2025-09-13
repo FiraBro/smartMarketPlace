@@ -9,7 +9,7 @@ import {
 } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 
-export default function Profile() {
+export default function Profile({ openFav }) {
   const { user, logout } = useAuth();
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -88,12 +88,12 @@ export default function Profile() {
           <p className="text-gray-600 text-sm">
             View and manage your wishlist & saved items.
           </p>
-          <a
-            href="/favorites"
+          <button
+            onClick={openFav}
             className="block mt-4 text-red-500 font-medium hover:underline"
           >
             View Favorites →
-          </a>
+          </button>
         </div>
 
         {/* Addresses */}
