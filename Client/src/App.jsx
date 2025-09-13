@@ -39,7 +39,7 @@ export default function App() {
       children: [
         { index: true, element: <HomePage /> },
         { path: "/listings/:id", element: <ProductDetail /> },
-        { path: "/profile", element: <Profile /> },
+        { path: "/profile", element: <Profile openFav={openFav} /> },
       ],
     },
   ]);
