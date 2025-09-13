@@ -1,7 +1,7 @@
 import React from "react";
 import { HeroSection } from "../components/HeroSection";
 import MostSoldProductSection from "../components/MostSoldProductSection";
-import { FeaturesBanner } from "../components/FeaturesBanner";
+import { CategorySection } from "../components/CategorySection";
 import { BlogSection } from "../components/BlogSection";
 import { Footer } from "../components/Footer";
 import PopularProducts from "../components/PopularProducts";
@@ -11,7 +11,7 @@ export default function HomePage() {
   return (
     <div className="max-w-[85rem] mx-auto px-4 bg-[#fff]">
       <HeroSection />
-      <FeaturesBanner />
+      <CategorySection />
       <PopularProducts />
       <MostSoldProductSection />
       <BlogSection />
