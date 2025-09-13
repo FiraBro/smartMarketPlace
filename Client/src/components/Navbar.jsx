@@ -139,13 +139,15 @@ export default function Navbar({ openCart, openFav }) {
       >
         <div className="bg-gray-50 shadow-lg rounded-lg p-4 space-y-3">
           <div className="w-full flex flex-col gap-3">
-            <SearchBar />
+            {/* 🔥 All Products aligned like Cart/Fav */}
             <a
               href="/products"
-              className="px-4 py-2 bg-[#F9A03F] text-white rounded-lg hover:bg-orange-600 transition text-center"
+              className="flex items-center gap-2 w-full text-left text-[#000] hover:text-orange-600 transition"
             >
-              All Products
+              🛍️ All Products
             </a>
+
+            <SearchBar />
           </div>
 
           {user ? (
