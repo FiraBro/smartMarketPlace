@@ -39,8 +39,14 @@ export default function Navbar({ openCart, openFav }) {
           </a>
         </div>
 
-        {/* Desktop Search */}
-        <div className="hidden md:flex flex-1 mx-4">
+        {/* Search + All Products (Desktop) */}
+        <div className="hidden md:flex flex-1 mx-4 items-center gap-3">
+          <a
+            href="/products"
+            className="text-[#000] hover:text-orange-600 transition"
+          >
+            All Products &#8594;
+          </a>
           <SearchBar />
         </div>
 
@@ -132,8 +138,14 @@ export default function Navbar({ openCart, openFav }) {
         }`}
       >
         <div className="bg-gray-50 shadow-lg rounded-lg p-4 space-y-3">
-          <div className="w-full">
+          <div className="w-full flex flex-col gap-3">
             <SearchBar />
+            <a
+              href="/products"
+              className="px-4 py-2 bg-[#F9A03F] text-white rounded-lg hover:bg-orange-600 transition text-center"
+            >
+              All Products
+            </a>
           </div>
 
           {user ? (
