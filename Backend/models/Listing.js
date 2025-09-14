@@ -12,7 +12,15 @@ const ListingSchema = new mongoose.Schema(
       default: "used",
     },
     location: { type: String },
-    images: { type: [String], default: [] }, // store file paths
+
+    // ✅ allow objects instead of plain strings
+    images: [
+      {
+        url: { type: String, required: true },
+        placeholder: { type: String },
+      },
+    ],
+
     owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
