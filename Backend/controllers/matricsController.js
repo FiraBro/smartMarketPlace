@@ -25,23 +25,29 @@ export const getPopularProducts = catchAsync(async (req, res, next) => {
   const popular = await ProductView.aggregate([
     {
       $lookup: {
-        from: "listings", // must match your MongoDB collection name
+        from: "listings",
         localField: "product",
         foreignField: "_id",
         as: "product",
       },
     },
-    {
-      $unwind: {
-        path: "$product",
-        preserveNullAndEmptyArrays: false, // only include if listing exists
-      },
-    },
+    { $unwind: "$product" }, // automatically removes null
+    { $match: { "product._id": { $exists: true } } }, // only keep existing products
     { $sort: { views: -1 } },
     { $limit: limit },
   ]);
 
-  res.json(popular);
+  // map only the listing object
+  const products = popular.map((p) => p.product);
+
+  res.json({
+    page: 1,
+    limit,
+    total: products.length,
+    totalPages: 1,
+    hasNextPage: false,
+    items: products,
+  });
 });
 
 // Get top selling products
@@ -58,13 +64,14 @@ export const getTopSellingProducts = catchAsync(async (req, res, next) => {
     { $limit: 5 },
     {
       $lookup: {
-        from: "listings", // must match your MongoDB collection name
+        from: "listings",
         localField: "_id",
         foreignField: "_id",
         as: "product",
       },
     },
     { $unwind: "$product" },
+    { $match: { "product._id": { $exists: true } } }, // FILTER DELETED LISTINGS
     {
       $project: {
         totalSold: 1,
