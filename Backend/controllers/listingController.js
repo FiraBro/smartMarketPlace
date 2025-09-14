@@ -13,22 +13,28 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 const processImage = async (file) => {
   const ext = path.extname(file.filename).toLowerCase();
   const inputPath = path.join(uploadDir, file.filename);
-  const outputPath = inputPath; // overwrite original
+  const tempPath = path.join(uploadDir, `temp-${file.filename}`);
+
+  let buffer;
 
   if (ext === ".jpg" || ext === ".jpeg") {
-    await sharp(inputPath).jpeg({ progressive: true }).toFile(outputPath);
+    buffer = await sharp(inputPath).jpeg({ progressive: true }).toBuffer();
   } else if (ext === ".png") {
-    await sharp(inputPath).png({ progressive: true }).toFile(outputPath);
+    buffer = await sharp(inputPath).png({ progressive: true }).toBuffer();
   } else if (ext === ".webp") {
-    await sharp(inputPath).webp({ quality: 80 }).toFile(outputPath);
+    buffer = await sharp(inputPath).webp({ quality: 80 }).toBuffer();
+  } else {
+    return { url: `/uploads/${file.filename}`, placeholder: null };
   }
 
-  // Optional: generate tiny blurred placeholder
-  const placeholder = await sharp(inputPath)
-    .resize(20) // very small
-    .blur()
-    .toBuffer();
+  // write to temp file
+  await fs.promises.writeFile(tempPath, buffer);
 
+  // replace original (avoids OneDrive lock issue)
+  await fs.promises.rename(tempPath, inputPath);
+
+  // generate tiny blurred placeholder
+  const placeholder = await sharp(buffer).resize(20).blur().toBuffer();
   const placeholderBase64 = `data:image/${ext.replace(
     ".",
     ""
@@ -94,7 +100,7 @@ export const listListings = catchAsync(async (req, res, next) => {
   });
 });
 
-// Get single listing
+// Get single listing + related
 export const getListingById = catchAsync(async (req, res, next) => {
   const listing = await Listing.findById(req.params.id).lean();
   if (!listing) return next(new AppError("Listing not found", 404));
@@ -105,7 +111,15 @@ export const getListingById = catchAsync(async (req, res, next) => {
   else view.views += 1;
   await view.save();
 
-  res.json(listing);
+  // 🔹 Find related products (same category, not this product)
+  const related = await Listing.find({
+    category: listing.category,
+    _id: { $ne: listing._id },
+  })
+    .limit(4) // show max 4 related
+    .lean();
+
+  res.json({ listing, related });
 });
 
 // Create listing
