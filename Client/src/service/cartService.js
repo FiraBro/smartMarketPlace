@@ -27,19 +27,27 @@ export const addToCart = async (listingId, quantity = 1) => {
 // 🛒 Get user cart
 // service/cartService.js
 export const getCart = async () => {
-  const { data } = await CART_API.get("/"); // returns full cart object
+  const { data } = await CART_API.get("/");
+
+  const items = data.items || [];
+
   return {
-    items: data.items.map((item) => ({
-      id: item.listing._id, // map to frontend id
-      name: item.listing.title,
-      price: item.listing.price,
-      image: item.listing.images?.[0]
-        ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${
-            item.listing.images[0]
-          }`
-        : "https://via.placeholder.com/200",
-      quantity: item.quantity,
-    })),
+    items: items.map((item) => {
+      const imagePath =
+        item.listing?.images?.[0]?.url || item.listing?.images?.[0] || null;
+
+      return {
+        id: item.listing?._id || item.listing,
+        name: item.listing?.title || "Unknown Item",
+        price: item.listing?.price || 0,
+        image: imagePath
+          ? `${
+              import.meta.env.VITE_API_URL || "http://localhost:5000"
+            }${imagePath}`
+          : "https://via.placeholder.com/200",
+        quantity: item.quantity,
+      };
+    }),
   };
 };
 
