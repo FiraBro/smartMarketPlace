@@ -1,11 +1,10 @@
 import React from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 
 const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const { cart, removeItem, clear } = useCart();
-
   const totalPrice = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
