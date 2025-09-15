@@ -32,9 +32,9 @@ export const getFavorites = async () => {
       _id: item.listing._id,
       name: item.listing.title,
       price: item.listing.price,
-      image: item.listing.images?.[0]
+      image: item.listing.images?.[0]?.url
         ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${
-            item.listing.images[0]
+            item.listing.images[0].url
           }`
         : "https://via.placeholder.com/200",
     })),
