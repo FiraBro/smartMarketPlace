@@ -7,6 +7,7 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
 export default function ProductCard({ product }) {
+  console.log(product.images);
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
@@ -17,12 +18,13 @@ export default function ProductCard({ product }) {
     _id: product._id || product.id,
     name: product.title || product.name || "Unnamed Product",
     price: product.price || 0,
-    image: product.images?.[0]
+    image: product.images?.[0]?.url
       ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${
-          product.images[0]
+          product.images[0].url
         }`
       : "https://via.placeholder.com/200",
-    placeholder: "https://via.placeholder.com/20",
+    placeholder:
+      product.images?.[0]?.placeholder || "https://via.placeholder.com/20",
     rating: product.rating || 0,
     reviews: product.reviews || 0,
   };
@@ -41,7 +43,7 @@ export default function ProductCard({ product }) {
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
-    addItem(normalized._id, 1);
+    addItem(normalized, 1);
   };
 
   return (
