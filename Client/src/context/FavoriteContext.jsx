@@ -31,13 +31,12 @@ export const FavoriteProvider = ({ children }) => {
       name: product.name || product.title || "Unnamed Product",
       image:
         product.image ||
-        product.images?.[0]?.url || // ✅ use .url if images[0] is object
-        product.images?.[0] || // fallback if it’s string
+        product.images?.[0]?.url || // ✅ Use .url here
+        product.images?.[0] ||
         "https://via.placeholder.com/200",
       price: product.price || 0,
     };
 
-    // Optimistically update local state
     setFavorites((prev) => {
       if (prev.find((item) => item._id === normalized._id)) return prev;
       return [...prev, normalized];
