@@ -24,29 +24,26 @@ export const CartProvider = ({ children }) => {
       console.error("Failed to fetch cart:", err);
     }
   };
-
-  const addItem = async (productId, quantity = 1) => {
-    // ✅ Optimistically update local state
+  const addItem = async (product, quantity = 1) => {
+    // Optimistic update
     setCart((prev) => {
-      const existing = prev.find(
-        (item) => item._id === productId || item.id === productId
-      );
+      const existing = prev.find((item) => item._id === product._id);
       if (existing) {
         return prev.map((item) =>
-          item._id === productId || item.id === productId
+          item._id === product._id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
-      return [...prev, { _id: productId, quantity }];
+      return [...prev, { ...product, quantity }];
     });
 
     try {
-      await addToCart(productId, quantity);
-      fetchCart(); // sync with backend
+      await addToCart(product._id, quantity); // backend still expects id + qty
+      fetchCart(); // sync
     } catch (err) {
       console.error("Failed to add item:", err);
-      fetchCart(); // rollback in case of error
+      fetchCart(); // rollback
     }
   };
 
