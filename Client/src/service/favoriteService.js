@@ -26,18 +26,24 @@ export const addFavorite = async (product) => {
 
 // 🧾 Get user favorites
 export const getFavorites = async () => {
-  const { data } = await FAVORITE_API.get("/"); // returns full favorites object
+  const { data } = await FAVORITE_API.get("/"); // full favorites object
+
   return {
-    items: data.items.map((item) => ({
-      _id: item.listing._id,
-      name: item.listing.title,
-      price: item.listing.price,
-      image: item.listing.images?.[0]?.url
-        ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${
-            item.listing.images[0].url
-          }`
-        : "https://via.placeholder.com/200",
-    })),
+    items: data.items.map((item) => {
+      const listing = item.listing;
+      const imageUrl = listing.images?.[0]?.url || listing.images?.[0];
+
+      return {
+        _id: listing._id,
+        name: listing.title,
+        price: listing.price,
+        image: imageUrl
+          ? `${
+              import.meta.env.VITE_API_URL || "http://localhost:5000"
+            }${imageUrl}`
+          : "https://via.placeholder.com/200",
+      };
+    }),
   };
 };
 
