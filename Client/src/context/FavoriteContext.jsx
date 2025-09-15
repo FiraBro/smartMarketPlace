@@ -31,7 +31,8 @@ export const FavoriteProvider = ({ children }) => {
       name: product.name || product.title || "Unnamed Product",
       image:
         product.image ||
-        product.images?.[0] ||
+        product.images?.[0]?.url || // ✅ use .url if images[0] is object
+        product.images?.[0] || // fallback if it’s string
         "https://via.placeholder.com/200",
       price: product.price || 0,
     };
