@@ -223,3 +223,25 @@ export const deleteListing = catchAsync(async (req, res, next) => {
   await listing.deleteOne();
   res.json({ message: "Listing deleted" });
 });
+// Get all listings with pagination only
+export const getAllListings = catchAsync(async (req, res, next) => {
+  const { page = 1, limit = 12, sort = "-createdAt" } = req.query;
+
+  const pageNum = Math.max(1, parseInt(page));
+  const pageSize = Math.min(60, Math.max(1, parseInt(limit)));
+  const skip = (pageNum - 1) * pageSize;
+
+  const [items, total] = await Promise.all([
+    Listing.find().sort(sort).skip(skip).limit(pageSize).lean(),
+    Listing.countDocuments(),
+  ]);
+
+  res.json({
+    page: pageNum,
+    limit: pageSize,
+    total,
+    totalPages: Math.ceil(total / pageSize) || 1,
+    hasNextPage: skip + items.length < total,
+    items,
+  });
+});
