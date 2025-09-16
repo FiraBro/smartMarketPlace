@@ -11,6 +11,7 @@ import { FavoriteProvider } from "./context/FavoriteContext";
 import { CartProvider } from "./context/CartContext";
 import Spinner from "./components/Spinner";
 import Profile from "./components/Profile";
+import AllListingsPage from "./pages/AllListingPage";
 export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -40,6 +41,7 @@ export default function App() {
         { index: true, element: <HomePage /> },
         { path: "/listings/:id", element: <ProductDetail /> },
         { path: "/profile", element: <Profile openFav={openFav} /> },
+        { path: "/listings", element: <AllListingsPage /> },
       ],
     },
   ]);
