@@ -33,3 +33,11 @@ export const getListingById = async (id) => {
   const { data } = await LISTING_API.get(`/listings/${id}`);
   return data; // single product object
 };
+// Get all listings with pagination
+export const getAllListings = async (page = 1, limit = 12) => {
+  const res = await LISTING_API.get(`/listings/all`, {
+    params: { page, limit },
+  });
+  console.log(res);
+  return res.data;
+};
