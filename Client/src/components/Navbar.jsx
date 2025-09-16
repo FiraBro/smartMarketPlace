@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Navigate, useNavigate } from "react-router-dom";
 import {
   FaShoppingCart,
   FaHeart,
@@ -13,6 +14,7 @@ import { useFavorites } from "../context/FavoriteContext";
 import SearchBar from "./SearchBar";
 
 export default function Navbar({ openCart, openFav }) {
+  const Navigate = useNavigate();
   const { user, logout } = useAuth();
   const { cart } = useCart();
   const { favorites } = useFavorites();
@@ -21,6 +23,10 @@ export default function Navbar({ openCart, openFav }) {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
 
+  const handleLogout = () => {
+    logout();
+    Navigate("/");
+  };
   const openAuthModal = (mode) => {
     setAuthMode(mode);
     setIsAuthOpen(true);
@@ -42,7 +48,7 @@ export default function Navbar({ openCart, openFav }) {
         {/* Search + All Products (Desktop) */}
         <div className="hidden md:flex flex-1 mx-4 items-center gap-3">
           <a
-            href="/products"
+            href="/listings"
             className="text-[#000] hover:text-orange-600 transition"
           >
             All Products &#8594;
@@ -92,7 +98,7 @@ export default function Navbar({ openCart, openFav }) {
                       My Profile
                     </a>
                     <button
-                      onClick={logout}
+                      onClick={handleLogout}
                       className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
                     >
                       Logout
@@ -172,7 +178,7 @@ export default function Navbar({ openCart, openFav }) {
                 <FaUserCircle className="text-gray-600" /> My Profile
               </a>
               <button
-                onClick={logout}
+                onClick={handleLogout}
                 className="w-full px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
               >
                 Logout
