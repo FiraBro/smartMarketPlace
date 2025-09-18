@@ -1,5 +1,7 @@
 import Listing from "../models/Listing.js";
 import ProductView from "../models/ProductView.js";
+import Newsletter from "../models/NewsLetter.js";
+import { sendEmail } from "../utils/sendEmail.js";
 import fs from "fs";
 import path from "path";
 import sharp from "sharp";
@@ -123,8 +125,10 @@ export const getListingById = catchAsync(async (req, res, next) => {
 });
 
 // Create listing
+
 export const createListing = catchAsync(async (req, res, next) => {
   const { title, description, price, category, condition, location } = req.body;
+
   if (!title || !description || !price)
     return next(
       new AppError("title, description, and price are required", 400)
@@ -147,6 +151,22 @@ export const createListing = catchAsync(async (req, res, next) => {
     images,
     owner: req.user._id,
   });
+
+  // Send email to all newsletter subscribers
+  const subscribers = await Newsletter.find({});
+  for (const subscriber of subscribers) {
+    await sendEmail({
+      to: subscriber.email,
+      subject: `New Product Added: ${listing.title}`,
+      html: `
+        <h2>New Product Alert!</h2>
+        <p><strong>${listing.title}</strong></p>
+        <p>${listing.description}</p>
+        <p>Price: $${listing.price}</p>
+        <a href="${process.env.FRONTEND_URL}/listings/${listing._id}" style="color: #F9A03F;">View Product</a>
+      `,
+    });
+  }
 
   res.status(201).json(listing);
 });
