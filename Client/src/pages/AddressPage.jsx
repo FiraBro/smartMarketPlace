@@ -142,7 +142,7 @@ const AddressPage = () => {
             </button>
             <button
               type="submit"
-              className="w-1/2 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow hover:bg-blue-700 transition"
+              className="w-1/2 py-3 bg-amber-600 text-white font-semibold rounded-lg shadow hover:bg-amber-500 transition"
             >
               Save Address
             </button>
