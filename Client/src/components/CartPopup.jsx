@@ -198,7 +198,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                   {/* Checkout Button */}
                   <button
                     onClick={handleCheckout}
-                    className="w-full py-3 bg-blue-600 text-white rounded-xl shadow hover:bg-blue-700 transition text-sm sm:text-base"
+                    className="w-full py-3 bg-amber-600 text-white rounded-xl shadow hover:bg-amber-500 transition text-sm sm:text-base cursor-pointer"
                   >
                     Place Order
                   </button>
