@@ -136,13 +136,13 @@ const AddressPage = () => {
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="w-1/2 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition"
+              className="w-1/2 py-3 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-100 transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="w-1/2 py-3 bg-amber-600 text-white font-semibold rounded-lg shadow hover:bg-amber-500 transition"
+              className="w-1/2 py-3 bg-amber-600 text-white font-semibold rounded-lg shadow hover:bg-amber-500 transition cursor-pointer"
             >
               Save Address
             </button>
