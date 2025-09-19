@@ -12,6 +12,7 @@ import { CartProvider } from "./context/CartContext";
 import Spinner from "./components/Spinner";
 import Profile from "./components/Profile";
 import AllListingsPage from "./pages/AllListingPage";
+import AddressPage from "./pages/AddressPage";
 export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -42,6 +43,7 @@ export default function App() {
         { path: "/listings/:id", element: <ProductDetail /> },
         { path: "/profile", element: <Profile openFav={openFav} /> },
         { path: "/listings", element: <AllListingsPage /> },
+        { path: "/address", element: <AddressPage /> },
       ],
     },
   ]);
