@@ -1,24 +1,32 @@
 import React, { useRef, useState, useEffect } from "react";
-import ProductCard from "./ProductCard";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import ProductCard from "./ProductCard";
 import { getTopSellingProducts } from "../service/productService";
-const MostSoldProductSection = ({ title, icon, onAddToCart }) => {
+import { addToCart } from "../service/cartService";
+import Spinner from "./Spinner";
+
+const MostSoldProductSection = () => {
+  const carouselRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const carouselRef = useRef(null);
-
-  // Fetch top selling products
+  const [error, setError] = useState(null);
   useEffect(() => {
     const fetchTopSelling = async () => {
       try {
-        const data = await getTopSellingProducts();
-        setProducts(data.map((item) => item.product));
+        setLoading(true);
+        const res = await getTopSellingProducts();
+
+        // Handle both array or { items: [] } API responses
+        const data = res.items || res || [];
+        setProducts(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch top selling products", err);
+        setError("Failed to load top selling products ❌");
       } finally {
         setLoading(false);
       }
     };
+
     fetchTopSelling();
   }, []);
 
@@ -26,65 +34,88 @@ const MostSoldProductSection = ({ title, icon, onAddToCart }) => {
     if (!carouselRef.current) return;
 
     const container = carouselRef.current;
-    const card = container.firstChild;
-    if (!card) return;
+    const firstCard = container.querySelector(".flex-shrink-0");
+    if (!firstCard) return;
 
-    const cardStyle = getComputedStyle(card);
-    const cardWidth = card.offsetWidth + parseInt(cardStyle.marginRight);
-
-    // Calculate max scroll
-    const maxScroll = container.scrollWidth - container.clientWidth;
-
-    // Calculate next scroll position
+    const scrollAmount = container.offsetWidth; // Scroll by viewport width
     let nextScroll =
       direction === "next"
-        ? Math.min(container.scrollLeft + cardWidth, maxScroll)
-        : Math.max(container.scrollLeft - cardWidth, 0);
+        ? container.scrollLeft + scrollAmount
+        : container.scrollLeft - scrollAmount;
 
     container.scrollTo({ left: nextScroll, behavior: "smooth" });
   };
 
+  const handleAddToCart = async (product) => {
+    try {
+      const listingId = product._id || product.id;
+      if (!listingId) {
+        console.error("Product missing ID:", product);
+        return alert("Product ID not found ❌");
+      }
+
+      await addToCart(listingId, 1);
+      alert(`${product.title || product.name} added to cart ✅`);
+    } catch (err) {
+      console.error("Failed to add to cart:", err);
+      alert("Something went wrong while adding to cart ❌");
+    }
+  };
+
+  if (loading) {
+    return <Spinner />;
+  }
+
   return (
-    <section className="py-6 bg-white relative">
-      <div className="max-w-[85rem] mx-auto relative">
-        <div className="flex items-center mb-6">
-          <h2 className="text-2xl md:text-3xl font-bold">
-            {title || "Most Sold Products"}
-          </h2>
-          <a href="#" className="ml-auto text-blue-600 hover:underline">
-            View All
-          </a>
-        </div>
+    <section className="py-6 bg-white">
+      <div className="max-w-[85rem] mx-auto relative px-4">
+        <h2 className="text-3xl font-bold mb-6">Most Sold Products</h2>
 
-        {/* Left Button */}
-        <button
-          onClick={() => scroll("prev")}
-          className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-3 rounded-full hover:bg-gray-300 transition-colors duration-300 z-10"
-        >
-          <FaChevronLeft className="h-5 w-5" />
-        </button>
+        {error && <p className="text-center text-red-500 mb-4">{error}</p>}
 
-        {/* Right Button */}
-        <button
-          onClick={() => scroll("next")}
-          className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-gray-200 p-3 rounded-full hover:bg-gray-300 transition-colors duration-300 z-10"
-        >
-          <FaChevronRight className="h-5 w-5" />
-        </button>
+        {/* Navigation buttons - only show if there are products */}
+        {products.length > 0 && (
+          <>
+            <button
+              onClick={() => scroll("prev")}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 
+                         bg-gray-200 p-3 rounded-full hover:bg-gray-300 
+                         transition-colors duration-300 z-10"
+            >
+              <FaChevronLeft className="h-5 w-5" />
+            </button>
+
+            <button
+              onClick={() => scroll("next")}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 
+                         bg-gray-200 p-3 rounded-full hover:bg-gray-300 
+                         transition-colors duration-300 z-10"
+            >
+              <FaChevronRight className="h-5 w-5" />
+            </button>
+          </>
+        )}
 
         {/* Carousel */}
-        <div ref={carouselRef} className="flex space-x-6 overflow-hidden p-4 w-60">
-          {loading ? (
-            <p className="text-center w-full">
-              Loading top selling products...
-            </p>
+        <div
+          ref={carouselRef}
+          className="flex overflow-hidden scroll-smooth p-2"
+          style={{ minHeight: "380px" }}
+        >
+          {error ? (
+            <p className="text-center w-full text-red-500">{error}</p>
           ) : products.length > 0 ? (
             products.map((product) => (
-              <ProductCard
-                key={product._id}
-                product={product}
-                onAddToCart={onAddToCart}
-              />
+              <div
+                key={product._id || product.id}
+                className="flex-shrink-0 px-3 flex
+                           w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5"
+              >
+                <ProductCard
+                  product={product.product}
+                  onAddToCart={handleAddToCart}
+                />
+              </div>
             ))
           ) : (
             <p className="text-center w-full">No top selling products found</p>
