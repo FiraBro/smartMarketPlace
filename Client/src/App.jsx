@@ -13,6 +13,9 @@ import Spinner from "./components/Spinner";
 import Profile from "./components/Profile";
 import AllListingsPage from "./pages/AllListingPage";
 import AddressPage from "./pages/AddressPage";
+import PaymentPage from "./pages/PaymentPage";
+import OrdersPage from "./pages/OrderPage";
+
 export default function App() {
   const [favorites, setFavorites] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -20,17 +23,11 @@ export default function App() {
 
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
-
   const openFav = () => setIsFavOpen(true);
   const closeFav = () => setIsFavOpen(false);
 
   const handleRemoveFav = (id) =>
     setFavorites((prev) => prev.filter((i) => i.id !== id));
-
-  const handleCheckout = () => {
-    console.log("checkout");
-    closeCart();
-  };
 
   const router = createBrowserRouter([
     {
@@ -44,6 +41,8 @@ export default function App() {
         { path: "/profile", element: <Profile openFav={openFav} /> },
         { path: "/listings", element: <AllListingsPage /> },
         { path: "/address", element: <AddressPage /> },
+        { path: "/payment/:orderId", element: <PaymentPage /> },
+        { path: "/orders", element: <OrdersPage /> },
       ],
     },
   ]);
@@ -52,17 +51,9 @@ export default function App() {
     <AuthProvider>
       <CartProvider>
         <FavoriteProvider>
-          {/* Suspense fallback shows Spinner while routes/components load */}
           <Suspense fallback={<Spinner />}>
             <RouterProvider router={router} />
           </Suspense>
-
-          {/* Popups */}
-          <CartPopup
-            isOpen={isCartOpen}
-            onClose={closeCart}
-            onCheckout={handleCheckout}
-          />
           <FavoritePopup
             isOpen={isFavOpen}
             onClose={closeFav}
