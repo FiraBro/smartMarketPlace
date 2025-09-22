@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
+import { createOrder } from "../service/orderService";
 
 const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const { cart, removeItem, clear } = useCart();
   const [payment, setPayment] = useState("card");
+  const [loading, setLoading] = useState(false);
 
   // Example: fetch saved address from localStorage
   const savedAddress = localStorage.getItem("deliveryAddress");
@@ -18,12 +20,39 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const discount = subtotal > 100 ? 15 : 0;
   const total = subtotal + shipping - discount;
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!savedAddress) {
       alert("Please add a delivery address before checkout.");
       return;
     }
-    onCheckout({ address: savedAddress, payment, total });
+    if (cart.length === 0) {
+      alert("Cart is empty!");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      // call backend createOrder
+      const order = await createOrder({
+        products: cart.map((item) => ({
+          product: item._id || item.id,
+          quantity: item.quantity,
+        })),
+        address: savedAddress,
+        payment,
+        total,
+      });
+
+      // call parent callback for navigation / UI update
+      onCheckout(order);
+      clear(); // optional: clear cart after checkout
+    } catch (err) {
+      console.error(err);
+      alert(err.message || "Failed to place order");
+    } finally {
+      setLoading(false);
+      onClose();
+    }
   };
 
   return (
@@ -50,7 +79,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-b-amber-100">
               <h2 className="text-xl font-semibold">Your Cart</h2>
-              <p></p>
               <div className="flex items-center gap-3">
                 {cart.length > 0 && (
                   <button
@@ -73,12 +101,10 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             {/* Content */}
             <div className="flex-1 p-4">
               {cart.length === 0 ? (
-                // Empty cart message
                 <div className="flex h-full items-center justify-center">
                   <p className="text-gray-500 text-lg">Your cart is empty 🛒</p>
                 </div>
               ) : (
-                // Items + Summary Grid
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full overflow-hidden">
                   {/* Items */}
                   <div className="space-y-4 overflow-y-auto pr-2 max-h-[70vh]">
@@ -140,36 +166,27 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                         Payment Method
                       </span>
                       <div className="space-y-2">
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="payment"
-                            value="card"
-                            checked={payment === "card"}
-                            onChange={() => setPayment("card")}
-                          />
-                          <span>Credit / Debit Card</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="payment"
-                            value="paypal"
-                            checked={payment === "paypal"}
-                            onChange={() => setPayment("paypal")}
-                          />
-                          <span>PayPal</span>
-                        </label>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="radio"
-                            name="payment"
-                            value="cod"
-                            checked={payment === "cod"}
-                            onChange={() => setPayment("cod")}
-                          />
-                          <span>Cash on Delivery</span>
-                        </label>
+                        {["card", "paypal", "cod"].map((method) => (
+                          <label
+                            key={method}
+                            className="flex items-center gap-2 cursor-pointer"
+                          >
+                            <input
+                              type="radio"
+                              name="payment"
+                              value={method}
+                              checked={payment === method}
+                              onChange={() => setPayment(method)}
+                            />
+                            <span>
+                              {method === "card"
+                                ? "Credit / Debit Card"
+                                : method === "paypal"
+                                ? "PayPal"
+                                : "Cash on Delivery"}
+                            </span>
+                          </label>
+                        ))}
                       </div>
                     </div>
 
@@ -199,9 +216,12 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                     {/* Checkout */}
                     <button
                       onClick={handleCheckout}
-                      className="w-full py-3 bg-amber-600 text-white rounded-xl shadow hover:bg-amber-500 transition text-sm sm:text-base cursor-pointer"
+                      disabled={loading}
+                      className={`w-full py-3 bg-amber-600 text-white rounded-xl shadow hover:bg-amber-500 transition text-sm sm:text-base ${
+                        loading ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                     >
-                      Place Order
+                      {loading ? "Placing Order..." : "Place Order"}
                     </button>
                   </div>
                 </div>
