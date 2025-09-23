@@ -38,7 +38,7 @@ export const createOrder = async ({ products, address, payment, total }) => {
 // ✅ Get all orders (user → own orders, admin → all orders)
 export const getOrders = async () => {
   try {
-    const response = await orderAPI.get("/orders");
+    const response = await orderAPI.get("/orders/myorders");
     console.log("getOrders response data:", response.data); // Debugging line
     return response.data;
   } catch (error) {
