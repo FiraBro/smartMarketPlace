@@ -10,7 +10,8 @@ const OrdersPage = () => {
     const fetchOrders = async () => {
       try {
         const data = await getOrders();
-        console.log(data)
+        console.log(data);
+        console.log(data);
         setOrders(data);
       } catch (err) {
         console.error(err);
