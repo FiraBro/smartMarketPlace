@@ -1,4 +1,3 @@
-// controllers/orderController.js
 import Cart from "../models/Cart.js";
 import Order from "../models/Order.js";
 import catchAsync from "../utils/catchAsync.js";
@@ -30,7 +29,7 @@ export const createOrder = catchAsync(async (req, res, next) => {
   const order = new Order({
     user: req.user._id,
     products: orderProducts,
-    status: "pending", // default status
+    status: "pending",
     isPaid: false,
   });
 
@@ -39,12 +38,21 @@ export const createOrder = catchAsync(async (req, res, next) => {
   res.status(201).json(order);
 });
 
-// ✅ Get all orders (admin sees all, user sees own)
+// ✅ Get all orders (admin only)
 export const getOrders = catchAsync(async (req, res, next) => {
-  const filter = req.user.role === "admin" ? {} : { user: req.user._id };
+  if (req.user.role !== "admin") {
+    return next(new AppError("Not authorized, admin only", 403));
+  }
 
-  const orders = await Order.find(filter).populate("products.product");
+  const orders = await Order.find().populate("products.product");
+  res.json(orders);
+});
 
+// ✅ Get my orders (logged-in user)
+export const getMyOrders = catchAsync(async (req, res) => {
+  const orders = await Order.find({ user: req.user._id }).populate(
+    "products.product"
+  );
   res.json(orders);
 });
 
@@ -68,7 +76,11 @@ export const getOrderById = catchAsync(async (req, res, next) => {
 
 // ✅ Update order status (admin only)
 export const updateOrderStatus = catchAsync(async (req, res, next) => {
-  const { status } = req.body; // e.g. "shipped", "delivered"
+  if (req.user.role !== "admin") {
+    return next(new AppError("Not authorized, admin only", 403));
+  }
+
+  const { status } = req.body;
   const order = await Order.findById(req.params.id);
 
   if (!order) return next(new AppError("Order not found", 404));
@@ -79,7 +91,7 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
   res.json(order);
 });
 
-// ✅ Mark order as paid (simulate payment success)
+// ✅ Mark order as paid
 export const payOrder = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
@@ -119,6 +131,5 @@ export const cancelOrder = catchAsync(async (req, res, next) => {
   }
 
   await order.deleteOne();
-
   res.json({ message: "Order cancelled" });
 });
