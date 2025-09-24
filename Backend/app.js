@@ -14,6 +14,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import favoriteRouter from "./routes/favoriteRoutes.js";
 import newsLetter from "./routes/newsLetterRoutes.js";
+import paymentRoutes from "./routes/pamentRoutes.js";
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/favorites", favoriteRouter);
 app.use("/api/newsletter", newsLetter);
+app.use("/api/payments", paymentRoutes);
 
 // Handle unhandled routes
 // app.all("*", (req, res, next) => {
