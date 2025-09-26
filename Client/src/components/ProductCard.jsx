@@ -29,6 +29,7 @@ export default function ProductCard({ product }) {
     reviews: product.reviews || 0,
   };
 
+
   const isFavorite = favorites.some((item) => item._id === normalized._id);
 
   const toggleFavorite = (e) => {
@@ -53,7 +54,7 @@ export default function ProductCard({ product }) {
     >
       {/* Image container */}
       <div className="w-full aspect-[4/3.5] relative overflow-hidden rounded-t-2xl">
-        <LazyLoadImage
+        {/* <LazyLoadImage
           src={normalized.image}
           placeholderSrc={
             normalized.placeholder || "https://via.placeholder.com/200"
@@ -61,7 +62,12 @@ export default function ProductCard({ product }) {
           effect="blur"
           alt={normalized.name}
           className="w-full h-full object-cover"
-        />
+        /> */}
+<LazyLoadImage
+  src={normalized.image}
+  alt={normalized.name}
+  className="w-full h-full object-cover"
+/>
 
         {/* ❤️ Favorite Button */}
         <button
