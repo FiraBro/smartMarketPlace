@@ -1,17 +1,35 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 import { createOrder } from "../service/orderService";
+import { getAddresses } from "../service/addressService"; // fetch addresses from backend
+import { useNavigate } from "react-router-dom";
 
 const CartPopup = ({ isOpen, onClose, onCheckout }) => {
-  const { cart, removeItem, clear } = useCart();
+  const { cart, addItem, removeItem, clear } = useCart();
   const [payment, setPayment] = useState("card");
   const [loading, setLoading] = useState(false);
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddress, setSelectedAddress] = useState(null);
+  console.log(addresses);
+  const navigate = useNavigate();
 
-  // Example: fetch saved address from localStorage
-  const savedAddress = localStorage.getItem("deliveryAddress");
+  // Fetch addresses from backend on mount
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      try {
+        const data = await getAddresses();
+        setAddresses(data);
+        if (data.length > 0) setSelectedAddress(data[0]); // default first address
+      } catch (err) {
+        console.error("Failed to fetch addresses", err);
+      }
+    };
+    fetchAddresses();
+  }, []);
 
+  // Calculate totals
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
@@ -21,8 +39,8 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const total = subtotal + shipping - discount;
 
   const handleCheckout = async () => {
-    if (!savedAddress) {
-      alert("Please add a delivery address before checkout.");
+    if (!selectedAddress) {
+      alert("Please select a delivery address before checkout.");
       return;
     }
     if (cart.length === 0) {
@@ -32,20 +50,19 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
 
     try {
       setLoading(true);
-      // call backend createOrder
+
       const order = await createOrder({
         products: cart.map((item) => ({
           product: item._id || item.id,
           quantity: item.quantity,
         })),
-        address: savedAddress,
+        address: selectedAddress,
         payment,
         total,
       });
 
-      // call parent callback for navigation / UI update
-      onCheckout(order);
-      clear(); // optional: clear cart after checkout
+      onCheckout(order); // parent callback (navigate or refresh orders)
+      clear(); // clear cart after successful checkout
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to place order");
@@ -115,17 +132,37 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       >
                         <div className="flex-shrink-0 w-16 h-16">
                           <img
-                            src={item.image}
+                            src={item.image || "https://via.placeholder.com/80"}
                             alt={item.name}
                             className="w-full h-full object-cover rounded-lg"
                           />
                         </div>
+
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium truncate">{item.name}</h3>
-                          <p className="text-sm text-gray-500">
-                            ${item.price} × {item.quantity}
-                          </p>
+                          <p className="text-sm text-gray-500">${item.price}</p>
+
+                          <div className="flex items-center mt-2 space-x-2">
+                            <button
+                              onClick={() =>
+                                item.quantity > 1
+                                  ? addItem(item, -1)
+                                  : removeItem(item._id || item.id)
+                              }
+                              className="px-2 py-1 border rounded"
+                            >
+                              -
+                            </button>
+                            <span>{item.quantity}</span>
+                            <button
+                              onClick={() => addItem(item, 1)}
+                              className="px-2 py-1 border rounded"
+                            >
+                              +
+                            </button>
+                          </div>
                         </div>
+
                         <button
                           onClick={() => removeItem(item._id || item.id)}
                           className="text-red-500 hover:text-red-600 text-sm font-semibold"
@@ -143,22 +180,53 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                     </h3>
 
                     {/* Delivery Address */}
-                    <div className="flex justify-between items-center">
+                    <div>
                       <span className="text-sm font-medium text-gray-700">
                         Delivery Address
                       </span>
-                      <a
-                        href="/address"
-                        className="text-blue-600 hover:underline text-sm"
-                      >
-                        {savedAddress ? "Change" : "Add"}
-                      </a>
+                      <div className="space-y-2 mt-2">
+                        {addresses.length === 0 && (
+                          <button
+                            onClick={() => navigate("/address")}
+                            className="text-blue-600 hover:underline text-sm"
+                          >
+                            Add Address
+                          </button>
+                        )}
+
+                        {addresses.map((addr) => (
+                          <label
+                            key={addr._id}
+                            className="block cursor-pointer"
+                          >
+                            <input
+                              type="radio"
+                              name="address"
+                              value={addr._id}
+                              checked={selectedAddress?._id === addr._id}
+                              onChange={() => setSelectedAddress(addr)}
+                              className="mr-2"
+                            />
+                            {addr.street}, {addr.city}, {addr.country}
+                          </label>
+                        ))}
+
+                        {selectedAddress && (
+                          <p className="text-sm text-gray-600 bg-white p-2 rounded mt-1">
+                            {selectedAddress.street}, {selectedAddress.city},{" "}
+                            {selectedAddress.state} {selectedAddress.zip},{" "}
+                            {selectedAddress.country} ({selectedAddress.phone})
+                          </p>
+                        )}
+
+                        <button
+                          onClick={() => navigate("/address")}
+                          className="text-blue-600 hover:underline text-sm mt-1"
+                        >
+                          Manage Addresses
+                        </button>
+                      </div>
                     </div>
-                    {savedAddress && (
-                      <p className="text-sm text-gray-600 bg-white p-2 rounded">
-                        {savedAddress}
-                      </p>
-                    )}
 
                     {/* Payment Method */}
                     <div className="flex flex-col gap-2">
