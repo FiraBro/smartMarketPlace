@@ -17,15 +17,11 @@ CART_API.interceptors.request.use((config) => {
 
 // ➕ Add item to cart
 export const addToCart = async (listingId, quantity = 1) => {
-  const { data } = await CART_API.post("/add", {
-    listingId, // ✅ must match backend controller
-    quantity,
-  });
+  const { data } = await CART_API.post("/add", { listingId, quantity });
   return data;
 };
 
 // 🛒 Get user cart
-// service/cartService.js
 export const getCart = async () => {
   const { data } = await CART_API.get("/");
 
@@ -53,17 +49,14 @@ export const getCart = async () => {
 
 // ✏️ Update cart item quantity
 export const updateCartItem = async (listingId, quantity) => {
-  const { data } = await CART_API.put("/update", {
-    listingId,
-    quantity,
-  });
+  const { data } = await CART_API.put("/update", { listingId, quantity });
   return data;
 };
 
 // ❌ Remove item from cart
 export const removeFromCart = async (listingId) => {
   const { data } = await CART_API.delete("/remove", {
-    data: { listingId }, // axios requires `data` for DELETE body
+    data: { listingId },
   });
   return data;
 };
@@ -72,4 +65,54 @@ export const removeFromCart = async (listingId) => {
 export const clearCart = async () => {
   const { data } = await CART_API.delete("/clear");
   return data;
+};
+
+//
+// ✅ Checkout + Payment Section
+//
+
+// Checkout cart → creates an order in backend
+export const checkoutCart = async () => {
+  const { data } = await axios.post(
+    `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/orders`,
+    {}, // body is empty since order is created from cart
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+  return data; // returns the new order
+};
+
+// Pay with Cash on Delivery
+export const payWithCOD = async (orderId) => {
+  const { data } = await axios.post(
+    `${
+      import.meta.env.VITE_API_URL || "http://localhost:5000"
+    }/api/payments/cod`,
+    { orderId },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+  return data;
+};
+
+// Pay with TeleBirr
+export const payWithTeleBirr = async (orderId, phone) => {
+  const { data } = await axios.post(
+    `${
+      import.meta.env.VITE_API_URL || "http://localhost:5000"
+    }/api/payments/telebirr`,
+    { orderId, phone },
+    {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+    }
+  );
+  return data; // contains { paymentUrl, order }
 };
