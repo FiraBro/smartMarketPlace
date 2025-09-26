@@ -36,11 +36,6 @@ app.use("/api/favorites", favoriteRouter);
 app.use("/api/newsletter", newsLetter);
 app.use("/api/payments", paymentRoutes);
 
-// Handle unhandled routes
-// app.all("*", (req, res, next) => {
-//   next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
-// });
-
 // Global Error Handler
 app.use(globalErrorHandler);
 
