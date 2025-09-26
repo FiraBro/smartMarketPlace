@@ -5,12 +5,16 @@ import {
   addToCart,
   removeFromCart,
   clearCart,
+  checkoutCart,
+  payWithCOD,
+  payWithTeleBirr,
 } from "../service/cartService";
 
 const CartContext = createContext();
 
 export const CartProvider = ({ children }) => {
   const [cart, setCart] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchCart();
@@ -24,13 +28,16 @@ export const CartProvider = ({ children }) => {
       console.error("Failed to fetch cart:", err);
     }
   };
+
   const addItem = async (product, quantity = 1) => {
     // Optimistic update
     setCart((prev) => {
-      const existing = prev.find((item) => item._id === product._id);
+      const existing = prev.find(
+        (item) => item._id === product._id || item.id === product._id
+      );
       if (existing) {
         return prev.map((item) =>
-          item._id === product._id
+          item._id === product._id || item.id === product._id
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
@@ -39,8 +46,8 @@ export const CartProvider = ({ children }) => {
     });
 
     try {
-      await addToCart(product._id, quantity); // backend still expects id + qty
-      fetchCart(); // sync
+      await addToCart(product._id, quantity); // backend expects id + qty
+      fetchCart(); // sync with backend
     } catch (err) {
       console.error("Failed to add item:", err);
       fetchCart(); // rollback
@@ -68,9 +75,63 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // -------------------
+  // ✅ Checkout & Payments
+  // -------------------
+
+  const checkout = async () => {
+    try {
+      setLoading(true);
+      const order = await checkoutCart(); // creates order in backend
+      return order; // return order so UI can decide payment method
+    } catch (err) {
+      console.error("Checkout failed:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const payCOD = async (orderId) => {
+    try {
+      setLoading(true);
+      const res = await payWithCOD(orderId);
+      await fetchCart(); // refresh after checkout
+      return res;
+    } catch (err) {
+      console.error("COD payment failed:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const payTeleBirr = async (orderId, phone) => {
+    try {
+      setLoading(true);
+      const res = await payWithTeleBirr(orderId, phone);
+      return res; // contains paymentUrl, order
+    } catch (err) {
+      console.error("TeleBirr payment failed:", err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <CartContext.Provider
-      value={{ cart, fetchCart, addItem, removeItem, clear }}
+      value={{
+        cart,
+        loading,
+        fetchCart,
+        addItem,
+        removeItem,
+        clear,
+        checkout,
+        payCOD,
+        payTeleBirr,
+      }}
     >
       {children}
     </CartContext.Provider>
