@@ -7,7 +7,7 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 
 export default function ProductCard({ product }) {
-  console.log(product.images);
+  console.log(product);
   const navigate = useNavigate();
   const { addItem } = useCart();
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
@@ -19,7 +19,7 @@ export default function ProductCard({ product }) {
     name: product.title || product.name || "Unnamed Product",
     price: product.price || 0,
     image: product.images?.[0]?.url
-      ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${
+      ? `${import.meta.env.VITE_STATIC_URL || "http://localhost:5000"}${
           product.images[0].url
         }`
       : "https://via.placeholder.com/200",
@@ -28,7 +28,6 @@ export default function ProductCard({ product }) {
     rating: product.rating || 0,
     reviews: product.reviews || 0,
   };
-
 
   const isFavorite = favorites.some((item) => item._id === normalized._id);
 
@@ -54,7 +53,7 @@ export default function ProductCard({ product }) {
     >
       {/* Image container */}
       <div className="w-full aspect-[4/3.5] relative overflow-hidden rounded-t-2xl">
-        {/* <LazyLoadImage
+        <LazyLoadImage
           src={normalized.image}
           placeholderSrc={
             normalized.placeholder || "https://via.placeholder.com/200"
@@ -62,12 +61,7 @@ export default function ProductCard({ product }) {
           effect="blur"
           alt={normalized.name}
           className="w-full h-full object-cover"
-        /> */}
-<LazyLoadImage
-  src={normalized.image}
-  alt={normalized.name}
-  className="w-full h-full object-cover"
-/>
+        />
 
         {/* ❤️ Favorite Button */}
         <button
