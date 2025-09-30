@@ -29,6 +29,8 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  
+
   const addItem = async (product, quantity = 1) => {
     // Optimistic update
     setCart((prev) => {
