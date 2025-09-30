@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 
 const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const { cart, addItem, removeItem, clear } = useCart();
+  console.log(cart)
   const [payment, setPayment] = useState("card");
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
