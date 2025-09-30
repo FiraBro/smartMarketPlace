@@ -3,7 +3,7 @@ import axios from "axios";
 
 // ✅ Base API instance for cart endpoints
 const CART_API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/cart",
+  baseURL: import.meta.env.VITE_CART_URL || "http://localhost:5000/api/cart",
 });
 
 // ✅ Attach JWT token if available
@@ -24,7 +24,7 @@ export const addToCart = async (listingId, quantity = 1) => {
 // 🛒 Get user cart
 export const getCart = async () => {
   const { data } = await CART_API.get("/");
-
+  console.log("Raw cart data from backend:", data);
   const items = data.items || [];
 
   return {
@@ -38,7 +38,7 @@ export const getCart = async () => {
         price: item.listing?.price || 0,
         image: imagePath
           ? `${
-              import.meta.env.VITE_API_URL || "http://localhost:5000"
+              import.meta.env.VITE_STATIC_URL || "http://localhost:5000"
             }${imagePath}`
           : "https://via.placeholder.com/200",
         quantity: item.quantity,
