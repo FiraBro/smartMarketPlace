@@ -26,6 +26,7 @@ export const FavoriteProvider = ({ children }) => {
   };
 
   const addToFavoritesContext = async (product) => {
+    
     const normalized = {
       _id: product._id || product.id,
       name: product.name || product.title || "Unnamed Product",
