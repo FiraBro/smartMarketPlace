@@ -4,7 +4,7 @@ import axios from "axios";
 // ✅ Base API instance for favorites endpoints
 const FAVORITE_API = axios.create({
   baseURL:
-    import.meta.env.VITE_API_URL || "http://localhost:5000/api/favorites",
+    import.meta.env.VITE_FAV_URL || "http://localhost:5000/api/favorites",
 });
 
 // ✅ Attach JWT token if available
