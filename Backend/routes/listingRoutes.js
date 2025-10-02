@@ -8,6 +8,7 @@ import {
   updateListing,
   deleteListing,
   getAllListings,
+  getCategories,
 } from "../controllers/listingController.js";
 
 const router = Router();
@@ -15,6 +16,7 @@ const router = Router();
 router.get("/", listListings);
 router.get("/all", getAllListings); // paginated, no filters
 router.get("/:id", getListingById);
+router.get("/categories", getCategories); // all distinct categories
 router.post("/", protect, upload.array("images", 10), createListing);
 router.patch("/:id", protect, upload.array("images", 10), updateListing);
 router.delete("/:id", protect, deleteListing);
