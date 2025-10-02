@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   FaShoppingCart,
   FaHeart,
@@ -12,9 +12,10 @@ import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
 import SearchBar from "./SearchBar";
+import { fetchProductsByCategory } from "../service/categoryService";
 
-export default function Navbar({ openCart, openFav }) {
-  const Navigate = useNavigate();
+export default function Navbar({ openCart, openFav, openCategoryPopup }) {
+  const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { cart } = useCart();
   const { favorites } = useFavorites();
@@ -23,17 +24,18 @@ export default function Navbar({ openCart, openFav }) {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState("login");
 
+  const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalFavItems = favorites?.length || 0;
+
   const handleLogout = () => {
     logout();
-    Navigate("/");
+    navigate("/");
   };
+
   const openAuthModal = (mode) => {
     setAuthMode(mode);
     setIsAuthOpen(true);
   };
-
-  const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const totalFavItems = favorites?.length || 0;
 
   return (
     <nav className="bg-white px-4 md:px-6 py-3 shadow-sm relative">
@@ -45,22 +47,28 @@ export default function Navbar({ openCart, openFav }) {
           </a>
         </div>
 
-        {/* Search + All Products (Desktop) */}
-        <div className="hidden md:flex flex-1 mx-4 items-center gap-3">
-          <a
-            href="/listings"
-            className="text-[#000] hover:text-orange-600 transition"
-          >
-            All Products &#8594;
-          </a>
-          <SearchBar />
+        {/* Desktop Links + Search */}
+        <div className="hidden md:flex flex-1 items-center gap-4">
+          <SearchBar
+            onCategorySelect={async (category) => {
+              try {
+                const data = await fetchProductsByCategory(category);
+                openCategoryPopup(
+                  category,
+                  Array.isArray(data.items) ? data.items : []
+                );
+              } catch (err) {
+                console.error(err);
+                openCategoryPopup(category, []);
+              }
+            }}
+          />
         </div>
 
-        {/* Desktop Icons */}
-        <div className="hidden sm:flex items-center gap-4 relative">
+        {/* Icons */}
+        <div className="hidden sm:flex items-center gap-4">
           {user ? (
             <>
-              {/* Favorites Icon */}
               <button onClick={openFav} className="relative">
                 <FaHeart className="w-6 h-6 text-gray-700 hover:text-red-600 transition" />
                 {totalFavItems > 0 && (
@@ -70,7 +78,6 @@ export default function Navbar({ openCart, openFav }) {
                 )}
               </button>
 
-              {/* Cart Icon */}
               <button onClick={openCart} className="relative">
                 <FaShoppingCart className="w-6 h-6 text-gray-700" />
                 {totalCartItems > 0 && (
@@ -80,7 +87,6 @@ export default function Navbar({ openCart, openFav }) {
                 )}
               </button>
 
-              {/* Profile Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
@@ -136,72 +142,24 @@ export default function Navbar({ openCart, openFav }) {
       </div>
 
       {/* Mobile Menu */}
-      <div
-        className={`sm:hidden transition-all duration-300 ease-in-out ${
-          menuOpen
-            ? "max-h-96 opacity-100 mt-3"
-            : "max-h-0 opacity-0 overflow-hidden"
-        }`}
-      >
-        <div className="bg-gray-50 shadow-lg rounded-lg p-4 space-y-3">
-          <div className="w-full flex flex-col gap-3">
-            {/* 🔥 All Products aligned like Cart/Fav */}
-            <a
-              href="/products"
-              className="flex items-center gap-2 w-full text-left text-[#000] hover:text-orange-600 transition"
-            >
-              🛍️ All Products
-            </a>
-
-            <SearchBar />
-          </div>
-
-          {user ? (
-            <>
-              <button
-                onClick={openFav}
-                className="flex items-center gap-2 w-full text-left"
-              >
-                <FaHeart className="text-red-500" /> Favorites ({totalFavItems})
-              </button>
-              <button
-                onClick={openCart}
-                className="flex items-center gap-2 w-full text-left"
-              >
-                <FaShoppingCart className="text-blue-500" /> Cart (
-                {totalCartItems})
-              </button>
-              <a
-                href="/profile"
-                className="flex items-center gap-2 w-full text-left"
-              >
-                <FaUserCircle className="text-gray-600" /> My Profile
-              </a>
-              <button
-                onClick={handleLogout}
-                className="w-full px-4 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                onClick={() => openAuthModal("login")}
-                className="w-full px-4 py-2 bg-white border rounded-lg text-gray-800 hover:bg-gray-100"
-              >
-                Login
-              </button>
-              <button
-                onClick={() => openAuthModal("register")}
-                className="w-full px-4 py-2 bg-[#F9A03F] text-white rounded-lg hover:bg-orange-600"
-              >
-                Register
-              </button>
-            </>
-          )}
+      {menuOpen && (
+        <div className="sm:hidden mt-2 bg-gray-50 p-4 rounded-lg shadow-lg space-y-2">
+          <SearchBar
+            onCategorySelect={async (category) => {
+              try {
+                const data = await fetchProductsByCategory(category);
+                openCategoryPopup(
+                  category,
+                  Array.isArray(data.items) ? data.items : []
+                );
+              } catch (err) {
+                console.error(err);
+                openCategoryPopup(category, []);
+              }
+            }}
+          />
         </div>
-      </div>
+      )}
 
       <AuthModal
         isOpen={isAuthOpen}
