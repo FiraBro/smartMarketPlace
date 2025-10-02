@@ -15,10 +15,6 @@ CATEGORY_API.interceptors.request.use((config) => {
   return config;
 });
 
-//
-// 🔹 Category Services
-//
-
 // 🛍️ Fetch products by category
 export const fetchProductsByCategory = async (
   category,
@@ -28,7 +24,6 @@ export const fetchProductsByCategory = async (
   const { data } = await CATEGORY_API.get("/", {
     params: { category, page, limit },
   });
-
   // Normalize products like in cart service
   return {
     items: data.items.map((item) => {
