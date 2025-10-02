@@ -5,7 +5,7 @@ import { useFavorites } from "../context/FavoriteContext";
 
 const FavoritePopup = ({ isOpen, onClose }) => {
   const { favorites, removeFromFavorites, clearFavorites } = useFavorites();
-  
+  console.log("FavoritePopup favorites:", favorites);
 
   return (
     <AnimatePresence>
