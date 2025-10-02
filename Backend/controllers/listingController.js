@@ -265,3 +265,13 @@ export const getAllListings = catchAsync(async (req, res, next) => {
     items,
   });
 });
+
+// Get all distinct categories
+export const getCategories = catchAsync(async (req, res, next) => {
+  try {
+    const categories = await Listing.distinct("category");
+    res.json(categories);
+  } catch (err) {
+    next(new AppError("Failed to fetch categories", 500));
+  }
+});
