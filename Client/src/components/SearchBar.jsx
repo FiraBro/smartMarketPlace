@@ -1,21 +1,36 @@
-// src/components/SearchBar.jsx
 import React, { useState, useEffect, useRef } from "react";
-import { FaSearch, FaChevronDown } from "react-icons/fa";
+import {
+  FaSearch,
+  FaChevronDown,
+  FaLaptop,
+  FaShoePrints,
+  FaTshirt,
+  FaBook,
+  FaRing,
+  FaPumpSoap,
+} from "react-icons/fa";
 import { searchListings } from "../service/listingService";
 import SearchPopup from "./SearchPopup";
 
-export default function SearchBar() {
+export default function SearchBar({ onCategorySelect }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
-
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const catRef = useRef(null);
   const popupRef = useRef(null);
 
-  const categories = ["Cosmetics", "Footwear", "Accessories", "Clothing"];
+  const categories = [
+    { title: "All Categories" },
+    { title: "Electronics", icon: <FaLaptop /> },
+    { title: "Shoes", icon: <FaShoePrints /> },
+    { title: "Clothes", icon: <FaTshirt /> },
+    { title: "Books", icon: <FaBook /> },
+    { title: "Accessories", icon: <FaRing /> },
+    { title: "Cosmetics", icon: <FaPumpSoap /> },
+  ];
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -28,7 +43,7 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Live search with debounce
+  // Live search
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
       if (query.trim()) {
@@ -37,7 +52,7 @@ export default function SearchBar() {
           setResults(data.items || []);
           setShowPopup(true);
         } catch (err) {
-          console.error("Search error:", err);
+          console.error(err);
         }
       } else {
         setResults([]);
@@ -88,18 +103,21 @@ export default function SearchBar() {
 
         {/* Category dropdown */}
         {dropdownOpen && (
-          <div className="absolute left-0 top-12 bg-white border border-gray-300 rounded-xl shadow-lg w-44 z-50">
+          <div className="absolute left-0 top-12 bg-white border border-gray-300 rounded-xl shadow-lg w-52 z-50">
             {categories.map((cat) => (
               <button
-                key={cat}
+                key={cat.title}
                 type="button"
                 onClick={() => {
-                  setSelectedCategory(cat);
+                  setSelectedCategory(cat.title);
                   setDropdownOpen(false);
+                  if (onCategorySelect && cat.title !== "All Categories") {
+                    onCategorySelect(cat.title);
+                  }
                 }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
+                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-1"
               >
-                {cat}
+                {cat.icon} {cat.title}
               </button>
             ))}
           </div>
@@ -110,7 +128,7 @@ export default function SearchBar() {
       <SearchPopup
         results={results}
         showPopup={showPopup}
-        onClose={() => setShowPopup(false)} // <-- hide popup when card clicked
+        onClose={() => setShowPopup(false)}
       />
     </div>
   );
