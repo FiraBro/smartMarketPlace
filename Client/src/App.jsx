@@ -1,23 +1,21 @@
 import React, { useState, Suspense } from "react";
-import HomePage from "./pages/HomePage";
-import CartPopup from "./components/CartPopup";
-import FavoritePopup from "./components/FavoritePopup";
-import AuthModal from "./components/AuthModal";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Layout from "./util/Layout";
-import { AuthProvider } from "./context/AuthContext";
+import HomePage from "./pages/HomePage";
 import ProductDetail from "./pages/ProductDetail";
-import { FavoriteProvider } from "./context/FavoriteContext";
-import { CartProvider } from "./context/CartContext";
-import Spinner from "./components/Spinner";
 import Profile from "./components/Profile";
 import AllListingsPage from "./pages/AllListingPage";
 import AddressPage from "./pages/AddressPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
 
+import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+import { FavoriteProvider } from "./context/FavoriteContext";
+
+import Spinner from "./components/Spinner";
+
 export default function App() {
-  const [favorites, setFavorites] = useState([]);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavOpen, setIsFavOpen] = useState(false);
 
@@ -26,19 +24,23 @@ export default function App() {
   const openFav = () => setIsFavOpen(true);
   const closeFav = () => setIsFavOpen(false);
 
-  const handleRemoveFav = (id) =>
-    setFavorites((prev) => prev.filter((i) => i.id !== id));
-
   const router = createBrowserRouter([
     {
       path: "/",
       element: (
-        <Layout openFav={openFav} favorites={favorites} openCart={openCart} />
+        <Layout
+          openCart={openCart}
+          openFav={openFav}
+          isCartOpen={isCartOpen}
+          isFavOpen={isFavOpen}
+          closeCart={closeCart}
+          closeFav={closeFav}
+        />
       ),
       children: [
         { index: true, element: <HomePage /> },
         { path: "/listings/:id", element: <ProductDetail /> },
-        { path: "/profile", element: <Profile openFav={openFav} /> },
+        { path: "/profile", element: <Profile /> },
         { path: "/listings", element: <AllListingsPage /> },
         { path: "/address", element: <AddressPage /> },
         { path: "/payment/:orderId", element: <PaymentPage /> },
@@ -54,13 +56,6 @@ export default function App() {
           <Suspense fallback={<Spinner />}>
             <RouterProvider router={router} />
           </Suspense>
-          <FavoritePopup
-            isOpen={isFavOpen}
-            onClose={closeFav}
-            favorites={favorites}
-            onRemove={handleRemoveFav}
-          />
-          <AuthModal />
         </FavoriteProvider>
       </CartProvider>
     </AuthProvider>
