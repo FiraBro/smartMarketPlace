@@ -37,6 +37,20 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
     setIsAuthOpen(true);
   };
 
+  // 🔹 Fetch all products
+  const handleAllProducts = async () => {
+    try {
+      const data = await fetchProductsByCategory(""); // empty category = all products
+      openCategoryPopup(
+        "All Products",
+        Array.isArray(data.items) ? data.items : []
+      );
+    } catch (err) {
+      console.error(err);
+      openCategoryPopup("All Products", []);
+    }
+  };
+
   return (
     <nav className="bg-white px-4 md:px-6 py-3 shadow-sm relative">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
@@ -70,7 +84,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           {user ? (
             <>
               <button onClick={openFav} className="relative">
-                <FaHeart className="w-6 h-6 text-gray-700 hover:text-red-600 transition" />
+                <FaHeart className="w-6 h-6 text-red-500 hover:text-red-600 transition" />
                 {totalFavItems > 0 && (
                   <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
                     {totalFavItems}
@@ -79,9 +93,9 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
               </button>
 
               <button onClick={openCart} className="relative">
-                <FaShoppingCart className="w-6 h-6 text-gray-700" />
+                <FaShoppingCart className="w-6 h-6 text-green-600 hover:text-green-700 transition" />
                 {totalCartItems > 0 && (
-                  <span className="absolute -top-2 -right-2 text-xs bg-red-600 text-white rounded-full px-2 py-0.5">
+                  <span className="absolute -top-2 -right-2 text-xs bg-green-600 text-white rounded-full px-2 py-0.5">
                     {totalCartItems}
                   </span>
                 )}
@@ -158,6 +172,12 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
               }
             }}
           />
+          <button
+            onClick={handleAllProducts}
+            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            All Products
+          </button>
         </div>
       )}
 

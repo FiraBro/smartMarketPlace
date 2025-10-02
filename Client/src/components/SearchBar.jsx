@@ -1,54 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  FaSearch,
-  FaChevronDown,
-  FaLaptop,
-  FaShoePrints,
-  FaTshirt,
-  FaBook,
-  FaRing,
-  FaPumpSoap,
-} from "react-icons/fa";
+import { FaSearch } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 import { searchListings } from "../service/listingService";
 import SearchPopup from "./SearchPopup";
 
-export default function SearchBar({ onCategorySelect }) {
+export default function SearchBar() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState([]);
   const [showPopup, setShowPopup] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("All Categories");
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-
-  const catRef = useRef(null);
   const popupRef = useRef(null);
-
-  const categories = [
-    { title: "All Categories" },
-    { title: "Electronics", icon: <FaLaptop /> },
-    { title: "Shoes", icon: <FaShoePrints /> },
-    { title: "Clothes", icon: <FaTshirt /> },
-    { title: "Books", icon: <FaBook /> },
-    { title: "Accessories", icon: <FaRing /> },
-    { title: "Cosmetics", icon: <FaPumpSoap /> },
-  ];
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (catRef.current && !catRef.current.contains(e.target)) {
-        setDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // Live search
   useEffect(() => {
     const delayDebounce = setTimeout(async () => {
       if (query.trim()) {
         try {
-          const data = await searchListings(query, selectedCategory);
+          const data = await searchListings(query);
           setResults(data.items || []);
           setShowPopup(true);
         } catch (err) {
@@ -61,7 +29,7 @@ export default function SearchBar({ onCategorySelect }) {
     }, 400);
 
     return () => clearTimeout(delayDebounce);
-  }, [query, selectedCategory]);
+  }, [query]);
 
   // Close popup on outside click
   useEffect(() => {
@@ -74,54 +42,34 @@ export default function SearchBar({ onCategorySelect }) {
     return () => document.removeEventListener("click", handler);
   }, []);
 
+  // Navigate to All Listings page
+  const handleAllProducts = () => {
+    navigate("/listings"); // Adjust this route to your all products page
+  };
+
   return (
     <div className="md:flex flex-1 mx-6 relative" ref={popupRef}>
-      <div className="relative w-full" ref={catRef}>
-        <div className="flex w-full border border-gray-300 rounded-full">
-          <button
-            type="button"
-            onClick={() => setDropdownOpen((v) => !v)}
-            className="flex items-center px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 border-r border-gray-300 rounded-l-full"
-          >
-            {selectedCategory}
-            <FaChevronDown className="ml-2 w-4 h-4" />
-          </button>
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="min-w-0 flex-1 px-4 py-2 outline-none text-sm"
-          />
-          <button
-            type="button"
-            className="bg-[#f9A03f] px-4 text-white flex items-center justify-center rounded-r-full"
-          >
-            <FaSearch className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Category dropdown */}
-        {dropdownOpen && (
-          <div className="absolute left-0 top-12 bg-white border border-gray-300 rounded-xl shadow-lg w-52 z-50">
-            {categories.map((cat) => (
-              <button
-                key={cat.title}
-                type="button"
-                onClick={() => {
-                  setSelectedCategory(cat.title);
-                  setDropdownOpen(false);
-                  if (onCategorySelect && cat.title !== "All Categories") {
-                    onCategorySelect(cat.title);
-                  }
-                }}
-                className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm flex items-center gap-1"
-              >
-                {cat.icon} {cat.title}
-              </button>
-            ))}
-          </div>
-        )}
+      <div className="flex w-full border border-gray-300 rounded-full">
+        <input
+          type="text"
+          placeholder="Search products..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="min-w-0 flex-1 px-4 py-2 outline-none text-sm rounded-l-full"
+        />
+        <button
+          type="button"
+          className="bg-[#f9A03f] px-4 text-white flex items-center justify-center"
+        >
+          <FaSearch className="w-5 h-5" />
+        </button>
+        <button
+          type="button"
+          onClick={handleAllProducts}
+          className="bg-[#e98418] px-4 text-white flex items-center justify-center rounded-r-full hover:bg-[#c46a09] cursor-pointer transition"
+        >
+          All Products
+        </button>
       </div>
 
       {/* Popup results */}
