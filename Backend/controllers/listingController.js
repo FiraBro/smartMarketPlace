@@ -49,7 +49,7 @@ const processImage = async (file) => {
 const buildQuery = ({ q, category, minPrice, maxPrice, owner, condition }) => {
   const query = {};
   if (q) query.$text = { $search: q };
-  if (category) query.category = category;
+  if (category) query.category = new RegExp(`^${category}$`, "i"); // case-insensitive match
   if (owner) query.owner = owner;
   if (condition) query.condition = condition;
   if (minPrice || maxPrice) {
