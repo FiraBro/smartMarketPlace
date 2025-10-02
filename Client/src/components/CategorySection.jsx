@@ -1,53 +1,29 @@
-import React, { useState } from "react";
-import { FaPumpSoap, FaRing, FaShoePrints, FaTshirt } from "react-icons/fa";
-import ProductCard from "./ProductCard";
-import { fetchProductsByCategory } from "../service/categoryService";
+import React, { useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
+import ProductCard from "./ProductCard";
+import {
+  fetchProductsByCategory,
+  fetchAllCategories,
+} from "../service/categoryService";
 
 export const CategorySection = () => {
+  const [categories, setCategories] = useState([]);
   const [popupOpen, setPopupOpen] = useState(false);
   const [popupCategory, setPopupCategory] = useState("");
   const [popupProducts, setPopupProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  const categories = [
-    {
-      icon: <FaPumpSoap />,
-      title: "Cosmetics",
-      desc: "Makeup & skincare",
-      bg: "from-pink-100 to-pink-200",
-    },
-    {
-      icon: <FaRing />,
-      title: "Accessories",
-      desc: "Jewelry & more",
-      bg: "from-yellow-100 to-yellow-200",
-    },
-    {
-      icon: <FaShoePrints />,
-      title: "Shoes",
-      desc: "Shoes & sandals",
-      bg: "from-blue-100 to-blue-200",
-    },
-    {
-      icon: <FaTshirt />,
-      title: "Clothing",
-      desc: "Trendy outfits",
-      bg: "from-green-100 to-green-200",
-    },
-    {
-      icon: <FaTshirt />,
-      title: "Electronics",
-      desc: "Gadgets & devices",
-      bg: "from-gray-100 to-gray-200",
-    },
-    {
-      icon: <FaTshirt />,
-      title: "Books",
-      desc: "All types of books",
-      bg: "from-red-100 to-red-200",
-    },
-  ];
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const data = await fetchAllCategories();
+        setCategories(data);
+      } catch (err) {
+        console.error("Failed to load categories:", err);
+      }
+    };
+    loadCategories();
+  }, []);
 
   const handleCategoryClick = async (category) => {
     setPopupCategory(category);
@@ -77,31 +53,35 @@ export const CategorySection = () => {
           Shop by Category
         </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-          {categories.map((category, idx) => (
-            <div
-              key={idx}
-              onClick={() => handleCategoryClick(category.title)}
-              className="cursor-pointer flex items-center gap-4 p-6 bg-white rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-2 transition-all duration-300"
-            >
+        {/* Categories grid with vertical scroll after fixed height */}
+        <div
+          className="overflow-y-auto"
+          style={{ maxHeight: "400px" }} // 🔹 set max height
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 py-4">
+            {categories.map((category, idx) => (
               <div
-                className={`p-4 rounded-full bg-gradient-to-br ${category.bg} flex items-center justify-center shadow-md`}
+                key={idx}
+                onClick={() => handleCategoryClick(category)}
+                className="cursor-pointer flex items-center gap-4 p-6 bg-white rounded-2xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
               >
-                {category.icon}
+                <div className="p-4 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-md">
+                  {category[0]}
+                </div>
+                <div>
+                  <h3 className="font-bold text-lg">{category}</h3>
+                  <p className="text-gray-600 text-sm">Browse {category}</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-lg">{category.title}</h3>
-                <p className="text-gray-600 text-sm">{category.desc}</p>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 
       {/* Popup */}
       {popupOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg w-11/12 max-w-4xl p-6 relative">
+          <div className="bg-white rounded-lg w-11/12 max-w-4xl p-6 relative max-h-[80vh] overflow-y-auto">
             <button
               onClick={closePopup}
               className="absolute top-4 right-4 text-gray-600 hover:text-gray-800"
@@ -117,7 +97,7 @@ export const CategorySection = () => {
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {popupProducts.map((product) => (
-                  <ProductCard key={product._id} product={product} />
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             )}
