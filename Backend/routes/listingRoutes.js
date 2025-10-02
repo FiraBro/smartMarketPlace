@@ -13,10 +13,13 @@ import {
 
 const router = Router();
 
+// ✅ Specific routes first
 router.get("/", listListings);
-router.get("/all", getAllListings); // paginated, no filters
+router.get("/all", getAllListings);
+router.get("/categories", getCategories); // must be above "/:id"
 router.get("/:id", getListingById);
-router.get("/categories", getCategories); // all distinct categories
+
+// ✅ Protected CRUD routes
 router.post("/", protect, upload.array("images", 10), createListing);
 router.patch("/:id", protect, upload.array("images", 10), updateListing);
 router.delete("/:id", protect, deleteListing);
