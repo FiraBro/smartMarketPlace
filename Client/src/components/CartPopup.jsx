@@ -3,26 +3,24 @@ import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 import { createOrder } from "../service/orderService";
-import { getAddresses } from "../service/addressService"; // fetch addresses from backend
-import { useNavigate } from "react-router-dom";
+import { getAddresses } from "../service/addressService";
+import AddressModal from "./AddressModal";
 
 const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const { cart, addItem, removeItem, clear } = useCart();
-  console.log(cart)
   const [payment, setPayment] = useState("card");
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
-  console.log(addresses);
-  const navigate = useNavigate();
+  const [addingAddress, setAddingAddress] = useState(false);
 
-  // Fetch addresses from backend on mount
+  // Fetch addresses
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
         const data = await getAddresses();
         setAddresses(data);
-        if (data.length > 0) setSelectedAddress(data[0]); // default first address
+        if (data.length > 0) setSelectedAddress(data[0]);
       } catch (err) {
         console.error("Failed to fetch addresses", err);
       }
@@ -30,7 +28,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
     fetchAddresses();
   }, []);
 
-  // Calculate totals
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
@@ -40,18 +37,10 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const total = subtotal + shipping - discount;
 
   const handleCheckout = async () => {
-    if (!selectedAddress) {
-      alert("Please select a delivery address before checkout.");
-      return;
-    }
-    if (cart.length === 0) {
-      alert("Cart is empty!");
-      return;
-    }
-
+    if (!selectedAddress) return alert("Please select a delivery address.");
+    if (cart.length === 0) return alert("Cart is empty!");
     try {
       setLoading(true);
-
       const order = await createOrder({
         products: cart.map((item) => ({
           product: item._id || item.id,
@@ -61,9 +50,8 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
         payment,
         total,
       });
-
-      onCheckout(order); // parent callback (navigate or refresh orders)
-      clear(); // clear cart after successful checkout
+      onCheckout(order);
+      clear();
     } catch (err) {
       console.error(err);
       alert(err.message || "Failed to place order");
@@ -77,7 +65,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             className="fixed inset-0 bg-black/40 z-40"
             initial={{ opacity: 0 }}
@@ -86,7 +73,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             onClick={onClose}
           />
 
-          {/* Drawer */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -94,7 +80,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed top-0 right-0 h-full w-full max-w-4xl bg-white shadow-2xl z-50 flex flex-col rounded-l-2xl"
           >
-            {/* Header */}
+            {/* Cart Header */}
             <div className="flex justify-between items-center p-4 border-b border-b-amber-100">
               <h2 className="text-xl font-semibold">Your Cart</h2>
               <div className="flex items-center gap-3">
@@ -109,14 +95,13 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                 <button
                   onClick={onClose}
                   className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
-                  aria-label="Close cart"
                 >
                   <FaTimes className="w-6 h-6" />
                 </button>
               </div>
             </div>
 
-            {/* Content */}
+            {/* Cart Content */}
             <div className="flex-1 p-4">
               {cart.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
@@ -138,11 +123,9 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                             className="w-full h-full object-cover rounded-lg"
                           />
                         </div>
-
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium truncate">{item.name}</h3>
                           <p className="text-sm text-gray-500">${item.price}</p>
-
                           <div className="flex items-center mt-2 space-x-2">
                             <button
                               onClick={() =>
@@ -163,7 +146,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                             </button>
                           </div>
                         </div>
-
                         <button
                           onClick={() => removeItem(item._id || item.id)}
                           className="text-red-500 hover:text-red-600 text-sm font-semibold"
@@ -179,8 +161,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                     <h3 className="text-lg font-semibold border-b pb-2">
                       Order Summary
                     </h3>
-
-                    {/* Delivery Address */}
                     <div>
                       <span className="text-sm font-medium text-gray-700">
                         Delivery Address
@@ -188,13 +168,12 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       <div className="space-y-2 mt-2">
                         {addresses.length === 0 && (
                           <button
-                            onClick={() => navigate("/address")}
+                            onClick={() => setAddingAddress(true)}
                             className="text-blue-600 hover:underline text-sm"
                           >
                             Add Address
                           </button>
                         )}
-
                         {addresses.map((addr) => (
                           <label
                             key={addr._id}
@@ -211,17 +190,8 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                             {addr.street}, {addr.city}, {addr.country}
                           </label>
                         ))}
-
-                        {selectedAddress && (
-                          <p className="text-sm text-gray-600 bg-white p-2 rounded mt-1">
-                            {selectedAddress.street}, {selectedAddress.city},{" "}
-                            {selectedAddress.state} {selectedAddress.zip},{" "}
-                            {selectedAddress.country} ({selectedAddress.phone})
-                          </p>
-                        )}
-
                         <button
-                          onClick={() => navigate("/address")}
+                          onClick={() => setAddingAddress(true)}
                           className="text-blue-600 hover:underline text-sm mt-1"
                         >
                           Manage Addresses
@@ -229,7 +199,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       </div>
                     </div>
 
-                    {/* Payment Method */}
+                    {/* Payment & Prices */}
                     <div className="flex flex-col gap-2">
                       <span className="text-sm font-medium text-gray-700">
                         Payment Method
@@ -259,7 +229,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       </div>
                     </div>
 
-                    {/* Prices */}
                     <div className="space-y-2 text-sm sm:text-base">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Subtotal</span>
@@ -282,7 +251,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       </div>
                     </div>
 
-                    {/* Checkout */}
                     <button
                       onClick={handleCheckout}
                       disabled={loading}
@@ -297,6 +265,17 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
               )}
             </div>
           </motion.div>
+
+          {addingAddress && (
+            <AddressModal
+              onSave={(newAddr) => {
+                setAddresses((prev) => [...prev, newAddr]);
+                setSelectedAddress(newAddr);
+                setAddingAddress(false);
+              }}
+              onCancel={() => setAddingAddress(false)}
+            />
+          )}
         </>
       )}
     </AnimatePresence>
