@@ -14,8 +14,8 @@ import orderRoutes from "./routes/orderRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import favoriteRouter from "./routes/favoriteRoutes.js";
 import newsLetter from "./routes/newsLetterRoutes.js";
-import paymentRoutes from "./routes/pamentRoutes.js";
-
+// import paymentRoutes from "./routes/paymentRoutes.js";
+import addressRoutes from "./routes/addressRoutes.js";
 const app = express();
 
 // Middleware
@@ -34,7 +34,8 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/favorites", favoriteRouter);
 app.use("/api/newsletter", newsLetter);
-app.use("/api/payments", paymentRoutes);
+// app.use("/api/payments", paymentRoutes);
+app.use("/api/addresses", addressRoutes);
 
 // Global Error Handler
 app.use(globalErrorHandler);
