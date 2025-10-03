@@ -6,13 +6,12 @@ import {
   updateAddress,
   deleteAddress,
 } from "../controllers/addressController.js";
-import { protect } from "../middleware/auth.js";
+import { protect } from "../middlewares/authMiddleware.js";
+const addressRoutes = express.Router();
 
-const router = express.Router();
+addressRoutes.get("/", protect, getAddresses);
+addressRoutes.post("/", protect, createAddress);
+addressRoutes.put("/:id", protect, updateAddress);
+addressRoutes.delete("/:id", protect, deleteAddress);
 
-router.get("/", protect, getAddresses);
-router.post("/", protect, createAddress);
-router.put("/:id", protect, updateAddress);
-router.delete("/:id", protect, deleteAddress);
-
-export default router;
+export default addressRoutes;
