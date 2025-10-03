@@ -5,7 +5,6 @@ import HomePage from "./pages/HomePage";
 import ProductDetail from "./pages/ProductDetail";
 import Profile from "./components/Profile";
 import AllListingsPage from "./pages/AllListingPage";
-import AddressPage from "./pages/AddressPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
 
@@ -42,7 +41,6 @@ export default function App() {
         { path: "/listings/:id", element: <ProductDetail /> },
         { path: "/profile", element: <Profile /> },
         { path: "/listings", element: <AllListingsPage /> },
-        { path: "/address", element: <AddressPage /> },
         { path: "/payment/:orderId", element: <PaymentPage /> },
         { path: "/orders", element: <OrdersPage /> },
       ],
