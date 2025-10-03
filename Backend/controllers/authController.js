@@ -19,7 +19,16 @@ export const registerUser = catchAsync(async (req, res, next) => {
     role,
   });
 
-  res.status(201).json({ message: "User registered successfully", user });
+  // 🔑 generate token just like login
+  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    expiresIn: "1d",
+  });
+
+  res.status(201).json({
+    message: "User registered successfully",
+    token,
+    user: { id: user._id, name: user.name, email: user.email, role: user.role },
+  });
 });
 
 export const loginUser = catchAsync(async (req, res, next) => {
