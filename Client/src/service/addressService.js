@@ -1,36 +1,41 @@
 // src/service/addressService.js
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL + "/addresses";
+// ✅ Base API instance for address endpoints
+const ADDRESS_API = axios.create({
+  baseURL:
+    import.meta.env.VITE_ADDRESS_URL || "http://localhost:5000/api/addresses",
+});
 
+// ✅ Attach JWT token if available
+ADDRESS_API.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// 📍 Get all addresses for the logged-in user
 export const getAddresses = async () => {
-  const token = localStorage.getItem("token");
-  const res = await axios.get(API_URL, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  const { data } = await ADDRESS_API.get("/");
+  return data; // array of addresses
 };
 
-export const addAddress = async (data) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.post(API_URL, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+// ➕ Create a new address
+export const createAddress = async (addressData) => {
+  const { data } = await ADDRESS_API.post("/", addressData);
+  return data; // created address
 };
 
-export const updateAddress = async (id, data) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.put(`${API_URL}/${id}`, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+// ✏️ Update an address by ID
+export const updateAddress = async (id, addressData) => {
+  const { data } = await ADDRESS_API.put(`/${id}`, addressData);
+  return data; // updated address
 };
 
+// ❌ Delete an address by ID
 export const deleteAddress = async (id) => {
-  const token = localStorage.getItem("token");
-  const res = await axios.delete(`${API_URL}/${id}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return res.data;
+  const { data } = await ADDRESS_API.delete(`/${id}`);
+  return data; // success response
 };
