@@ -1,7 +1,7 @@
 // controllers/newsletterController.js
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
-import Newsletter from "../models/Newsletter.js";
+import Newsletter from "../models/NewsLetter.js";
 
 export const subscribeNewsletter = catchAsync(async (req, res, next) => {
   const { email } = req.body;

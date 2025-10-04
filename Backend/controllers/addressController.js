@@ -10,10 +10,15 @@ export const getAddresses = catchAsync(async (req, res, next) => {
 });
 
 // ✅ Create a new address
-export const createAddress = catchAsync(async (req, res, next) => {
-  const address = new Address({ ...req.body, userId: req.user._id });
-  await address.save();
-  res.status(201).json(address);
+// ✅ Create or Update the user's single delivery address
+export const createOrUpdateAddress = catchAsync(async (req, res, next) => {
+  const address = await Address.findOneAndUpdate(
+    { userId: req.user._id }, // match by logged-in user
+    { ...req.body, userId: req.user._id },
+    { new: true, upsert: true } // update if exists, create if not
+  );
+
+  res.status(200).json(address);
 });
 
 // ✅ Update an address

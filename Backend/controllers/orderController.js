@@ -3,9 +3,14 @@ import Order from "../models/Order.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
 
-// ✅ Create an order (from cart or direct products)
+// controllers/orderController.js
 export const createOrder = catchAsync(async (req, res, next) => {
-  const { products } = req.body;
+  const { products, addressId, paymentMethod, totalPrice } = req.body;
+
+  // ✅ validate required fields
+  if (!addressId)
+    return next(new AppError("Delivery address is required", 400));
+  if (!totalPrice) return next(new AppError("Total price is required", 400));
 
   let orderProducts = [];
 
@@ -26,9 +31,13 @@ export const createOrder = catchAsync(async (req, res, next) => {
     await cart.save();
   }
 
+  // ✅ Create the order with address + totalPrice
   const order = new Order({
     user: req.user._id,
     products: orderProducts,
+    address: addressId,
+    totalPrice,
+    paymentMethod,
     status: "pending",
     isPaid: false,
   });
