@@ -12,6 +12,7 @@ export default function Layout({
   isFavOpen,
   closeCart,
   closeFav,
+  onCheckout,
 }) {
   return (
     <>
@@ -21,7 +22,11 @@ export default function Layout({
       <Outlet />
 
       {/* Modals */}
-      <CartPopup isOpen={isCartOpen} onClose={closeCart} />
+      <CartPopup
+        isOpen={isCartOpen}
+        onClose={closeCart}
+        onCheckout={onCheckout}
+      />
       <FavoritePopup isOpen={isFavOpen} onClose={closeFav} />
       <Footer />
     </>
