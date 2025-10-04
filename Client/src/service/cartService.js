@@ -1,4 +1,3 @@
-// src/services/cartService.js
 import axios from "axios";
 
 // ✅ Base API instance for cart endpoints
@@ -47,10 +46,9 @@ export const getCart = async () => {
   };
 };
 
-// ✏️ Update cart item quantity
-export const updateCartItem = async (listingId, quantity) => {
-  const { data } = await CART_API.put("/update", { listingId, quantity });
-  return data;
+export const updateCartItem = async ({ listingId, quantity }) => {
+  const res = await CART_API.put("/update", { listingId, quantity });
+  return res.data;
 };
 
 // ❌ Remove item from cart
