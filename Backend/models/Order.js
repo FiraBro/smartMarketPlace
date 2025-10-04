@@ -1,4 +1,3 @@
-// models/Order.js
 import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
@@ -6,10 +5,33 @@ const orderSchema = new mongoose.Schema(
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     products: [
       {
-        product: { type: mongoose.Schema.Types.ObjectId, ref: "Listing" },
+        product: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Listing",
+          required: true,
+        },
         quantity: { type: Number, required: true },
       },
     ],
+
+    // ✅ Link to saved Address (required only if delivery)
+    address: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
+      required: function () {
+        return this.deliveryMethod === "delivery";
+      },
+    },
+
+    deliveryMethod: {
+      type: String,
+      enum: ["delivery", "pickup"],
+      required: true,
+      default: "delivery",
+    },
+
+    totalPrice: { type: Number, required: true },
+
     status: {
       type: String,
       enum: [
@@ -22,10 +44,10 @@ const orderSchema = new mongoose.Schema(
       ],
       default: "pending",
     },
+
     isPaid: { type: Boolean, default: false },
     paidAt: Date,
 
-    // 🆕 Payment fields
     paymentMethod: {
       type: String,
       enum: ["COD", "TeleBirr"],
