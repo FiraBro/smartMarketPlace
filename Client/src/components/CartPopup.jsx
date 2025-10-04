@@ -1,7 +1,6 @@
-// components/CartPopup.js
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FaTimes } from "react-icons/fa";
+import { FaTimes, FaTrash } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
 import { createOrder } from "../service/orderService";
 import { getAddresses } from "../service/addressService";
@@ -70,6 +69,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Overlay */}
           <motion.div
             className="fixed inset-0 bg-black/40 z-40"
             initial={{ opacity: 0 }}
@@ -78,6 +78,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             onClick={onClose}
           />
 
+          {/* Cart Panel */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -114,45 +115,61 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full overflow-hidden">
+                  {/* Items List */}
                   <div className="space-y-4 overflow-y-auto pr-2 max-h-[70vh]">
                     {cart.map((item) => (
                       <div
                         key={item.id}
-                        className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl shadow-sm"
+                        className="flex items-center justify-between gap-4 bg-gray-50 p-3 rounded-xl shadow-sm"
                       >
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-16 h-16 object-cover rounded-lg"
-                        />
-                        <div className="flex-1 min-w-0">
-                          <h3 className="font-medium truncate">{item.name}</h3>
-                          <p className="text-sm text-gray-500">${item.price}</p>
+                        <div className="flex items-center gap-4">
+                          <img
+                            src={item.image}
+                            alt={item.name}
+                            className="w-16 h-16 object-cover rounded-lg"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-medium truncate">
+                              {item.name}
+                            </h3>
+                            <p className="text-sm text-gray-500">
+                              ${item.price}
+                            </p>
+                          </div>
                         </div>
+
+                        {/* Quantity controls + Delete button side by side */}
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => decreaseQuantity(item)}
-                            className="px-2 py-1 border rounded"
+                            className="px-2 cursor-pointer border rounded"
                           >
                             -
                           </button>
                           <span>{item.quantity}</span>
                           <button
                             onClick={() => increaseQuantity(item)}
-                            className="px-2 py-1 border rounded"
+                            className="px-2 cursor-pointer border rounded"
                           >
                             +
+                          </button>
+                          <button
+                            onClick={() => removeItem(item.id)}
+                            className="text-red-600 hover:text-red-800 p-2 cursor-pointer rounded-full transition"
+                          >
+                            <FaTrash className="w-4 h-5" />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Summary */}
+                  {/* Order Summary */}
                   <div className="flex flex-col gap-4 bg-gray-50 p-5 rounded-xl shadow-md max-h-[70vh] overflow-y-auto">
                     <h3 className="text-lg font-semibold border-b pb-2">
                       Order Summary
                     </h3>
+
                     {/* Delivery Address */}
                     <div>
                       <span className="text-sm font-medium text-gray-700">
@@ -179,7 +196,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                             ))}
                             <button
                               onClick={() => setAddingAddress(true)}
-                              className="text-blue-600 hover:underline text-sm mt-1"
+                              className="text-blue-500 hover:underline cursor-pointer text-sm mt-1"
                             >
                               Manage Addresses
                             </button>
@@ -187,7 +204,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                         ) : (
                           <button
                             onClick={() => setAddingAddress(true)}
-                            className="text-blue-600 hover:underline text-sm mt-1"
+                            className="text-blue-500 hover:underline cursor-pointer text-sm mt-1"
                           >
                             Add Delivery Address
                           </button>
@@ -231,6 +248,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             </div>
           </motion.div>
 
+          {/* Address Modal */}
           {addingAddress && (
             <AddressModal
               onSave={(newAddr) => {
