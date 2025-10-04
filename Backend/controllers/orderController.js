@@ -4,46 +4,88 @@ import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
 
 // controllers/orderController.js
+// export const createOrder = catchAsync(async (req, res, next) => {
+//   const { products, addressId, paymentMethod, totalPrice } = req.body;
+
+//   // ✅ validate required fields
+//   if (!addressId)
+//     return next(new AppError("Delivery address is required", 400));
+//   if (!totalPrice) return next(new AppError("Total price is required", 400));
+
+//   let orderProducts = [];
+
+//   if (products && products.length > 0) {
+//     orderProducts = products;
+//   } else {
+//     const cart = await Cart.findOne({ user: req.user._id });
+//     if (!cart || cart.items.length === 0) {
+//       return next(new AppError("Cart is empty", 400));
+//     }
+
+//     orderProducts = cart.items.map((item) => ({
+//       product: item.listing,
+//       quantity: item.quantity,
+//     }));
+
+//     cart.items = [];
+//     await cart.save();
+//   }
+
+//   // ✅ Create the order with address + totalPrice
+//   const order = new Order({
+//     user: req.user._id,
+//     products: orderProducts,
+//     address: addressId,
+//     totalPrice,
+//     paymentMethod,
+//     status: "pending",
+//     isPaid: false,
+//   });
+
+//   await order.save();
+
+//   res.status(201).json(order);
+// });
+// controllers/orderController.js
 export const createOrder = catchAsync(async (req, res, next) => {
-  const { products, addressId, paymentMethod, totalPrice } = req.body;
+  const { products, address, paymentMethod, totalPrice, deliveryMethod } =
+    req.body;
 
-  // ✅ validate required fields
-  if (!addressId)
-    return next(new AppError("Delivery address is required", 400));
-  if (!totalPrice) return next(new AppError("Total price is required", 400));
-
-  let orderProducts = [];
-
-  if (products && products.length > 0) {
-    orderProducts = products;
-  } else {
-    const cart = await Cart.findOne({ user: req.user._id });
-    if (!cart || cart.items.length === 0) {
-      return next(new AppError("Cart is empty", 400));
-    }
-
-    orderProducts = cart.items.map((item) => ({
-      product: item.listing,
-      quantity: item.quantity,
-    }));
-
-    cart.items = [];
-    await cart.save();
+  // Validate deliveryMethod
+  if (!["delivery", "pickup"].includes(deliveryMethod)) {
+    return next(new AppError("Invalid delivery method", 400));
   }
 
-  // ✅ Create the order with address + totalPrice
+  // If delivery, ensure address exists
+  if (deliveryMethod === "delivery" && !address) {
+    return next(new AppError("Delivery address is required", 400));
+  }
+
+  if (!totalPrice) return next(new AppError("Total price is required", 400));
+
+  const orderProducts = products?.length
+    ? products
+    : (await Cart.findOne({ user: req.user._id }))?.items.map((item) => ({
+        product: item.listing,
+        quantity: item.quantity,
+      }));
+
+  if (!orderProducts || orderProducts.length === 0) {
+    return next(new AppError("Cart is empty", 400));
+  }
+
   const order = new Order({
     user: req.user._id,
     products: orderProducts,
-    address: addressId,
+    address: deliveryMethod === "delivery" ? address : null,
     totalPrice,
     paymentMethod,
+    deliveryMethod,
     status: "pending",
     isPaid: false,
   });
 
   await order.save();
-
   res.status(201).json(order);
 });
 
