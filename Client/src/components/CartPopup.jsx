@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes, FaTrash } from "react-icons/fa";
 import { useCart } from "../context/CartContext";
+import { useNavigate } from "react-router-dom";
 import { createOrder } from "../service/orderService";
 import { getAddresses } from "../service/addressService";
 import AddressModal from "./AddressModal";
@@ -9,11 +10,14 @@ import AddressModal from "./AddressModal";
 const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const { cart, increaseQuantity, decreaseQuantity, removeItem, clear } =
     useCart();
+  const navigate = useNavigate();
+
   const [payment, setPayment] = useState("COD");
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addingAddress, setAddingAddress] = useState(false);
+  const [deliveryMethod, setDeliveryMethod] = useState("delivery"); // delivery or pickup
 
   // Fetch addresses
   useEffect(() => {
@@ -29,39 +33,54 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
     fetchAddresses();
   }, []);
 
+  // Reset address if pickup is selected
+  useEffect(() => {
+    if (deliveryMethod === "pickup") setSelectedAddress(null);
+    else if (addresses.length > 0) setSelectedAddress(addresses[0]);
+  }, [deliveryMethod, addresses]);
+
   const subtotal = cart.reduce(
     (acc, item) => acc + item.price * item.quantity,
     0
   );
-  const shipping = cart.length > 0 ? 10 : 0;
+  const shipping = deliveryMethod === "delivery" && cart.length > 0 ? 10 : 0;
   const discount = subtotal > 100 ? 15 : 0;
   const total = subtotal + shipping - discount;
 
   const handleCheckout = async () => {
-    if (!selectedAddress?._id)
-      return alert("Please select a delivery address.");
     if (cart.length === 0) return alert("Cart is empty!");
+    if (deliveryMethod === "delivery" && !selectedAddress?._id)
+      return alert("Please select a delivery address.");
 
     try {
       setLoading(true);
-      const order = await createOrder({
+
+      const orderData = {
         products: cart.map((item) => ({
           product: item.id,
           quantity: item.quantity,
         })),
-        address: selectedAddress._id,
+        address: deliveryMethod === "delivery" ? selectedAddress._id : null,
         paymentMethod: payment,
         totalPrice: total,
-      });
+        deliveryMethod,
+      };
 
-      onCheckout(order);
+      const order = await createOrder(orderData);
+
+      // Clear cart
       clear();
+
+      // Close cart popup
+      onClose();
+
+      // Redirect to orders page
+      navigate("/orders");
     } catch (err) {
       console.error("Order error:", err.message);
       alert(err.message);
     } finally {
       setLoading(false);
-      onClose();
     }
   };
 
@@ -138,7 +157,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                           </div>
                         </div>
 
-                        {/* Quantity controls + Delete button side by side */}
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => decreaseQuantity(item)}
@@ -170,47 +188,78 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       Order Summary
                     </h3>
 
-                    {/* Delivery Address */}
-                    <div>
+                    {/* Delivery Method */}
+                    <div className="mb-3">
                       <span className="text-sm font-medium text-gray-700">
-                        Delivery Address
+                        Order Type
                       </span>
-                      <div className="space-y-2 mt-2">
-                        {addresses.length > 0 ? (
-                          <>
-                            {addresses.map((addr) => (
-                              <label
-                                key={addr._id}
-                                className="block cursor-pointer"
+                      <div className="flex items-center gap-4 mt-2">
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="deliveryMethod"
+                            value="delivery"
+                            checked={deliveryMethod === "delivery"}
+                            onChange={() => setDeliveryMethod("delivery")}
+                          />
+                          Delivery
+                        </label>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="deliveryMethod"
+                            value="pickup"
+                            checked={deliveryMethod === "pickup"}
+                            onChange={() => setDeliveryMethod("pickup")}
+                          />
+                          Pickup
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Delivery Address */}
+                    {deliveryMethod === "delivery" && (
+                      <div>
+                        <span className="text-sm font-medium text-gray-700">
+                          Delivery Address
+                        </span>
+                        <div className="space-y-2 mt-2">
+                          {addresses.length > 0 ? (
+                            <>
+                              {addresses.map((addr) => (
+                                <label
+                                  key={addr._id}
+                                  className="block cursor-pointer"
+                                >
+                                  <input
+                                    type="radio"
+                                    name="address"
+                                    value={addr._id}
+                                    checked={selectedAddress?._id === addr._id}
+                                    onChange={() => setSelectedAddress(addr)}
+                                    className="mr-2"
+                                  />
+                                  {addr.street}, {addr.city}, {addr.country}
+                                </label>
+                              ))}
+                              <button
+                                onClick={() => setAddingAddress(true)}
+                                className="text-blue-500 hover:underline cursor-pointer text-sm mt-1"
                               >
-                                <input
-                                  type="radio"
-                                  name="address"
-                                  value={addr._id}
-                                  checked={selectedAddress?._id === addr._id}
-                                  onChange={() => setSelectedAddress(addr)}
-                                  className="mr-2"
-                                />
-                                {addr.street}, {addr.city}, {addr.country}
-                              </label>
-                            ))}
+                                Manage Addresses
+                              </button>
+                            </>
+                          ) : (
                             <button
                               onClick={() => setAddingAddress(true)}
                               className="text-blue-500 hover:underline cursor-pointer text-sm mt-1"
                             >
-                              Manage Addresses
+                              Add Delivery Address
                             </button>
-                          </>
-                        ) : (
-                          <button
-                            onClick={() => setAddingAddress(true)}
-                            className="text-blue-500 hover:underline cursor-pointer text-sm mt-1"
-                          >
-                            Add Delivery Address
-                          </button>
-                        )}
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
 
                     {/* Prices */}
                     <div className="space-y-2 text-sm sm:text-base">
