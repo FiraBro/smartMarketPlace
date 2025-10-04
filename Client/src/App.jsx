@@ -34,6 +34,10 @@ export default function App() {
           isFavOpen={isFavOpen}
           closeCart={closeCart}
           closeFav={closeFav}
+          onCheckout={(order) => {
+            console.log("Order placed successfully:", order);
+            
+          }}
         />
       ),
       children: [
