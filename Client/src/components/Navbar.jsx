@@ -57,7 +57,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
         {/* Logo */}
         <div className="text-2xl font-bold text-blue-600 flex-shrink-0">
           <a href="/">
-            Nexa<span className="text-[#f9A03f]">Mart</span>
+            Lo<span className="text-[#f9A03f]">go</span>
           </a>
         </div>
 
