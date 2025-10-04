@@ -1,13 +1,10 @@
-// context/CartContext.js
 import { createContext, useContext, useState, useEffect } from "react";
 import {
   getCart,
-  addToCart,
+  addToCart as addToCartService,
   removeFromCart,
   clearCart,
-  checkoutCart,
-  payWithCOD,
-  payWithTeleBirr,
+  updateCartItem,
 } from "../service/cartService";
 
 const CartContext = createContext();
@@ -29,26 +26,21 @@ export const CartProvider = ({ children }) => {
     }
   };
 
-  
-
-  const addItem = async (product, quantity = 1) => {
+  // ✅ Add item to cart
+  const addItem = async (item, quantity = 1) => {
     // Optimistic update
     setCart((prev) => {
-      const existing = prev.find(
-        (item) => item._id === product._id || item.id === product._id
-      );
+      const existing = prev.find((i) => i.id === item.id);
       if (existing) {
-        return prev.map((item) =>
-          item._id === product._id || item.id === product._id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
+        return prev.map((i) =>
+          i.id === item.id ? { ...i, quantity: i.quantity + quantity } : i
         );
       }
-      return [...prev, { ...product, quantity }];
+      return [...prev, { ...item, quantity }];
     });
 
     try {
-      await addToCart(product._id, quantity); // backend expects id + qty
+      await addToCartService(item._id, quantity);
       fetchCart(); // sync with backend
     } catch (err) {
       console.error("Failed to add item:", err);
@@ -56,11 +48,34 @@ export const CartProvider = ({ children }) => {
     }
   };
 
+  // ✅ Increase / Decrease
+  const updateQuantity = async (item, newQuantity) => {
+    setCart((prev) =>
+      prev.map((i) => (i.id === item.id ? { ...i, quantity: newQuantity } : i))
+    );
+
+    try {
+      await updateCartItem({ listingId: item.id, quantity: newQuantity });
+    } catch (err) {
+      console.error("Failed to update quantity:", err);
+      fetchCart();
+    }
+  };
+
+  const increaseQuantity = (item) => updateQuantity(item, item.quantity + 1);
+
+  const decreaseQuantity = (item) => {
+    if (item.quantity > 1) {
+      updateQuantity(item, item.quantity - 1);
+    } else {
+      removeItem(item.id);
+    }
+  };
+
   const removeItem = async (id) => {
-    setCart((prev) => prev.filter((item) => item._id !== id && item.id !== id));
+    setCart((prev) => prev.filter((i) => i.id !== id));
     try {
       await removeFromCart(id);
-      fetchCart();
     } catch (err) {
       console.error("Failed to remove item:", err);
       fetchCart();
@@ -68,56 +83,12 @@ export const CartProvider = ({ children }) => {
   };
 
   const clear = async () => {
-    setCart([]); // clear instantly
+    setCart([]);
     try {
       await clearCart();
     } catch (err) {
       console.error("Failed to clear cart:", err);
       fetchCart();
-    }
-  };
-
-  // -------------------
-  // ✅ Checkout & Payments
-  // -------------------
-
-  const checkout = async () => {
-    try {
-      setLoading(true);
-      const order = await checkoutCart(); // creates order in backend
-      return order; // return order so UI can decide payment method
-    } catch (err) {
-      console.error("Checkout failed:", err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const payCOD = async (orderId) => {
-    try {
-      setLoading(true);
-      const res = await payWithCOD(orderId);
-      await fetchCart(); // refresh after checkout
-      return res;
-    } catch (err) {
-      console.error("COD payment failed:", err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const payTeleBirr = async (orderId, phone) => {
-    try {
-      setLoading(true);
-      const res = await payWithTeleBirr(orderId, phone);
-      return res; // contains paymentUrl, order
-    } catch (err) {
-      console.error("TeleBirr payment failed:", err);
-      throw err;
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -127,12 +98,11 @@ export const CartProvider = ({ children }) => {
         cart,
         loading,
         fetchCart,
-        addItem,
+        addItem, // ✅ expose addItem
+        increaseQuantity,
+        decreaseQuantity,
         removeItem,
         clear,
-        checkout,
-        payCOD,
-        payTeleBirr,
       }}
     >
       {children}
