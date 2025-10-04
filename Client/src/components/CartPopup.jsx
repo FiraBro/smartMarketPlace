@@ -1,3 +1,4 @@
+// components/CartPopup.js
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaTimes } from "react-icons/fa";
@@ -7,8 +8,9 @@ import { getAddresses } from "../service/addressService";
 import AddressModal from "./AddressModal";
 
 const CartPopup = ({ isOpen, onClose, onCheckout }) => {
-  const { cart, addItem, removeItem, clear } = useCart();
-  const [payment, setPayment] = useState("card");
+  const { cart, increaseQuantity, decreaseQuantity, removeItem, clear } =
+    useCart();
+  const [payment, setPayment] = useState("COD");
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
@@ -37,24 +39,27 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const total = subtotal + shipping - discount;
 
   const handleCheckout = async () => {
-    if (!selectedAddress) return alert("Please select a delivery address.");
+    if (!selectedAddress?._id)
+      return alert("Please select a delivery address.");
     if (cart.length === 0) return alert("Cart is empty!");
+
     try {
       setLoading(true);
       const order = await createOrder({
         products: cart.map((item) => ({
-          product: item._id || item.id,
+          product: item.id,
           quantity: item.quantity,
         })),
-        address: selectedAddress,
-        payment,
-        total,
+        address: selectedAddress._id,
+        paymentMethod: payment,
+        totalPrice: total,
       });
+
       onCheckout(order);
       clear();
     } catch (err) {
-      console.error(err);
-      alert(err.message || "Failed to place order");
+      console.error("Order error:", err.message);
+      alert(err.message);
     } finally {
       setLoading(false);
       onClose();
@@ -80,7 +85,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             transition={{ type: "spring", damping: 25, stiffness: 300 }}
             className="fixed top-0 right-0 h-full w-full max-w-4xl bg-white shadow-2xl z-50 flex flex-col rounded-l-2xl"
           >
-            {/* Cart Header */}
+            {/* Header */}
             <div className="flex justify-between items-center p-4 border-b border-b-amber-100">
               <h2 className="text-xl font-semibold">Your Cart</h2>
               <div className="flex items-center gap-3">
@@ -101,7 +106,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
               </div>
             </div>
 
-            {/* Cart Content */}
+            {/* Cart Items */}
             <div className="flex-1 p-4">
               {cart.length === 0 ? (
                 <div className="flex h-full items-center justify-center">
@@ -109,133 +114,95 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full overflow-hidden">
-                  {/* Items */}
                   <div className="space-y-4 overflow-y-auto pr-2 max-h-[70vh]">
                     {cart.map((item) => (
                       <div
-                        key={item._id || item.id}
+                        key={item.id}
                         className="flex items-center gap-4 bg-gray-50 p-3 rounded-xl shadow-sm"
                       >
-                        <div className="flex-shrink-0 w-16 h-16">
-                          <img
-                            src={item.image || "https://via.placeholder.com/80"}
-                            alt={item.name}
-                            className="w-full h-full object-cover rounded-lg"
-                          />
-                        </div>
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="w-16 h-16 object-cover rounded-lg"
+                        />
                         <div className="flex-1 min-w-0">
                           <h3 className="font-medium truncate">{item.name}</h3>
                           <p className="text-sm text-gray-500">${item.price}</p>
-                          <div className="flex items-center mt-2 space-x-2">
-                            <button
-                              onClick={() =>
-                                item.quantity > 1
-                                  ? addItem(item, -1)
-                                  : removeItem(item._id || item.id)
-                              }
-                              className="px-2 py-1 border rounded"
-                            >
-                              -
-                            </button>
-                            <span>{item.quantity}</span>
-                            <button
-                              onClick={() => addItem(item, 1)}
-                              className="px-2 py-1 border rounded"
-                            >
-                              +
-                            </button>
-                          </div>
                         </div>
-                        <button
-                          onClick={() => removeItem(item._id || item.id)}
-                          className="text-red-500 hover:text-red-600 text-sm font-semibold"
-                        >
-                          Remove
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => decreaseQuantity(item)}
+                            className="px-2 py-1 border rounded"
+                          >
+                            -
+                          </button>
+                          <span>{item.quantity}</span>
+                          <button
+                            onClick={() => increaseQuantity(item)}
+                            className="px-2 py-1 border rounded"
+                          >
+                            +
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
 
-                  {/* Order Summary */}
+                  {/* Summary */}
                   <div className="flex flex-col gap-4 bg-gray-50 p-5 rounded-xl shadow-md max-h-[70vh] overflow-y-auto">
                     <h3 className="text-lg font-semibold border-b pb-2">
                       Order Summary
                     </h3>
+                    {/* Delivery Address */}
                     <div>
                       <span className="text-sm font-medium text-gray-700">
                         Delivery Address
                       </span>
                       <div className="space-y-2 mt-2">
-                        {addresses.length === 0 && (
+                        {addresses.length > 0 ? (
+                          <>
+                            {addresses.map((addr) => (
+                              <label
+                                key={addr._id}
+                                className="block cursor-pointer"
+                              >
+                                <input
+                                  type="radio"
+                                  name="address"
+                                  value={addr._id}
+                                  checked={selectedAddress?._id === addr._id}
+                                  onChange={() => setSelectedAddress(addr)}
+                                  className="mr-2"
+                                />
+                                {addr.street}, {addr.city}, {addr.country}
+                              </label>
+                            ))}
+                            <button
+                              onClick={() => setAddingAddress(true)}
+                              className="text-blue-600 hover:underline text-sm mt-1"
+                            >
+                              Manage Addresses
+                            </button>
+                          </>
+                        ) : (
                           <button
                             onClick={() => setAddingAddress(true)}
-                            className="text-blue-600 hover:underline text-sm"
+                            className="text-blue-600 hover:underline text-sm mt-1"
                           >
-                            Add Address
+                            Add Delivery Address
                           </button>
                         )}
-                        {addresses.map((addr) => (
-                          <label
-                            key={addr._id}
-                            className="block cursor-pointer"
-                          >
-                            <input
-                              type="radio"
-                              name="address"
-                              value={addr._id}
-                              checked={selectedAddress?._id === addr._id}
-                              onChange={() => setSelectedAddress(addr)}
-                              className="mr-2"
-                            />
-                            {addr.street}, {addr.city}, {addr.country}
-                          </label>
-                        ))}
-                        <button
-                          onClick={() => setAddingAddress(true)}
-                          className="text-blue-600 hover:underline text-sm mt-1"
-                        >
-                          Manage Addresses
-                        </button>
                       </div>
                     </div>
 
-                    {/* Payment & Prices */}
-                    <div className="flex flex-col gap-2">
-                      <span className="text-sm font-medium text-gray-700">
-                        Payment Method
-                      </span>
-                      <div className="space-y-2">
-                        {["card", "paypal", "cod"].map((method) => (
-                          <label
-                            key={method}
-                            className="flex items-center gap-2 cursor-pointer"
-                          >
-                            <input
-                              type="radio"
-                              name="payment"
-                              value={method}
-                              checked={payment === method}
-                              onChange={() => setPayment(method)}
-                            />
-                            <span>
-                              {method === "card"
-                                ? "Credit / Debit Card"
-                                : method === "paypal"
-                                ? "PayPal"
-                                : "Cash on Delivery"}
-                            </span>
-                          </label>
-                        ))}
-                      </div>
-                    </div>
-
+                    {/* Prices */}
                     <div className="space-y-2 text-sm sm:text-base">
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Subtotal</span>
+                        <span>Subtotal</span>
                         <span>${subtotal.toFixed(2)}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-gray-600">Shipping</span>
+                        <span>Shipping</span>
                         <span>${shipping.toFixed(2)}</span>
                       </div>
                       {discount > 0 && (
@@ -254,9 +221,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                     <button
                       onClick={handleCheckout}
                       disabled={loading}
-                      className={`w-full py-3 bg-amber-600 text-white rounded-xl shadow hover:bg-amber-500 transition text-sm sm:text-base ${
-                        loading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                      className="w-full py-3 bg-amber-600 text-white rounded-xl shadow hover:bg-amber-500 transition"
                     >
                       {loading ? "Placing Order..." : "Place Order"}
                     </button>
@@ -269,7 +234,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
           {addingAddress && (
             <AddressModal
               onSave={(newAddr) => {
-                setAddresses((prev) => [...prev, newAddr]);
+                setAddresses([newAddr]);
                 setSelectedAddress(newAddr);
                 setAddingAddress(false);
               }}
