@@ -2,7 +2,6 @@ import express from "express";
 import cors from "cors";
 import path from "path";
 import { globalErrorHandler } from "./middlewares/errorMiddleware.js";
-import AppError from "./utils/AppError.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import listingRoutes from "./routes/listingRoutes.js";
