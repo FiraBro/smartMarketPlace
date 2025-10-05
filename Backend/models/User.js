@@ -6,6 +6,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, "Name is required"],
     },
+    phone: {
+      type: String,
+      required: [true, "Phone number is required"],
+    },
+    avatar: {
+      type: String,
+      default:
+        "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face",
+    },
     email: {
       type: String,
       required: [true, "Email is required"],
