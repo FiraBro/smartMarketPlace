@@ -13,12 +13,15 @@ export default function AuthModal({ isOpen, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLogin) {
-      await login({ email: form.email, password: form.password });
-    } else {
-      await register(form);
-    }
+    if (isLogin) await login({ email: form.email, password: form.password });
+    else await register(form);
     onClose();
+  };
+
+  const modalVariants = {
+    hidden: { opacity: 0, y: 50, scale: 0.95 },
+    visible: { opacity: 1, y: 0, scale: 1 },
+    exit: { opacity: 0, y: 50, scale: 0.95 },
   };
 
   return (
@@ -27,33 +30,34 @@ export default function AuthModal({ isOpen, onClose }) {
         <>
           {/* Overlay */}
           <motion.div
-            className="fixed inset-0 bg-black/80 z-40"
+            className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose} // clicking overlay closes modal
+            onClick={onClose}
           />
 
-          {/* Modal with form */}
+          {/* Modal */}
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0.9, opacity: 0 }}
+            variants={modalVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
             transition={{ type: "spring", damping: 20, stiffness: 300 }}
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 
-                   bg-white rounded-2xl shadow-2xl w-full max-w-md z-50 p-6"
-            onClick={(e) => e.stopPropagation()} // ✨ this stops overlay clicks from closing modal
+            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
+                       bg-white rounded-3xl shadow-xl w-full max-w-md z-50 p-8"
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header */}
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold">
-                {isLogin ? "Login" : "Register"}
+            <div className="flex justify-between items-center mb-6 border-b pb-4">
+              <h2 className="text-2xl font-bold text-gray-800">
+                {isLogin ? "Welcome Back!" : "Create Account"}
               </h2>
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-gray-100 rounded-full cursor-pointer"
+                className="p-2 hover:bg-gray-100 rounded-full transition"
               >
-                <FaTimes className="w-6 h-6" />
+                <FaTimes className="w-5 h-5 text-gray-600" />
               </button>
             </div>
 
@@ -66,7 +70,7 @@ export default function AuthModal({ isOpen, onClose }) {
                   placeholder="Full Name"
                   value={form.name}
                   onChange={handleChange}
-                  className="w-full border p-2 rounded"
+                  className="w-full border border-gray-200 p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#f9A03f] focus:outline-none transition"
                   required
                 />
               )}
@@ -76,7 +80,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 placeholder="Email"
                 value={form.email}
                 onChange={handleChange}
-                className="w-full border p-2 rounded"
+                className="w-full border border-gray-200 p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#f9A03f] focus:outline-none transition"
                 required
               />
               <input
@@ -85,25 +89,25 @@ export default function AuthModal({ isOpen, onClose }) {
                 placeholder="Password"
                 value={form.password}
                 onChange={handleChange}
-                className="w-full border p-2 rounded"
+                className="w-full border border-gray-200 p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#f9A03f] focus:outline-none transition"
                 required
               />
               <button
                 type="submit"
-                className="w-full bg-[#f9A03f] text-white py-2 rounded hover:bg-[#f5a550]"
+                className="w-full bg-gradient-to-r from-[#f9A03f] to-[#f5a550] text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition"
               >
                 {isLogin ? "Login" : "Register"}
               </button>
             </form>
 
-            {/* Toggle login/register */}
-            <p className="mt-4 text-sm text-center text-gray-600">
+            {/* Toggle */}
+            <p className="mt-5 text-sm text-center text-gray-500">
               {isLogin ? "Don’t have an account?" : "Already have an account?"}{" "}
               <button
                 onClick={() => setIsLogin(!isLogin)}
-                className="text-[#f9A03f] hover:underline"
+                className="text-[#f9A03f] font-semibold hover:underline"
               >
-                {isLogin ? "Register" : "Login"}
+                {isLogin ? "Sign Up" : "Login"}
               </button>
             </p>
           </motion.div>
