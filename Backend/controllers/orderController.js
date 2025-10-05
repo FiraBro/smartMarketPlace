@@ -143,6 +143,27 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
 });
 
 // ✅ Mark order as paid
+// export const payOrder = catchAsync(async (req, res, next) => {
+//   const order = await Order.findById(req.params.id);
+
+//   if (!order) return next(new AppError("Order not found", 404));
+
+//   if (
+//     req.user.role !== "admin" &&
+//     String(order.user) !== String(req.user._id)
+//   ) {
+//     return next(new AppError("Not authorized to pay this order", 403));
+//   }
+
+//   order.isPaid = true;
+//   order.paidAt = Date.now();
+//   order.status = "paid";
+
+//   await order.save();
+
+//   res.json({ message: "Order marked as paid", order });
+// });
+// controllers/orderController.js
 export const payOrder = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
 
@@ -155,13 +176,38 @@ export const payOrder = catchAsync(async (req, res, next) => {
     return next(new AppError("Not authorized to pay this order", 403));
   }
 
-  order.isPaid = true;
-  order.paidAt = Date.now();
-  order.status = "paid";
+  const { paymentMethod, phone } = req.body;
 
-  await order.save();
+  if (!["COD", "TeleBirr"].includes(paymentMethod)) {
+    return next(new AppError("Invalid payment method", 400));
+  }
 
-  res.json({ message: "Order marked as paid", order });
+  // ✅ Handle Cash on Delivery
+  if (paymentMethod === "COD") {
+    order.paymentMethod = "COD";
+    order.isPaid = false;
+    order.status = "paid"; // valid enum value
+    await order.save();
+    return res.json({ message: "Cash on Delivery selected", order });
+  }
+
+  // ✅ Handle TeleBirr
+  if (paymentMethod === "TeleBirr") {
+    if (!phone) return next(new AppError("Phone number required", 400));
+    order.paymentMethod = "TeleBirr";
+    order.isPaid = true;
+    order.paidAt = Date.now();
+    order.status = "paid"; // valid enum
+    await order.save();
+
+    // Simulate redirect URL (replace with real TeleBirr integration later)
+    const paymentUrl = `https://telebirr.et/pay/${order._id}`;
+    return res.json({
+      message: "TeleBirr payment initiated",
+      paymentUrl,
+      order,
+    });
+  }
 });
 
 // ✅ Cancel/Delete an order

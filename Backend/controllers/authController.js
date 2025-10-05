@@ -56,3 +56,33 @@ export const getMe = catchAsync(async (req, res, next) => {
   }
   res.json({ user: req.user });
 });
+export const updateMe = catchAsync(async (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ message: "Not authorized" });
+  }
+
+  const { name, email, password, phone } = req.body;
+  const updates = {};
+
+  if (name) updates.name = name;
+  if (email) updates.email = email;
+  if (phone) updates.phone = phone;
+  if (password) {
+    updates.password = await bcrypt.hash(password, 10);
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, {
+    new: true,
+    runValidators: true,
+  });
+
+  res.json({
+    message: "Profile updated successfully",
+    user: {
+      id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+    },
+  });
+});
