@@ -9,7 +9,12 @@ export default function HomePage() {
   return (
     <div className="max-w-[85rem] mx-auto px-4 bg-[#fff]">
       <HeroSection />
-      <CategorySection />
+
+      {/* ✅ Add wrapper with correct id */}
+      <div id="category-section">
+        <CategorySection />
+      </div>
+
       <PopularProducts />
       <MostSoldProductSection />
       <SubscriptionSection />
