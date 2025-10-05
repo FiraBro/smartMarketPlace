@@ -1,3 +1,4 @@
+// context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
 import {
   loginUser,
@@ -12,20 +13,18 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load user on first render (if token exists)
+  // Load current user on mount
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem("token");
-      if (!token) {
-        setLoading(false);
-        return;
-      }
+      if (!token) return setLoading(false);
+
       try {
         const currentUser = await getCurrentUser();
         setUser(currentUser);
-      } catch (err) {
-        setUser(null); // invalid token
-        localStorage.removeItem("token"); // remove expired/invalid token
+      } catch {
+        setUser(null);
+        localStorage.removeItem("token");
       } finally {
         setLoading(false);
       }
@@ -33,26 +32,29 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, []);
 
-  // login
   const login = async (credentials) => {
     const data = await loginUser(credentials);
     setUser(data.user);
   };
 
-  // register
   const register = async (info) => {
     const data = await registerUser(info);
     setUser(data.user);
   };
 
-  // logout
   const logout = () => {
     logoutUser();
     setUser(null);
   };
 
+  const updateUser = (updatedUser) => {
+    setUser(updatedUser);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, login, register, logout, updateUser, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );
