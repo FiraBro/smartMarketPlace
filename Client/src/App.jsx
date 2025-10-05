@@ -7,6 +7,7 @@ import Profile from "./components/Profile";
 import AllListingsPage from "./pages/AllListingPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
+import OrderSuccessPage from "./pages/OrderSuccussPage";
 
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
@@ -36,7 +37,6 @@ export default function App() {
           closeFav={closeFav}
           onCheckout={(order) => {
             console.log("Order placed successfully:", order);
-            
           }}
         />
       ),
@@ -44,9 +44,10 @@ export default function App() {
         { index: true, element: <HomePage /> },
         { path: "/listings/:id", element: <ProductDetail /> },
         { path: "/profile", element: <Profile /> },
-        { path: "/listings", element: <AllListingsPage /> },
+        { path: "/all-listings", element: <AllListingsPage /> },
         { path: "/payment/:orderId", element: <PaymentPage /> },
         { path: "/orders", element: <OrdersPage /> },
+        { path: "/order-success/:orderId", element: <OrderSuccessPage /> },
       ],
     },
   ]);
