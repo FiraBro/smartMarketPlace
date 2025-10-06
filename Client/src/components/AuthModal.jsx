@@ -6,15 +6,29 @@ import { FaTimes } from "react-icons/fa";
 export default function AuthModal({ isOpen, onClose }) {
   const { login, register } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
-  const [form, setForm] = useState({ name: "", email: "", password: "" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+  });
 
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isLogin) await login({ email: form.email, password: form.password });
-    else await register(form);
+    if (isLogin) {
+      await login({ email: form.email, password: form.password });
+    } else {
+      // ✅ include phone number during registration
+      await register({
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        password: form.password,
+      });
+    }
     onClose();
   };
 
@@ -64,16 +78,28 @@ export default function AuthModal({ isOpen, onClose }) {
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className="w-full border border-gray-200 p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#f9A03f] focus:outline-none transition"
-                  required
-                />
+                <>
+                  <input
+                    type="text"
+                    name="name"
+                    placeholder="Full Name"
+                    value={form.name}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#f9A03f] focus:outline-none transition"
+                    required
+                  />
+                  <input
+                    type="tel"
+                    name="phone"
+                    placeholder="Phone Number"
+                    value={form.phone}
+                    onChange={handleChange}
+                    className="w-full border border-gray-200 p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#f9A03f] focus:outline-none transition"
+                    required
+                  />
+                </>
               )}
+
               <input
                 type="email"
                 name="email"
@@ -83,6 +109,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 className="w-full border border-gray-200 p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#f9A03f] focus:outline-none transition"
                 required
               />
+
               <input
                 type="password"
                 name="password"
@@ -92,6 +119,7 @@ export default function AuthModal({ isOpen, onClose }) {
                 className="w-full border border-gray-200 p-3 rounded-xl shadow-sm focus:ring-2 focus:ring-[#f9A03f] focus:outline-none transition"
                 required
               />
+
               <button
                 type="submit"
                 className="w-full bg-gradient-to-r from-[#f9A03f] to-[#f5a550] text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition"
