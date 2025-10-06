@@ -13,6 +13,7 @@ import orderRoutes from "./routes/orderRoutes.js";
 import bannerRoutes from "./routes/bannerRoutes.js";
 import favoriteRouter from "./routes/favoriteRoutes.js";
 import newsLetter from "./routes/newsLetterRoutes.js";
+import verificationRoutes from "./routes/verificationRoutes.js";
 // import paymentRoutes from "./routes/paymentRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
 const app = express();
@@ -35,6 +36,7 @@ app.use("/api/favorites", favoriteRouter);
 app.use("/api/newsletter", newsLetter);
 // app.use("/api/payments", paymentRoutes);
 app.use("/api/addresses", addressRoutes);
+app.use("/api/verify", verificationRoutes);
 
 // Global Error Handler
 app.use(globalErrorHandler);
