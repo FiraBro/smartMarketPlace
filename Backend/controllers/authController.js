@@ -5,7 +5,7 @@ import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 
 export const registerUser = catchAsync(async (req, res, next) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, phone } = req.body;
 
   const existingUser = await User.findOne({ email });
   if (existingUser) return next(new AppError("User already exists", 400));
@@ -17,6 +17,7 @@ export const registerUser = catchAsync(async (req, res, next) => {
     email,
     password: hashedPassword,
     role,
+    phone,
   });
 
   // 🔑 generate token just like login
