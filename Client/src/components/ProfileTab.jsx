@@ -1,16 +1,79 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { FaCheck, FaEdit } from "react-icons/fa";
 import { updateProfile } from "../service/AuthService";
+import {
+  sendVerificationCode,
+  verifyCode,
+} from "../service/verificationService";
+import { toast } from "react-hot-toast";
 
 const ProfileTab = ({ userData, setUserData, updateUser }) => {
+  const [verified, setVerified] = useState({ email: false, phone: false });
+  const [loading, setLoading] = useState({ email: false, phone: false });
+  const [code, setCode] = useState({ email: "", phone: "" });
+
+  useEffect(() => {
+    setVerified({
+      email: userData?.emailVerified || false,
+      phone: userData?.phoneVerified || false,
+    });
+  }, [userData]);
+
+  // Profile update
   const handleProfileUpdate = async () => {
     try {
       const updatedUser = await updateProfile(userData);
-      updateUser(updatedUser); // update context
-      alert("Profile updated successfully");
+      updateUser(updatedUser);
+      toast.success("Profile updated successfully", {
+        icon: "✅",
+      });
     } catch (err) {
       console.error(err);
-      alert("Failed to update profile");
+      toast.error("Failed to update profile", {
+        icon: "❌",
+      });
+    }
+  };
+
+  // Send verification code
+  const handleSendCode = async (field) => {
+    try {
+      setLoading({ ...loading, [field]: true });
+      await sendVerificationCode(field);
+      toast.custom(
+        <div className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md flex items-center space-x-2">
+          <span>📧</span>
+          <span>Verification code sent to your {field}</span>
+        </div>
+      );
+    } catch (err) {
+      console.error(err);
+      toast.error(`Failed to send code to ${field}`, { icon: "❌" });
+    } finally {
+      setLoading({ ...loading, [field]: false });
+    }
+  };
+
+  // Verify code
+  const handleVerify = async (field) => {
+    try {
+      setLoading({ ...loading, [field]: true });
+      const updatedUser = await verifyCode(field, code[field].toString());
+
+      setVerified({ ...verified, [field]: true });
+      setUserData(updatedUser);
+      updateUser(updatedUser);
+
+      toast.success(
+        `${field.charAt(0).toUpperCase() + field.slice(1)} verified!`,
+        { icon: "✅" }
+      );
+      setCode({ ...code, [field]: "" });
+    } catch (err) {
+      console.error(err);
+      toast.error(`Invalid code for ${field}`, { icon: "❌" });
+    } finally {
+      setLoading({ ...loading, [field]: false });
     }
   };
 
@@ -21,6 +84,7 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
           Personal Information
         </h3>
 
+        {/* Profile Photo */}
         <div className="flex items-center space-x-6 mb-6">
           <img
             className="h-20 w-20 rounded-full object-cover border-2 border-primary-500"
@@ -32,26 +96,60 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
               <FaEdit className="w-4 h-4" />
               <span>Change Photo</span>
             </button>
-            <p className="text-sm text-gray-500 mt-2">{userData.email}</p>
           </div>
         </div>
 
+        {/* Input Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {["name", "email", "phone"].map((field) => (
-            <div key={field}>
+            <div key={field} className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {field.charAt(0).toUpperCase() + field.slice(1)}
               </label>
               <input
                 type={field === "email" ? "email" : "text"}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900"
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900 ${
+                  field === "email" || field === "phone" ? "pr-28" : ""
+                }`}
                 value={userData[field]}
                 onChange={(e) =>
                   setUserData({ ...userData, [field]: e.target.value })
                 }
               />
+
+              {/* Verification Inputs */}
+              {(field === "email" || field === "phone") && !verified[field] && (
+                <div className="absolute top-1/2 right-2 -translate-y-1/2 flex items-center space-x-1">
+                  <input
+                    type="text"
+                    placeholder="Code"
+                    value={code[field]}
+                    onChange={(e) =>
+                      setCode({ ...code, [field]: e.target.value })
+                    }
+                    className="px-2 py-1 border border-gray-300 rounded-lg w-16 text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() =>
+                      code[field] ? handleVerify(field) : handleSendCode(field)
+                    }
+                    className="px-3 py-1 rounded-lg text-sm font-medium bg-black text-white hover:bg-gray-800 transition-colors"
+                    disabled={loading[field]}
+                  >
+                    {loading[field] ? "..." : code[field] ? "Verify" : "Send"}
+                  </button>
+                </div>
+              )}
+
+              {/* Verified Indicator */}
+              {verified[field] && (
+                <FaCheck className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600 w-5 h-5" />
+              )}
             </div>
           ))}
+
+          {/* Join Date */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Member Since
@@ -65,6 +163,7 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
           </div>
         </div>
 
+        {/* Buttons */}
         <div className="flex justify-end space-x-3 mt-6">
           <button className="px-6 py-2 border border-gray-300 text-gray-700 cursor-pointer rounded-lg hover:bg-gray-50 transition-colors font-medium">
             Cancel
