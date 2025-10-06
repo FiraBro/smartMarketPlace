@@ -13,6 +13,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { FavoriteProvider } from "./context/FavoriteContext";
 
+import { Toaster } from "react-hot-toast";
 import Spinner from "./components/Spinner";
 
 export default function App() {
@@ -58,6 +59,35 @@ export default function App() {
         <FavoriteProvider>
           <Suspense fallback={<Spinner />}>
             <RouterProvider router={router} />
+            <Toaster
+              position="top-right"
+              toastOptions={{
+                // Default options for all toasts
+                duration: 3000,
+                style: {
+                  padding: "10px 16px",
+                  color: "#fff",
+                  fontWeight: "500",
+                  borderRadius: "0.5rem",
+                  fontFamily: "Inter, sans-serif",
+                },
+                success: {
+                  style: {
+                    background: "#10B981", // Tailwind green-500
+                  },
+                },
+                error: {
+                  style: {
+                    background: "#EF4444", // Tailwind red-500
+                  },
+                },
+                loading: {
+                  style: {
+                    background: "#3B82F6", // Tailwind blue-500
+                  },
+                },
+              }}
+            />
           </Suspense>
         </FavoriteProvider>
       </CartProvider>
