@@ -6,6 +6,7 @@ import {
   payWithTeleBirr,
   getOrderById,
 } from "../service/orderService";
+import PaymentOptions from "../components/PaymentOption";
 import { motion } from "framer-motion";
 import { FaMoneyBillWave, FaMobileAlt, FaBoxOpen } from "react-icons/fa";
 
@@ -73,6 +74,7 @@ const PaymentPage = () => {
         <h1 className="text-3xl font-bold text-gray-800 text-center mb-6">
           Complete Your Payment
         </h1>
+        <PaymentOptions />
 
         {/* Order Info */}
         <div className="grid sm:grid-cols-2 gap-6 mb-8">
