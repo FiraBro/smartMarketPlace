@@ -50,7 +50,7 @@ const orderSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["COD", "TeleBirr"],
+      enum: ["COD", "TeleBirr", "Chapa"],
       default: "COD",
     },
     paymentStatus: {
