@@ -6,18 +6,22 @@ import { useNavigate } from "react-router-dom";
 import { createOrder } from "../service/orderService";
 import { getAddresses } from "../service/addressService";
 import AddressModal from "./AddressModal";
+import {
+  initializeChapaPayment,
+  initializeTelebirrPayment,
+} from "../service/paymentService";
 
-const CartPopup = ({ isOpen, onClose, onCheckout }) => {
+const CartPopup = ({ isOpen, onClose }) => {
   const { cart, increaseQuantity, decreaseQuantity, removeItem, clear } =
     useCart();
   const navigate = useNavigate();
 
-  const [payment, setPayment] = useState("COD");
+  const [payment, setPayment] = useState("COD"); // COD, Telebirr, Chapa
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addingAddress, setAddingAddress] = useState(false);
-  const [deliveryMethod, setDeliveryMethod] = useState("delivery"); // delivery or pickup
+  const [deliveryMethod, setDeliveryMethod] = useState("delivery");
 
   // Fetch addresses
   useEffect(() => {
@@ -33,7 +37,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
     fetchAddresses();
   }, []);
 
-  // Reset address if pickup is selected
   useEffect(() => {
     if (deliveryMethod === "pickup") setSelectedAddress(null);
     else if (addresses.length > 0) setSelectedAddress(addresses[0]);
@@ -47,6 +50,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
   const discount = subtotal > 100 ? 15 : 0;
   const total = subtotal + shipping - discount;
 
+  // 🔥 Checkout Handler
   const handleCheckout = async () => {
     if (cart.length === 0) return alert("Cart is empty!");
     if (deliveryMethod === "delivery" && !selectedAddress?._id)
@@ -55,6 +59,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
     try {
       setLoading(true);
 
+      // 1️⃣ Create order in backend
       const orderData = {
         products: cart.map((item) => ({
           product: item.id,
@@ -68,13 +73,37 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
 
       const order = await createOrder(orderData);
 
-      // Clear cart
+      // 2️⃣ Payment Integration
+      const tx_ref = `${payment.toUpperCase()}-${Date.now()}`;
+
+      if (payment === "Telebirr") {
+        const redirectUrl = await initializeTelebirrPayment({
+          amount: total,
+          first_name: order.customerFirstName,
+          last_name: order.customerLastName,
+          phone_number: order.customerPhone,
+          tx_ref,
+        });
+        if (redirectUrl) window.location.href = redirectUrl;
+        return;
+      }
+
+      if (payment === "Chapa") {
+        const data = await initializeChapaPayment({
+          amount: total,
+          first_name: order.customerFirstName,
+          last_name: order.customerLastName,
+          email: order.customerEmail,
+          phone_number: order.customerPhone,
+          tx_ref,
+        });
+        if (data?.checkout_url) window.location.href = data.checkout_url;
+        return;
+      }
+
+      // 3️⃣ COD
       clear();
-
-      // Close cart popup
       onClose();
-
-      // Redirect to orders page
       navigate("/orders");
     } catch (err) {
       console.error("Order error:", err.message);
@@ -88,7 +117,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Overlay */}
           <motion.div
             className="fixed inset-0 bg-black/40 z-40"
             initial={{ opacity: 0 }}
@@ -97,7 +125,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             onClick={onClose}
           />
 
-          {/* Cart Panel */}
           <motion.div
             initial={{ x: "100%" }}
             animate={{ x: 0 }}
@@ -134,7 +161,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-full overflow-hidden">
-                  {/* Items List */}
                   <div className="space-y-4 overflow-y-auto pr-2 max-h-[70vh]">
                     {cart.map((item) => (
                       <div
@@ -182,13 +208,13 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                     ))}
                   </div>
 
-                  {/* Order Summary */}
+                  {/* Order Summary & Payment */}
                   <div className="flex flex-col gap-4 bg-gray-50 p-5 rounded-xl shadow-md max-h-[70vh] overflow-y-auto">
                     <h3 className="text-lg font-semibold border-b pb-2">
                       Order Summary
                     </h3>
 
-                    {/* Delivery Method */}
+                    {/* Delivery & Address */}
                     <div className="mb-3">
                       <span className="text-sm font-medium text-gray-700">
                         Order Type
@@ -217,7 +243,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       </div>
                     </div>
 
-                    {/* Delivery Address */}
                     {deliveryMethod === "delivery" && (
                       <div>
                         <span className="text-sm font-medium text-gray-700">
@@ -261,7 +286,54 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       </div>
                     )}
 
-                    {/* Prices */}
+                    {/* Payment Selection */}
+                    <div className="mb-3">
+                      <span className="text-sm font-medium text-gray-700">
+                        Payment Method
+                      </span>
+                      <div className="flex items-center gap-4 mt-2">
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="payment"
+                            value="COD"
+                            checked={payment === "COD"}
+                            onChange={() => setPayment("COD")}
+                          />
+                          Cash on Delivery
+                        </label>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="payment"
+                            value="Telebirr"
+                            checked={payment === "Telebirr"}
+                            onChange={() => setPayment("Telebirr")}
+                          />
+                          <img
+                            src="/telebirr-logo.png"
+                            alt="Telebirr"
+                            className="w-12 h-5 object-contain"
+                          />
+                        </label>
+                        <label className="flex items-center gap-1 cursor-pointer">
+                          <input
+                            type="radio"
+                            name="payment"
+                            value="Chapa"
+                            checked={payment === "Chapa"}
+                            onChange={() => setPayment("Chapa")}
+                          />
+                          <img
+                            src="/chapa-logo.png"
+                            alt="Chapa"
+                            className="w-12 h-5 object-contain"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Order Prices */}
                     <div className="space-y-2 text-sm sm:text-base">
                       <div className="flex justify-between">
                         <span>Subtotal</span>
@@ -289,7 +361,7 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
                       disabled={loading}
                       className="w-full py-3 bg-amber-600 text-white rounded-xl shadow hover:bg-amber-500 transition"
                     >
-                      {loading ? "Placing Order..." : "Place Order"}
+                      {loading ? "Processing..." : "Place Order"}
                     </button>
                   </div>
                 </div>
@@ -297,7 +369,6 @@ const CartPopup = ({ isOpen, onClose, onCheckout }) => {
             </div>
           </motion.div>
 
-          {/* Address Modal */}
           {addingAddress && (
             <AddressModal
               onSave={(newAddr) => {
