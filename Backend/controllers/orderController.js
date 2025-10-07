@@ -178,7 +178,7 @@ export const payOrder = catchAsync(async (req, res, next) => {
 
   const { paymentMethod, phone } = req.body;
 
-  if (!["COD", "TeleBirr"].includes(paymentMethod)) {
+  if (!["COD", "TeleBirr", "Chapa"].includes(paymentMethod)) {
     return next(new AppError("Invalid payment method", 400));
   }
 
@@ -199,6 +199,14 @@ export const payOrder = catchAsync(async (req, res, next) => {
     order.paidAt = Date.now();
     order.status = "paid"; // valid enum
     await order.save();
+
+    if (paymentMethod === "Chapa") {
+      order.paymentMethod = "Chapa";
+      order.isPaid = true;
+      order.paidAt = Date.now();
+      order.status = "paid"; // valid enum
+      await order.save();
+    }
 
     // Simulate redirect URL (replace with real TeleBirr integration later)
     const paymentUrl = `https://telebirr.et/pay/${order._id}`;
