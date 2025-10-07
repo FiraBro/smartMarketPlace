@@ -5,7 +5,8 @@ import {
   sendVerificationCode,
   verifyCode,
 } from "../service/verificationService";
-import { toast } from "react-hot-toast";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ProfileTab = ({ userData, setUserData, updateUser }) => {
   const [verified, setVerified] = useState({ email: false, phone: false });
@@ -24,14 +25,10 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
     try {
       const updatedUser = await updateProfile(userData);
       updateUser(updatedUser);
-      toast.success("Profile updated successfully", {
-        icon: "✅",
-      });
+      toast.success("Profile updated successfully!");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update profile", {
-        icon: "❌",
-      });
+      toast.error("Failed to update profile.");
     }
   };
 
@@ -40,15 +37,10 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
     try {
       setLoading({ ...loading, [field]: true });
       await sendVerificationCode(field);
-      toast.custom(
-        <div className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow-md flex items-center space-x-2">
-          <span>📧</span>
-          <span>Verification code sent to your {field}</span>
-        </div>
-      );
+      toast.info(`Verification code sent to your ${field}.`);
     } catch (err) {
       console.error(err);
-      toast.error(`Failed to send code to ${field}`, { icon: "❌" });
+      toast.error(`Failed to send code to ${field}.`);
     } finally {
       setLoading({ ...loading, [field]: false });
     }
@@ -65,13 +57,14 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
       updateUser(updatedUser);
 
       toast.success(
-        `${field.charAt(0).toUpperCase() + field.slice(1)} verified!`,
-        { icon: "✅" }
+        `${
+          field.charAt(0).toUpperCase() + field.slice(1)
+        } verified successfully!`
       );
       setCode({ ...code, [field]: "" });
     } catch (err) {
       console.error(err);
-      toast.error(`Invalid code for ${field}`, { icon: "❌" });
+      toast.error(`Invalid code for ${field}.`);
     } finally {
       setLoading({ ...loading, [field]: false });
     }
@@ -79,6 +72,9 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
 
   return (
     <div className="space-y-6">
+      {/* Toast container */}
+      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Personal Information
