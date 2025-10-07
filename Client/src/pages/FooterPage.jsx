@@ -62,7 +62,7 @@ export const Contact = () => (
 // ✅ Blog Component
 export const Blog = () => (
   <div className="p-8 bg-gray-50 rounded-lg shadow">
-    <h2 className="text-2xl font-bold mb-6">📝 TinaMart Blog</h2>
+    <h2 className="text-2xl font-bold mb-6">📝 Wait till finish Blog</h2>
     <div className="space-y-6 text-gray-700">
       <article>
         <h3 className="font-semibold text-lg">Top 5 Shopping Tips</h3>
