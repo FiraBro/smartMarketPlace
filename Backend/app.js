@@ -16,6 +16,7 @@ import newsLetter from "./routes/newsLetterRoutes.js";
 import verificationRoutes from "./routes/verificationRoutes.js";
 // import paymentRoutes from "./routes/paymentRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
+import sellerRoutes from "./routes/sellerRoutes.js";
 const app = express();
 
 // Middleware
@@ -37,6 +38,7 @@ app.use("/api/newsletter", newsLetter);
 // app.use("/api/payments", paymentRoutes);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/verify", verificationRoutes);
+app.use("/api/seller", sellerRoutes);
 
 // Global Error Handler
 app.use(globalErrorHandler);
