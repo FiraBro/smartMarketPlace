@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { protect } from "../middlewares/authMiddleware.js";
+import { protect, protectSeller } from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/upload.js";
 import {
   listListings,
@@ -20,8 +20,20 @@ router.get("/categories", getCategories); // must be above "/:id"
 router.get("/:id", getListingById);
 
 // ✅ Protected CRUD routes
-router.post("/", protect, upload.array("images", 10), createListing);
-router.patch("/:id", protect, upload.array("images", 10), updateListing);
-router.delete("/:id", protect, deleteListing);
+router.post(
+  "/create",
+  protect,
+  protectSeller,
+  upload.array("images", 10),
+  createListing
+);
+router.patch(
+  "/:id",
+  protect,
+  protectSeller,
+  upload.array("images", 10),
+  updateListing
+);
+router.delete("/:id", protect, protectSeller, deleteListing);
 
 export default router;
