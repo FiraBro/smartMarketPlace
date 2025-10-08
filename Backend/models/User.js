@@ -27,7 +27,12 @@ const userSchema = new mongoose.Schema(
       email: { type: String },
       phone: { type: String },
     },
-    role: { type: String, default: "user" },
+    role: {
+      type: String,
+      enum: ["buyer", "seller", "admin"],
+      default: "buyer",
+    },
+
     password: {
       type: String,
       required: [true, "Password is required"],
