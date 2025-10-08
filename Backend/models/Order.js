@@ -10,11 +10,21 @@ const orderSchema = new mongoose.Schema(
           ref: "Listing",
           required: true,
         },
+        seller: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User", // owner of the listing
+          required: true,
+        },
         quantity: { type: Number, required: true },
+        status: {
+          type: String,
+          enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
+          default: "pending",
+        },
       },
     ],
 
-    // ✅ Link to saved Address (required only if delivery)
+    // Link to saved Address (required only if delivery)
     address: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Address",
