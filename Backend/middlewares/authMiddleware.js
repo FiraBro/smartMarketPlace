@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import { User } from "../models/User.js";
+import e from "express";
 
 export const protect = catchAsync(async (req, res, next) => {
   let token;
@@ -26,3 +27,19 @@ export const protect = catchAsync(async (req, res, next) => {
 
   next();
 });
+export const protectSeller = (req, res, next) => {
+  if (!req.user || req.user.role !== "seller") {
+    return next(new AppError("Access denied: Seller only route", 403));
+  }
+  next();
+};
+export const restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!roles.includes(req.user.role)) {
+      return next(
+        new AppError("Access denied: You do not have permission", 403)
+      );
+    }
+    next();
+  };
+};
