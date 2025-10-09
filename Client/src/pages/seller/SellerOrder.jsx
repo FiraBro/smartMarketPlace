@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FaShippingFast, FaCheckCircle, FaClock } from "react-icons/fa";
+import { FaShippingFast, FaCheckCircle, FaClock, FaEdit } from "react-icons/fa";
 import { toast } from "react-toastify";
 
 export default function SellerOrders() {
@@ -62,13 +62,12 @@ export default function SellerOrders() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          className="bg-white rounded-2xl shadow-md p-4 sm:p-6"
+          className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6"
         >
-          {/* Mobile-friendly table */}
           <div className="overflow-x-auto">
             <table className="w-full text-left min-w-[600px]">
               <thead>
-                <tr className="text-gray-500 text-sm border-b">
+                <tr className="text-gray-500 text-sm border-b border-gray-200">
                   <th className="py-2 px-2">Order ID</th>
                   <th className="py-2 px-2">Product</th>
                   <th className="py-2 px-2">Buyer</th>
@@ -84,7 +83,7 @@ export default function SellerOrders() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: order.id * 0.1 }}
-                    className="border-b hover:bg-gray-50 text-sm"
+                    className="border-b border-gray-100 hover:bg-gray-50 text-sm"
                   >
                     <td className="py-2 px-2 font-medium">{order.orderId}</td>
                     <td className="py-2 px-2">{order.product}</td>
@@ -99,7 +98,7 @@ export default function SellerOrders() {
                       </span>
                     </td>
                     <td className="py-2 px-2">${order.total}</td>
-                    <td className="py-2 px-2 flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3">
+                    <td className="py-2 px-2 flex flex-wrap items-center gap-2">
                       {order.status === "Pending" && (
                         <button
                           onClick={() =>
