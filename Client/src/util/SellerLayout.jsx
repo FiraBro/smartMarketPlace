@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import SellerSidebar from "../components/seller/SellerSidebar";
+import SellerSidebar from "../components/seller/SellerSideBar";
 import SellerNavbar from "../components/seller/SellerNavbar";
 
 export default function SellerLayout({ children }) {
@@ -15,7 +15,7 @@ export default function SellerLayout({ children }) {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-y-auto lg:ml-auto">
         <SellerNavbar toggleSidebar={toggleSidebar} />
-        <div className="p-4 sm:p-6 md:p-8 flex-1">{children}</div>
+        <div className="sm:p-6 md:p-8 flex-1">{children}</div>
       </div>
     </div>
   );
