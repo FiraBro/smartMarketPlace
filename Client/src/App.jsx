@@ -1,6 +1,15 @@
 import React, { useState, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+// ------------------------------
+// Layouts
+// ------------------------------
 import Layout from "./util/Layout";
+import SellerLayout from "./util/SellerLayout";
+
+// ------------------------------
+// Buyer Pages
+// ------------------------------
 import HomePage from "./pages/HomePage";
 import ProductDetail from "./pages/ProductDetail";
 import Profile from "./components/Profile";
@@ -9,10 +18,26 @@ import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
 import OrderSuccessPage from "./pages/OrderSuccussPage";
 
+// ------------------------------
+// Seller Pages
+// ------------------------------
+import SellerDashboard from "./pages/seller/SellerDashboard";
+import SellerProducts from "./pages/seller/SellerProduct";
+import SellerOrders from "./pages/seller/SellerOrder";
+import AddProduct from "./pages/seller/SellerAddProduct";
+import UpdateProduct from "./pages/seller/UpdateProduct";
+import SellerProfile from "./pages/seller/SellerProfile";
+
+// ------------------------------
+// Contexts
+// ------------------------------
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { FavoriteProvider } from "./context/FavoriteContext";
 
+// ------------------------------
+// Components
+// ------------------------------
 import Spinner from "./components/Spinner";
 
 export default function App() {
@@ -25,6 +50,9 @@ export default function App() {
   const closeFav = () => setIsFavOpen(false);
 
   const router = createBrowserRouter([
+    // ------------------------------
+    // 🛍️ BUYER ROUTES
+    // ------------------------------
     {
       path: "/",
       element: (
@@ -35,9 +63,7 @@ export default function App() {
           isFavOpen={isFavOpen}
           closeCart={closeCart}
           closeFav={closeFav}
-          onCheckout={(order) => {
-            console.log("Order placed successfully:", order);
-          }}
+          onCheckout={(order) => console.log("Order placed:", order)}
         />
       ),
       children: [
@@ -49,6 +75,59 @@ export default function App() {
         { path: "/orders", element: <OrdersPage /> },
         { path: "/order-success/:orderId", element: <OrderSuccessPage /> },
       ],
+    },
+
+    // ------------------------------
+    // 🧑‍💼 SELLER ROUTES
+    // ------------------------------
+    {
+      path: "/seller/dashboard",
+      element: (
+        <SellerLayout>
+          <SellerDashboard />
+        </SellerLayout>
+      ),
+    },
+    {
+      path: "/seller/products",
+      element: (
+        <SellerLayout>
+          <SellerProducts />
+        </SellerLayout>
+      ),
+    },
+    {
+      path: "/seller/orders",
+      element: (
+        <SellerLayout>
+          <SellerOrders />
+        </SellerLayout>
+      ),
+    },
+    {
+      path: "/seller/profile",
+      element: (
+        <SellerLayout>
+          <SellerProfile />
+        </SellerLayout>
+      ),
+    },
+    {
+      path: "/seller/add-product",
+      element: (
+        <SellerLayout>
+          <AddProduct />
+        </SellerLayout>
+      ),
+    },
+
+    {
+      path: "/seller/update-product/:id",
+      element: (
+        <SellerLayout>
+          <UpdateProduct />
+        </SellerLayout>
+      ),
     },
   ]);
 
