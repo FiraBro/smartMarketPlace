@@ -30,7 +30,7 @@ const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
         textColor: "text-blue-600",
       },
       {
-        label: "Wishlist Items",
+        label: "Liked Items",
         value: userData?.favorites?.length?.toString() || "0",
         icon: FaHeart,
         bgColor: "bg-pink-100",
