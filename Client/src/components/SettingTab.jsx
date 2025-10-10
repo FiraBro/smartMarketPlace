@@ -1,5 +1,10 @@
 import React from "react";
-import { FaBell, FaShieldAlt, FaCreditCard } from "react-icons/fa";
+import {
+  FaBell,
+  FaShieldAlt,
+  FaCreditCard,
+  FaSignOutAlt,
+} from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
 const SettingTab = ({ logout }) => {
@@ -77,9 +82,10 @@ const SettingTab = ({ logout }) => {
           <div className="pt-6 border-t border-gray-200">
             <button
               onClick={handleLogout}
-              className="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors font-medium"
+              className="flex items-center space-x-2 px-6 py-2 bg-gray-50 text-black rounded-lg hover:cursor-pointer transition-colors font-medium"
             >
-              Logout
+              <FaSignOutAlt className="w-4 h-4" />
+              <span>Logout</span>
             </button>
           </div>
         </div>
