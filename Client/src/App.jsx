@@ -27,6 +27,7 @@ import SellerOrders from "./pages/seller/SellerOrder";
 import AddProduct from "./pages/seller/SellerAddProduct";
 import UpdateProduct from "./pages/seller/UpdateProduct";
 import SellerProfile from "./pages/seller/SellerProfile";
+import SellerNotifications from "./pages/seller/SellerNotification";
 
 // ------------------------------
 // Contexts
@@ -126,6 +127,14 @@ export default function App() {
       element: (
         <SellerLayout>
           <UpdateProduct />
+        </SellerLayout>
+      ),
+    },
+    {
+      path: "/seller/notifications",
+      element: (
+        <SellerLayout>
+          <SellerNotifications />
         </SellerLayout>
       ),
     },
