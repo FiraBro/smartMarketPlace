@@ -3,6 +3,7 @@ import {
   FaUser,
   FaShoppingBag,
   FaHeart,
+  FaBell,
   FaMapMarkerAlt,
   FaCog,
 } from "react-icons/fa";
@@ -14,6 +15,7 @@ const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
       { id: "orders", name: "Orders", icon: FaShoppingBag },
       { id: "addresses", name: "Addresses", icon: FaMapMarkerAlt },
       { id: "settings", name: "Settings", icon: FaCog },
+      { id: "notifications", name: "Notifications", icon: FaBell },
     ],
     []
   );
@@ -24,19 +26,22 @@ const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
         label: "Total Orders",
         value: orders.length.toString(),
         icon: FaShoppingBag,
-        color: "blue",
+        bgColor: "bg-blue-100",
+        textColor: "text-blue-600",
       },
       {
         label: "Wishlist Items",
         value: userData?.favorites?.length?.toString() || "0",
         icon: FaHeart,
-        color: "pink",
+        bgColor: "bg-pink-100",
+        textColor: "text-pink-600",
       },
       {
         label: "Saved Addresses",
         value: addresses.length.toString(),
         icon: FaMapMarkerAlt,
-        color: "green",
+        bgColor: "bg-green-100",
+        textColor: "text-green-600",
       },
     ],
     [orders.length, addresses.length, userData?.favorites?.length]
@@ -67,7 +72,7 @@ const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                   activeTab === tab.id
-                    ? "bg-primary-50 text-primary-700 border border-primary-200"
+                    ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
@@ -91,8 +96,8 @@ const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
                 className="flex items-center justify-between"
               >
                 <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-lg bg-${stat.color}-100`}>
-                    <Icon className={`h-4 w-4 text-${stat.color}-600`} />
+                  <div className={`${stat.bgColor} p-2 rounded-lg`}>
+                    <Icon className={`${stat.textColor} h-4 w-4`} />
                   </div>
                   <span className="text-sm text-gray-600">{stat.label}</span>
                 </div>
