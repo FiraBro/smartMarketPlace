@@ -7,6 +7,7 @@ import OrdersTab from "./OrderTab";
 import AddressesTab from "./AddressTab";
 import SettingsTab from "./SettingTab";
 import Sidebar from "./SideBar";
+import NotificationsTab from "./NotificationTab";
 
 const ProfilePage = () => {
   const { user, logout, updateUser } = useAuth();
@@ -92,6 +93,7 @@ const ProfilePage = () => {
               <AddressesTab addresses={addresses} />
             )}
             {activeTab === "settings" && <SettingsTab logout={logout} />}
+            {activeTab === "notifications" && <NotificationsTab />}
           </div>
         </div>
       </div>
