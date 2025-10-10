@@ -1,4 +1,3 @@
-// src/pages/seller/SellerProfile.jsx
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaEdit } from "react-icons/fa";
@@ -8,8 +7,8 @@ import successAnim from "../../assets/animations/success.json";
 export default function SellerProfile() {
   const [form, setForm] = useState({
     shopName: "My Awesome Shop",
-    description: "We sell high-quality products with love ❤️",
-    address: "Addis Ababa, Ethiopia",
+    description: "We sell high-quality products with love",
+    address: "Dire Dawa, Ethiopia",
     contact: "+251 900 000 000",
     facebook: "",
     instagram: "",
@@ -17,6 +16,18 @@ export default function SellerProfile() {
     banner: "",
   });
   const [saved, setSaved] = useState(false);
+
+  // ✅ Handle file upload (for both logo & banner)
+  const handleImageUpload = (e, type) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm((prev) => ({ ...prev, [type]: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -39,12 +50,13 @@ export default function SellerProfile() {
             className="absolute inset-0 w-full h-full object-cover"
           />
         )}
-        <label className="absolute top-4 right-4 bg-white text-gray-700 px-3 py-1 rounded-lg text-sm cursor-pointer shadow hover:bg-gray-100 transition">
-          <FaEdit className="inline mr-1" /> Edit Banner
+        <label className="absolute top-4 right-4 bg-white/90 text-gray-700 px-3 py-1 rounded-lg text-sm cursor-pointer shadow hover:bg-gray-100 transition flex items-center gap-1">
+          <FaEdit /> Edit Banner
           <input
-            type="url"
+            type="file"
+            accept="image/*"
             className="hidden"
-            onChange={(e) => setForm({ ...form, banner: e.target.value })}
+            onChange={(e) => handleImageUpload(e, "banner")}
           />
         </label>
 
@@ -57,14 +69,18 @@ export default function SellerProfile() {
                 "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
               }
               alt="Shop Logo"
-              className="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover"
+              className="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover bg-gray-50"
             />
-            <label className="absolute bottom-0 right-0 bg-indigo-600 text-white p-1 rounded-full text-xs cursor-pointer hover:bg-indigo-700 transition">
+            <label
+              // className="absolute bottom-0 right-0 bg-[#f9A03f] text-white p-1 rounded-full text-xs cursor-pointer hover:bg-[#faa64d] transition">
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
+            >
               <FaEdit />
               <input
-                type="url"
+                type="file"
+                accept="image/*"
                 className="hidden"
-                onChange={(e) => setForm({ ...form, logo: e.target.value })}
+                onChange={(e) => handleImageUpload(e, "logo")}
               />
             </label>
           </div>
@@ -77,6 +93,7 @@ export default function SellerProfile() {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
+          {/* Shop Name */}
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Shop Name
@@ -85,11 +102,13 @@ export default function SellerProfile() {
               type="text"
               value={form.shopName}
               onChange={(e) => setForm({ ...form, shopName: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
+              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
               required
             />
           </div>
 
+          {/* Description */}
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Description
@@ -100,10 +119,13 @@ export default function SellerProfile() {
                 setForm({ ...form, description: e.target.value })
               }
               rows="3"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
+
+              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
             />
           </div>
 
+          {/* Address */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Address
@@ -112,10 +134,13 @@ export default function SellerProfile() {
               type="text"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
+
+              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
             />
           </div>
 
+          {/* Contact */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Contact
@@ -124,10 +149,13 @@ export default function SellerProfile() {
               type="text"
               value={form.contact}
               onChange={(e) => setForm({ ...form, contact: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
+
+              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
             />
           </div>
 
+          {/* Facebook */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Facebook
@@ -137,10 +165,13 @@ export default function SellerProfile() {
               value={form.facebook}
               onChange={(e) => setForm({ ...form, facebook: e.target.value })}
               placeholder="https://facebook.com/yourshop"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
+
+              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
             />
           </div>
 
+          {/* Instagram */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Instagram
@@ -150,14 +181,17 @@ export default function SellerProfile() {
               value={form.instagram}
               onChange={(e) => setForm({ ...form, instagram: e.target.value })}
               placeholder="https://instagram.com/yourshop"
-              className="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
+
+              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
             />
           </div>
 
+          {/* Save Button */}
           <div className="col-span-2 flex justify-end">
             <button
               type="submit"
-              className="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 transition"
+              className="bg-[#f9A03f] text-white px-6 py-2 rounded-lg hover:bg-[#faa64d] transition"
             >
               Save Changes
             </button>
@@ -165,6 +199,7 @@ export default function SellerProfile() {
         </form>
       </div>
 
+      {/* Success Notification */}
       {saved && (
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}
