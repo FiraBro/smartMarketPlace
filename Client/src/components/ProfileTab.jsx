@@ -104,7 +104,7 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
               </label>
               <input
                 type={field === "email" ? "email" : "text"}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-900 ${
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-0 ${
                   field === "email" || field === "phone" ? "pr-28" : ""
                 }`}
                 value={userData[field]}
@@ -166,7 +166,7 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
           </button>
           <button
             onClick={handleProfileUpdate}
-            className="flex items-center space-x-2 px-6 py-2 bg-primary-500 border border-gray-300 cursor-pointer text-gray-700 rounded-lg hover:bg-primary-600 transition-colors font-medium"
+            className="flex items-center space-x-2 px-6 py-2 bg-[#f9A03f] border border-gray-300 cursor-pointer text-[#fff] rounded-lg hover:bg-[#faa64d] transition-colors font-medium"
           >
             <FaCheck className="w-4 h-4" />
             <span>Save Changes</span>
