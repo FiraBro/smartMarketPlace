@@ -56,7 +56,7 @@ const Sidebar = ({ userData, activeTab, setActiveTab }) => {
     <>
       {/* ✅ Mobile Hamburger Button */}
       <button
-        className="fixed top-4 left-4 z-50 p-2 bg-none text-gray-900 lg:hidden"
+        className="fixed top-4 left-4 z-50 p-2 bg-none text-gray-900 lg:hidden shadow"
         onClick={() => setIsOpen(true)}
       >
         <FaBars className="text-xl" />
