@@ -6,6 +6,7 @@ import {
   FaBell,
   FaMapMarkerAlt,
   FaCog,
+  FaBars,
 } from "react-icons/fa";
 import { getOrders } from "../service/orderService";
 import { getAddresses } from "../service/addressService";
@@ -53,15 +54,15 @@ const Sidebar = ({ userData, activeTab, setActiveTab }) => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
+      {/* ✅ Mobile Hamburger Button */}
       <button
-        className="fixed top-4 left-4 z-50 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg lg:hidden"
+        className="fixed top-4 left-4 z-50 p-2 bg-none text-gray-900 lg:hidden"
         onClick={() => setIsOpen(true)}
       >
-        Menu
+        <FaBars className="text-xl" />
       </button>
 
-      {/* Overlay */}
+      {/* Overlay (for mobile) */}
       {isOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -71,14 +72,14 @@ const Sidebar = ({ userData, activeTab, setActiveTab }) => {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-72 bg-white shadow-lg z-50 transform transition-transform lg:relative lg:translate-x-0 ${
+        className={`fixed top-0 left-0 h-full w-72 bg-white shadow-lg z-50 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Close Button (Mobile Only) */}
         <div className="flex justify-end p-4 lg:hidden">
           <button
-            className="px-2 py-1 text-gray-700"
+            className="px-2 py-1 text-gray-700 hover:text-red-500 text-2xl"
             onClick={() => setIsOpen(false)}
           >
             ✕
@@ -122,7 +123,7 @@ const Sidebar = ({ userData, activeTab, setActiveTab }) => {
           })}
         </nav>
 
-        {/* Account Overview Section */}
+        {/* Account Overview */}
         <div className="p-6 mt-6 border-t border-gray-200">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">
             Account Overview
