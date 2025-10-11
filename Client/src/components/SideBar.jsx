@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   FaUser,
   FaShoppingBag,
@@ -7,8 +7,17 @@ import {
   FaMapMarkerAlt,
   FaCog,
 } from "react-icons/fa";
+import { getOrders } from "../service/orderService";
+import { getAddresses } from "../service/addressService";
 
-const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
+const Sidebar = ({ userData, activeTab, setActiveTab }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [overview, setOverview] = useState({
+    orders: 0,
+    addresses: 0,
+    favorites: 0,
+  });
+
   const tabs = useMemo(
     () => [
       { id: "profile", name: "Profile", icon: FaUser },
@@ -20,40 +29,66 @@ const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
     []
   );
 
-  const stats = useMemo(
-    () => [
-      {
-        label: "Total Orders",
-        value: orders.length.toString(),
-        icon: FaShoppingBag,
-        bgColor: "bg-blue-100",
-        textColor: "text-blue-600",
-      },
-      {
-        label: "Liked Items",
-        value: userData?.favorites?.length?.toString() || "0",
-        icon: FaHeart,
-        bgColor: "bg-pink-100",
-        textColor: "text-pink-600",
-      },
-      {
-        label: "Saved Addresses",
-        value: addresses.length.toString(),
-        icon: FaMapMarkerAlt,
-        bgColor: "bg-green-100",
-        textColor: "text-green-600",
-      },
-    ],
-    [orders.length, addresses.length, userData?.favorites?.length]
-  );
+  // Fetch account overview
+  useEffect(() => {
+    const fetchOverview = async () => {
+      try {
+        const [ordersRes, addressesRes] = await Promise.all([
+          getOrders(),
+          getAddresses(),
+        ]);
+
+        setOverview({
+          orders: ordersRes?.length || 0,
+          addresses: addressesRes?.length || 0,
+          favorites: userData?.favorites?.length || 0,
+        });
+      } catch (error) {
+        console.error("Failed to fetch account overview:", error);
+      }
+    };
+
+    fetchOverview();
+  }, [userData]);
 
   return (
-    <div className="lg:w-1/4">
-      {/* User Info */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <div className="flex items-center space-x-4 mb-6">
+    <>
+      {/* Mobile Menu Button */}
+      <button
+        className="fixed top-4 left-4 z-50 px-4 py-2 bg-gray-200 text-gray-900 rounded-lg lg:hidden"
+        onClick={() => setIsOpen(true)}
+      >
+        Menu
+      </button>
+
+      {/* Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          onClick={() => setIsOpen(false)}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div
+        className={`fixed top-0 left-0 h-full w-72 bg-white shadow-lg z-50 transform transition-transform lg:relative lg:translate-x-0 ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        {/* Close Button (Mobile Only) */}
+        <div className="flex justify-end p-4 lg:hidden">
+          <button
+            className="px-2 py-1 text-gray-700"
+            onClick={() => setIsOpen(false)}
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* User Info */}
+        <div className="flex items-center space-x-4 p-6 border-b border-gray-100">
           <img
-            className="h-16 w-16 rounded-full object-cover border-2 border-primary-500"
+            className="h-16 w-16 rounded-full object-cover border-2 border-yellow-500"
             src={userData.avatar}
             alt="Profile"
           />
@@ -63,16 +98,20 @@ const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
           </div>
         </div>
 
-        <nav className="space-y-2">
+        {/* Tabs */}
+        <nav className="space-y-2 px-6 mt-2">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  setIsOpen(false);
+                }}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                   activeTab === tab.id
-                    ? "bg-yellow-50 text-yellow-700 border border-yellow-200"
+                    ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
                     : "text-gray-700 hover:bg-gray-50"
                 }`}
               >
@@ -82,34 +121,40 @@ const Sidebar = ({ userData, activeTab, setActiveTab, orders, addresses }) => {
             );
           })}
         </nav>
-      </div>
 
-      {/* Stats */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <h3 className="font-semibold text-gray-900 mb-4">Account Overview</h3>
-        <div className="space-y-4">
-          {stats.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className="flex items-center justify-between"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className={`${stat.bgColor} p-2 rounded-lg`}>
-                    <Icon className={`${stat.textColor} h-4 w-4`} />
-                  </div>
-                  <span className="text-sm text-gray-600">{stat.label}</span>
-                </div>
-                <span className="font-semibold text-gray-900">
-                  {stat.value}
-                </span>
-              </div>
-            );
-          })}
+        {/* Account Overview Section */}
+        <div className="p-6 mt-6 border-t border-gray-200">
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">
+            Account Overview
+          </h3>
+          <div className="grid grid-cols-3 gap-3">
+            <div className="bg-yellow-50 rounded-xl p-3 text-center">
+              <FaShoppingBag className="mx-auto text-yellow-600 text-lg" />
+              <h3 className="text-lg font-semibold text-gray-800">
+                {overview.orders}
+              </h3>
+              <p className="text-sm text-gray-500">Orders</p>
+            </div>
+
+            <div className="bg-yellow-50 rounded-xl p-3 text-center">
+              <FaMapMarkerAlt className="mx-auto text-yellow-600 text-lg" />
+              <h3 className="text-lg font-semibold text-gray-800">
+                {overview.addresses}
+              </h3>
+              <p className="text-sm text-gray-500">Addresses</p>
+            </div>
+
+            <div className="bg-yellow-50 rounded-xl p-3 text-center">
+              <FaHeart className="mx-auto text-yellow-600 text-lg" />
+              <h3 className="text-lg font-semibold text-gray-800">
+                {overview.favorites}
+              </h3>
+              <p className="text-sm text-gray-500">Favorites</p>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 };
 
