@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FaBars, FaHome, FaSignOutAlt } from "react-icons/fa";
+import { FaHome, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "../components/SideBar";
 import ProfileTab from "../components/ProfileTab";
@@ -15,8 +15,10 @@ import {
   updateAddress,
   deleteAddress,
 } from "../service/addressService";
+import { useNavigate } from "react-router-dom";
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
   const { user, logout, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [userData, setUserData] = useState({
@@ -68,7 +70,10 @@ const ProfilePage = () => {
     };
     fetchData();
   }, []);
-
+  const handleLogout = () => {
+    logout();
+    navigate("/");
+  };
   // Address handlers
   const handleAdd = async (addressData) => {
     try {
@@ -135,8 +140,8 @@ const ProfilePage = () => {
           </Link>
 
           <button
-            onClick={logout}
-            className="flex items-center gap-1 text-gray-700 hover:text-red-600 transition"
+            onClick={handleLogout}
+            className="flex items-center gap-1 text-gray-700 hover:text-red-600 cursor-pointer transition"
           >
             <FaSignOutAlt />
             <span className="hidden sm:inline font-medium">Logout</span>
