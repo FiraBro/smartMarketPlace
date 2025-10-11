@@ -72,7 +72,6 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
 
   return (
     <div className="space-y-6">
-      {/* Toast container */}
       <ToastContainer position="top-right" autoClose={3000} theme="colored" />
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
@@ -81,14 +80,14 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
         </h3>
 
         {/* Profile Photo */}
-        <div className="flex items-center space-x-6 mb-6">
+        <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 mb-6">
           <img
             className="h-20 w-20 rounded-full object-cover border-2 border-primary-500"
             src={userData.avatar}
             alt="Profile"
           />
-          <div>
-            <button className="flex items-center space-x-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium">
+          <div className="w-full sm:w-auto">
+            <button className="flex items-center justify-center sm:justify-start space-x-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium w-full sm:w-auto">
               <FaEdit className="w-4 h-4" />
               <span>Change Photo</span>
             </button>
@@ -104,7 +103,7 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
               </label>
               <input
                 type={field === "email" ? "email" : "text"}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-0 ${
+                className={`w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 ${
                   field === "email" || field === "phone" ? "pr-28" : ""
                 }`}
                 value={userData[field]}
@@ -160,13 +159,13 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
         </div>
 
         {/* Buttons */}
-        <div className="flex justify-end space-x-3 mt-6">
-          <button className="px-6 py-2 border border-gray-300 text-gray-700 cursor-pointer rounded-lg hover:bg-gray-50 transition-colors font-medium">
+        <div className="flex flex-col sm:flex-row justify-end sm:space-x-3 mt-6 space-y-2 sm:space-y-0">
+          <button className="px-6 py-2 border border-gray-300 text-gray-700 cursor-pointer rounded-lg hover:bg-gray-50 transition-colors font-medium w-full sm:w-auto">
             Cancel
           </button>
           <button
             onClick={handleProfileUpdate}
-            className="flex items-center space-x-2 px-6 py-2 bg-[#f9A03f] border border-gray-300 cursor-pointer text-[#fff] rounded-lg hover:bg-[#faa64d] transition-colors font-medium"
+            className="flex items-center justify-center sm:justify-start space-x-2 px-6 py-2 bg-[#f9A03f] border border-gray-300 text-white rounded-lg hover:bg-[#faa64d] transition-colors font-medium w-full sm:w-auto"
           >
             <FaCheck className="w-4 h-4" />
             <span>Save Changes</span>
