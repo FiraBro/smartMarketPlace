@@ -12,7 +12,7 @@ import SellerLayout from "./util/SellerLayout";
 // ------------------------------
 import HomePage from "./pages/HomePage";
 import ProductDetail from "./pages/ProductDetail";
-import Profile from "./components/Profile";
+import Profile from "./pages/ProfilePage";
 import AllListingsPage from "./pages/AllListingPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
@@ -70,13 +70,13 @@ export default function App() {
       children: [
         { index: true, element: <HomePage /> },
         { path: "/listings/:id", element: <ProductDetail /> },
-        { path: "/profile", element: <Profile /> },
         { path: "/all-listings", element: <AllListingsPage /> },
         { path: "/payment/:orderId", element: <PaymentPage /> },
         { path: "/orders", element: <OrdersPage /> },
         { path: "/order-success/:orderId", element: <OrderSuccessPage /> },
       ],
     },
+    { path: "/profile", element: <Profile /> },
 
     // ------------------------------
     // 🧑‍💼 SELLER ROUTES
