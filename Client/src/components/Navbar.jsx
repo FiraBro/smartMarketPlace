@@ -7,7 +7,6 @@ import {
   FaTimes,
   FaUserCircle,
 } from "react-icons/fa";
-import AuthModal from "./AuthModal";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
@@ -21,8 +20,6 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const { favorites } = useFavorites();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [authMode, setAuthMode] = useState("login");
 
   const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalFavItems = favorites?.length || 0;
@@ -30,11 +27,6 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const handleLogout = () => {
     logout();
     navigate("/");
-  };
-
-  const openAuthModal = (mode) => {
-    setAuthMode(mode);
-    setIsAuthOpen(true);
   };
 
   // 🔹 Fetch all products
@@ -55,10 +47,11 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
     <nav className="bg-white px-4 md:px-6 py-3 shadow-sm relative">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
         {/* Logo */}
-        <div className="text-2xl font-bold text-blue-600 flex-shrink-0">
-          <a href="/">
-            Lo<span className="text-[#f9A03f]">go</span>
-          </a>
+        <div
+          onClick={() => navigate("/")}
+          className="text-2xl font-bold text-blue-600 flex-shrink-0 cursor-pointer"
+        >
+          Lo<span className="text-[#f9A03f]">go</span>
         </div>
 
         {/* Desktop Links + Search */}
@@ -79,10 +72,11 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           />
         </div>
 
-        {/* Icons */}
+        {/* Icons Section */}
         <div className="hidden sm:flex items-center gap-4">
           {user ? (
             <>
+              {/* Favorites */}
               <button onClick={openFav} className="relative">
                 <FaHeart className="w-6 h-6 text-red-500 hover:text-red-600 transition" />
                 {totalFavItems > 0 && (
@@ -92,6 +86,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                 )}
               </button>
 
+              {/* Cart */}
               <button onClick={openCart} className="relative">
                 <FaShoppingCart className="w-6 h-6 text-green-600 hover:text-green-700 transition" />
                 {totalCartItems > 0 && (
@@ -101,6 +96,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                 )}
               </button>
 
+              {/* Profile Dropdown */}
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
@@ -111,15 +107,15 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
 
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-40 bg-white shadow-lg rounded-lg py-2 z-50">
-                    <a
-                      href="/profile"
-                      className="block px-4 py-2 text-gray-700 hover:bg-gray-100"
+                    <button
+                      onClick={() => navigate("/profile")}
+                      className="block w-full text-left px-4 py-2 text-gray-700 cursor-pointer hover:bg-gray-100"
                     >
                       My Profile
-                    </a>
+                    </button>
                     <button
                       onClick={handleLogout}
-                      className="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100"
+                      className="w-full text-left px-4 py-2 text-red-600 cursor-pointer hover:bg-gray-100"
                     >
                       Logout
                     </button>
@@ -130,14 +126,14 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           ) : (
             <>
               <button
-                onClick={() => openAuthModal("login")}
-                className="px-4 py-2 bg-white border rounded-lg text-gray-800 hover:bg-gray-100"
+                onClick={() => navigate("/auth/Sign-In")}
+                className="px-4 py-2 bg-white border rounded-lg text-gray-800 cursor-pointer hover:bg-gray-100"
               >
                 Login
               </button>
               <button
-                onClick={() => openAuthModal("register")}
-                className="px-4 py-2 bg-[#F9A03F] text-white rounded-lg hover:bg-orange-600"
+                onClick={() => navigate("/auth/Sign-Up")}
+                className="px-4 py-2 bg-[#F9A03F] text-white rounded-lg cursor-pointer hover:bg-orange-600"
               >
                 Register
               </button>
@@ -172,23 +168,25 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
               }
             }}
           />
-          <button
-            onClick={handleAllProducts}
-            className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          >
-            All Products
-          </button>
+
+          {!user && (
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => navigate("/auth")}
+                className="w-full px-4 py-2 bg-white border rounded-lg text-gray-800 hover:bg-gray-100"
+              >
+                Login
+              </button>
+              <button
+                onClick={() => navigate("/auth")}
+                className="w-full px-4 py-2 bg-[#F9A03F] text-white rounded-lg hover:bg-orange-600"
+              >
+                Register
+              </button>
+            </div>
+          )}
         </div>
       )}
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        mode={authMode}
-        onSwitchMode={() =>
-          setAuthMode(authMode === "login" ? "register" : "login")
-        }
-      />
     </nav>
   );
 }
