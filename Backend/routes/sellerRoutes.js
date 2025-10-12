@@ -12,8 +12,7 @@ import {
 const router = express.Router();
 
 // ✅ All routes are protected and seller-only
-router.use(protect, restrictTo("seller"));
-
+router.use(protect);
 // Seller profile
 router.post("/profile", createSellerProfile);
 router.get("/profile", getSellerProfile);
