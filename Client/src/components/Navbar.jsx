@@ -126,13 +126,13 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           ) : (
             <>
               <button
-                onClick={() => navigate("/auth/Sign-In")}
+                onClick={() => navigate("/auth")}
                 className="px-4 py-2 bg-white border rounded-lg text-gray-800 cursor-pointer hover:bg-gray-100"
               >
                 Login
               </button>
               <button
-                onClick={() => navigate("/auth/Sign-Up")}
+                onClick={() => navigate("/auth")}
                 className="px-4 py-2 bg-[#F9A03F] text-white rounded-lg cursor-pointer hover:bg-orange-600"
               >
                 Register
