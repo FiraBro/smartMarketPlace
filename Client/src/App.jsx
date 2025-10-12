@@ -125,7 +125,7 @@ export default function App() {
     {
       path: "/seller/dashboard",
       element: (
-        <PrivateRoute requireRole="seller">
+        <PrivateRoute>
           <SellerLayout>
             <SellerDashboard />
           </SellerLayout>
@@ -135,7 +135,7 @@ export default function App() {
     {
       path: "/seller/products",
       element: (
-        <PrivateRoute requireRole="seller">
+        <PrivateRoute>
           <SellerLayout>
             <SellerProducts />
           </SellerLayout>
@@ -145,7 +145,7 @@ export default function App() {
     {
       path: "/seller/orders",
       element: (
-        <PrivateRoute requireRole="seller">
+        <PrivateRoute>
           <SellerLayout>
             <SellerOrders />
           </SellerLayout>
@@ -155,7 +155,7 @@ export default function App() {
     {
       path: "/seller/profile",
       element: (
-        <PrivateRoute requireRole="seller">
+        <PrivateRoute>
           <SellerLayout>
             <SellerProfile />
           </SellerLayout>
@@ -165,7 +165,7 @@ export default function App() {
     {
       path: "/seller/add-product",
       element: (
-        <PrivateRoute requireRole="seller">
+        <PrivateRoute>
           <SellerLayout>
             <AddProduct />
           </SellerLayout>
@@ -175,7 +175,7 @@ export default function App() {
     {
       path: "/seller/update-product/:id",
       element: (
-        <PrivateRoute requireRole="seller">
+        <PrivateRoute>
           <SellerLayout>
             <UpdateProduct />
           </SellerLayout>
@@ -185,7 +185,7 @@ export default function App() {
     {
       path: "/seller/notifications",
       element: (
-        <PrivateRoute requireRole="seller">
+        <PrivateRoute>
           <SellerLayout>
             <SellerNotifications />
           </SellerLayout>
