@@ -73,7 +73,7 @@ export default function SellerProfile() {
             />
             <label
               // className="absolute bottom-0 right-0 bg-[#f9A03f] text-white p-1 rounded-full text-xs cursor-pointer hover:bg-[#faa64d] transition">
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 cursor-pointer focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
             >
               <FaEdit />
               <input
