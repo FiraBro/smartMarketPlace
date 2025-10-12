@@ -112,8 +112,8 @@ const Sidebar = ({ userData, activeTab, setActiveTab }) => {
                 }}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left transition-colors ${
                   activeTab === tab.id
-                    ? "bg-yellow-100 text-yellow-800 border border-yellow-300"
-                    : "text-gray-700 hover:bg-gray-50"
+                    ? "bg-gray-100 text-yellow-800 border cursor-pointer border-gray-50"
+                    : "text-gray-700 cursor-pointer hover:bg-gray-50"
                 }`}
               >
                 <Icon className="h-5 w-5" />
