@@ -17,8 +17,6 @@ import AllListingsPage from "./pages/AllListingPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
 import OrderSuccessPage from "./pages/OrderSuccussPage";
-import AuthPage from "./pages/AuthPage";
-
 // ------------------------------
 // Seller Pages
 // ------------------------------
@@ -42,8 +40,8 @@ import { FavoriteProvider } from "./context/FavoriteContext";
 // ------------------------------
 import Spinner from "./components/Spinner";
 import PrivateRoute from "./components/PrivateRoute"; // ✅ your existing route guard
-import SignInPage from "./pages/auth/SignInPage";
-import SignUpPage from "./pages/auth/SignUpPage";
+
+import AuthPage from "./pages/AuthPage";
 
 export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -115,13 +113,10 @@ export default function App() {
     // ------------------------------
     // 🔐 AUTH PAGE
     // ------------------------------
+    //
     {
-      path: "/auth/sign-in",
-      element: <SignInPage />,
-    },
-    {
-      path: "/auth/sign-up",
-      element: <SignUpPage />,
+      path: "/auth",
+      element: <AuthPage />,
     },
 
     // ------------------------------
