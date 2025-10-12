@@ -14,7 +14,7 @@ export default function PrivateRoute({ children, requireRole }) {
 
   if (!user) {
     // Redirect to login, preserving where the user came from
-    return <Navigate to="/auth/login" state={{ from: location }} replace />;
+    return <Navigate to="/auth" state={{ from: location }} replace />;
   }
 
   if (requireRole && user.role !== requireRole) {
