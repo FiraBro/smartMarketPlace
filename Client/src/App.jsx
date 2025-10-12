@@ -12,11 +12,12 @@ import SellerLayout from "./util/SellerLayout";
 // ------------------------------
 import HomePage from "./pages/HomePage";
 import ProductDetail from "./pages/ProductDetail";
-import Profile from "./pages/ProfilePage";
+import ProfilePage from "./pages/ProfilePage";
 import AllListingsPage from "./pages/AllListingPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
 import OrderSuccessPage from "./pages/OrderSuccussPage";
+import AuthPage from "./pages/AuthPage";
 
 // ------------------------------
 // Seller Pages
@@ -40,6 +41,9 @@ import { FavoriteProvider } from "./context/FavoriteContext";
 // Components
 // ------------------------------
 import Spinner from "./components/Spinner";
+import PrivateRoute from "./components/PrivateRoute"; // ✅ your existing route guard
+import SignInPage from "./pages/auth/SignInPage";
+import SignUpPage from "./pages/auth/SignUpPage";
 
 export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -69,14 +73,56 @@ export default function App() {
       ),
       children: [
         { index: true, element: <HomePage /> },
-        { path: "/listings/:id", element: <ProductDetail /> },
-        { path: "/all-listings", element: <AllListingsPage /> },
-        { path: "/payment/:orderId", element: <PaymentPage /> },
-        { path: "/orders", element: <OrdersPage /> },
-        { path: "/order-success/:orderId", element: <OrderSuccessPage /> },
+        { path: "listings/:id", element: <ProductDetail /> },
+        { path: "all-listings", element: <AllListingsPage /> },
+        {
+          path: "payment/:orderId",
+          element: (
+            <PrivateRoute>
+              <PaymentPage />
+            </PrivateRoute>
+          ),
+        },
+        {
+          path: "orders",
+          element: (
+            <PrivateRoute>
+              <OrdersPage />
+            </PrivateRoute>
+          ),
+        },
+        {
+          path: "order-success/:orderId",
+          element: (
+            <PrivateRoute>
+              <OrderSuccessPage />
+            </PrivateRoute>
+          ),
+        },
       ],
     },
-    { path: "/profile", element: <Profile /> },
+
+    // Profile
+    {
+      path: "/profile",
+      element: (
+        <PrivateRoute>
+          <ProfilePage />
+        </PrivateRoute>
+      ),
+    },
+
+    // ------------------------------
+    // 🔐 AUTH PAGE
+    // ------------------------------
+    {
+      path: "/auth/sign-in",
+      element: <SignInPage />,
+    },
+    {
+      path: "/auth/sign-up",
+      element: <SignUpPage />,
+    },
 
     // ------------------------------
     // 🧑‍💼 SELLER ROUTES
@@ -84,58 +130,71 @@ export default function App() {
     {
       path: "/seller/dashboard",
       element: (
-        <SellerLayout>
-          <SellerDashboard />
-        </SellerLayout>
+        <PrivateRoute requireRole="seller">
+          <SellerLayout>
+            <SellerDashboard />
+          </SellerLayout>
+        </PrivateRoute>
       ),
     },
     {
       path: "/seller/products",
       element: (
-        <SellerLayout>
-          <SellerProducts />
-        </SellerLayout>
+        <PrivateRoute requireRole="seller">
+          <SellerLayout>
+            <SellerProducts />
+          </SellerLayout>
+        </PrivateRoute>
       ),
     },
     {
       path: "/seller/orders",
       element: (
-        <SellerLayout>
-          <SellerOrders />
-        </SellerLayout>
+        <PrivateRoute requireRole="seller">
+          <SellerLayout>
+            <SellerOrders />
+          </SellerLayout>
+        </PrivateRoute>
       ),
     },
     {
       path: "/seller/profile",
       element: (
-        <SellerLayout>
-          <SellerProfile />
-        </SellerLayout>
+        <PrivateRoute requireRole="seller">
+          <SellerLayout>
+            <SellerProfile />
+          </SellerLayout>
+        </PrivateRoute>
       ),
     },
     {
       path: "/seller/add-product",
       element: (
-        <SellerLayout>
-          <AddProduct />
-        </SellerLayout>
+        <PrivateRoute requireRole="seller">
+          <SellerLayout>
+            <AddProduct />
+          </SellerLayout>
+        </PrivateRoute>
       ),
     },
-
     {
       path: "/seller/update-product/:id",
       element: (
-        <SellerLayout>
-          <UpdateProduct />
-        </SellerLayout>
+        <PrivateRoute requireRole="seller">
+          <SellerLayout>
+            <UpdateProduct />
+          </SellerLayout>
+        </PrivateRoute>
       ),
     },
     {
       path: "/seller/notifications",
       element: (
-        <SellerLayout>
-          <SellerNotifications />
-        </SellerLayout>
+        <PrivateRoute requireRole="seller">
+          <SellerLayout>
+            <SellerNotifications />
+          </SellerLayout>
+        </PrivateRoute>
       ),
     },
   ]);
