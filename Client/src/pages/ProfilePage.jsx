@@ -133,7 +133,7 @@ const ProfilePage = () => {
         <div className="flex items-center gap-3">
           <Link
             to="/"
-            className="flex items-center gap-1 text-gray-700 hover:text-blue-600 transition"
+            className="flex items-center gap-1 text-[#f9A03f] hover:text-[#f8a853] transition"
           >
             <FaHome />
             <span className="hidden sm:inline font-medium">Home</span>
