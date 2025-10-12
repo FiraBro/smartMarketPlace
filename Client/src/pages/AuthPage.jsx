@@ -33,11 +33,11 @@ export default function AuthPage() {
     "flex items-center justify-center gap-2 w-full py-2 border rounded-lg hover:bg-gray-100 transition";
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50">
       {/* Left side */}
-      <div className="relative w-1/2 bg-gradient-to-br from-yellow-400 to-yellow-600 text-white flex flex-col justify-center items-center p-10">
+      <div className="relative md:w-1/2 w-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-white flex flex-col justify-center items-center p-10">
         {/* Curved design */}
-        <div className="absolute top-0 right-0 h-full w-32 bg-gray-50 rounded-l-[120px]" />
+        <div className="absolute top-0 right-0 h-full w-32 bg-gray-50 rounded-l-[120px] hidden md:block" />
 
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -45,10 +45,10 @@ export default function AuthPage() {
           transition={{ duration: 0.8 }}
           className="z-10 text-center"
         >
-          <h2 className="text-4xl font-bold mb-3">
+          <h2 className="text-4xl md:text-5xl font-bold mb-3">
             {isLogin ? "Welcome Back!" : "Join Our Community"}
           </h2>
-          <p className="text-gray-100 max-w-md mx-auto">
+          <p className="text-gray-100 text-sm md:text-base max-w-md mx-auto">
             {isLogin
               ? "Access your account and continue exploring our platform."
               : "Create an account and start your journey with us today."}
@@ -61,10 +61,10 @@ export default function AuthPage() {
         initial={{ x: 100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.6 }}
-        className="flex flex-col justify-center w-1/2 px-10"
+        className="flex flex-col justify-center md:w-1/2 w-full px-5 md:px-10 py-10 md:py-0"
       >
-        <div className="max-w-md w-full mx-auto bg-white p-8 rounded-3xl shadow-lg">
-          <h2 className="text-2xl font-bold mb-6 text-gray-800">
+        <div className="max-w-md w-full mx-auto bg-white p-8 md:p-10 rounded-3xl shadow-lg">
+          <h2 className="text-2xl md:text-3xl font-bold mb-6 text-gray-800 text-center">
             {isLogin ? "Sign In" : "Sign Up"}
           </h2>
 
