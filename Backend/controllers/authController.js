@@ -1,9 +1,10 @@
 import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
+import { generateToken } from "../utils/generateToken.js";
 
+// ✅ Register
 export const registerUser = catchAsync(async (req, res, next) => {
   const { name, email, password, role, phone } = req.body;
 
@@ -20,10 +21,7 @@ export const registerUser = catchAsync(async (req, res, next) => {
     phone,
   });
 
-  // 🔑 generate token just like login
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
-  });
+  const token = generateToken(user._id);
 
   res.status(201).json({
     message: "User registered successfully",
@@ -32,6 +30,7 @@ export const registerUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// ✅ Login
 export const loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -41,9 +40,7 @@ export const loginUser = catchAsync(async (req, res, next) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return next(new AppError("Invalid credentials", 400));
 
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-    expiresIn: "1d",
-  });
+  const token = generateToken(user._id);
 
   res.json({
     token,
@@ -51,12 +48,15 @@ export const loginUser = catchAsync(async (req, res, next) => {
   });
 });
 
+// ✅ Get Me
 export const getMe = catchAsync(async (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: "Not authorized" });
   }
   res.json({ user: req.user });
 });
+
+// ✅ Update Profile
 export const updateMe = catchAsync(async (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: "Not authorized" });
