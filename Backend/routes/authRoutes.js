@@ -15,8 +15,4 @@ router.put("/me", protect, authController.updateMe);
 router.get("/github", oauthController.githubLogin);
 router.get("/github/callback", oauthController.githubCallback);
 
-// Facebook OAuth
-router.get("/facebook", oauthController.facebookLogin);
-router.get("/facebook/callback", oauthController.facebookCallback);
-
 export default router;
