@@ -1,8 +1,9 @@
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaGithub, FaFacebook } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
+import { continueWithGithub } from "../service/authService";
 
 export default function AuthPage() {
   const { login, register } = useAuth();
@@ -21,22 +22,25 @@ export default function AuthPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (isLogin) await login({ email: form.email, password: form.password });
-      else await register(form);
+      if (isLogin) {
+        await login({ email: form.email, password: form.password });
+      } else {
+        await register(form);
+      }
       navigate("/"); // redirect after login/register
     } catch (err) {
-      console.error(err);
+      console.error("Auth error:", err);
+      alert("Something went wrong. Please try again.");
     }
   };
 
   const socialButtonClass =
-    "flex items-center justify-center gap-2 w-full py-2 border rounded-lg hover:bg-gray-100 transition";
+    "flex items-center justify-center gap-2 w-full py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition";
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50">
-      {/* Left side */}
+      {/* Left Side (Welcome Section) */}
       <div className="relative md:w-1/2 w-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-white flex flex-col justify-center items-center p-10">
-        {/* Curved design */}
         <div className="absolute top-0 right-0 h-full w-32 bg-gray-50 rounded-l-[120px] hidden md:block" />
 
         <motion.div
@@ -56,7 +60,7 @@ export default function AuthPage() {
         </motion.div>
       </div>
 
-      {/* Right side form */}
+      {/* Right Side (Form Section) */}
       <motion.div
         initial={{ x: 100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -68,6 +72,7 @@ export default function AuthPage() {
             {isLogin ? "Sign In" : "Sign Up"}
           </h2>
 
+          {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
               <>
@@ -118,27 +123,14 @@ export default function AuthPage() {
             </button>
           </form>
 
-          {/* Social Login */}
+          {/* OAUTH LOGIN */}
           <div className="flex flex-col gap-3 mt-6">
-            <button
-              onClick={() =>
-                (window.location.href = "http://localhost:5000/auth/github")
-              }
-              className={socialButtonClass}
-            >
+            <button onClick={continueWithGithub} className={socialButtonClass}>
               <FaGithub /> Continue with GitHub
-            </button>
-            <button
-              onClick={() =>
-                (window.location.href = "http://localhost:5000/auth/facebook")
-              }
-              className={socialButtonClass}
-            >
-              <FaFacebook /> Continue with Facebook
             </button>
           </div>
 
-          {/* Toggle */}
+          {/* Toggle between Login/Register */}
           <div className="text-center mt-6 text-gray-600">
             <p className="text-sm text-gray-500">
               {isLogin
