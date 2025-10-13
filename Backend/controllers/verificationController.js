@@ -5,7 +5,6 @@ import {
   verifyUserCode,
 } from "../service/verificationService.js";
 import { sendEmailCode } from "../service/emailService.js";
-import { sendSMSCode } from "../utils/smsService.js";
 
 // ✅ Send code to email or phone
 export const sendCode = catchAsync(async (req, res, next) => {
@@ -20,10 +19,7 @@ export const sendCode = catchAsync(async (req, res, next) => {
 
   if (field === "email") {
     await sendEmailCode(req.user.email, code);
-  } else {
-    await sendSMSCode(req.user.phone, code);
   }
-
   console.log(`✅ Verification code for ${field}: ${code}`);
 
   res.status(200).json({
