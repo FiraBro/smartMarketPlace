@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import path from "path";
+import passport from "./config/passport.js";
 import { globalErrorHandler } from "./middlewares/errorMiddleware.js";
 
 import authRoutes from "./routes/authRoutes.js";
@@ -22,6 +23,7 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(passport.initialize());
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // Routes
