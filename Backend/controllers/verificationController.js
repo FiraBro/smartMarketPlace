@@ -9,7 +9,7 @@ import { sendEmailCode } from "../service/emailService.js";
 // ✅ Send code to email or phone
 export const sendCode = catchAsync(async (req, res, next) => {
   const { field } = req.params;
-  const userId = req.user._id;
+  const userId = req.session._id;
 
   if (!["email", "phone"].includes(field)) {
     return next(new AppError("Invalid verification field", 400));
@@ -18,7 +18,7 @@ export const sendCode = catchAsync(async (req, res, next) => {
   const code = await saveVerificationCode(userId, field);
 
   if (field === "email") {
-    await sendEmailCode(req.user.email, code);
+    await sendEmailCode(req.session.email, code);
   }
   console.log(`✅ Verification code for ${field}: ${code}`);
 
@@ -30,7 +30,7 @@ export const sendCode = catchAsync(async (req, res, next) => {
 
 export const verifyCode = async (req, res) => {
   const { field, code } = req.body;
-  const userId = req.user.id; // from JWT middleware
+  const userId = req.session.id; // from JWT middleware
 
   const isValid = await verifyUserCode(userId, field, code);
   if (!isValid)
