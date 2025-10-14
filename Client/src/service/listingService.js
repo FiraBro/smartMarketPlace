@@ -1,19 +1,10 @@
-// listingService.js
 import axios from "axios";
 
-// Base API for listings
+// ✅ Base API for listings (session-based)
 const LISTING_API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
   timeout: 10000, // Add timeout
-});
-
-// Attach token if needed
-LISTING_API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  withCredentials: true, // ✅ send session cookies
 });
 
 // Response interceptor to handle errors
@@ -29,9 +20,7 @@ LISTING_API.interceptors.response.use(
 export const getListingsByCategory = async (category, page = 1, limit = 12) => {
   try {
     const params = { page, limit };
-    if (category && category !== "All") {
-      params.category = category;
-    }
+    if (category && category !== "All") params.category = category;
 
     const { data } = await LISTING_API.get("/listings", { params });
     return data;
@@ -41,21 +30,30 @@ export const getListingsByCategory = async (category, page = 1, limit = 12) => {
   }
 };
 
-// Get all distinct categories for pills
+// Create a new listing (multipart/form-data)
+export const createListing = async (payload) => {
+  try {
+    const { data } = await LISTING_API.post("/listings/create", payload, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  } catch (error) {
+    console.error("Error in createListing:", error);
+    throw error;
+  }
+};
+
+// Get all distinct categories
 export const getAllCategories = async () => {
   try {
     const { data } = await LISTING_API.get("/listings/categories");
-    console.log("Categories API Response:", data); // Debug log
+    console.log("Categories API Response:", data);
     return data;
   } catch (error) {
     console.error("Error in getAllCategories:", error);
-
-    // Return empty array as fallback
     if (error.response?.status === 500) {
-      console.warn(
-        "Server error fetching categories, using fallback categories"
-      );
-      return []; // Return empty array instead of crashing
+      console.warn("Server error fetching categories, returning fallback []");
+      return [];
     }
     throw error;
   }
