@@ -1,22 +1,15 @@
-// src/service/orderService.js
 import axios from "axios";
 
 const API_URL =
   import.meta.env.VITE_ORDER_URL || "http://localhost:5000/api/orders";
 
-// ✅ Axios instance
+// ✅ Axios instance (session-based)
 const orderAPI = axios.create({
   baseURL: API_URL,
-});
-
-// ✅ Attach JWT token to every request
-orderAPI.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  config.headers["Content-Type"] = "application/json";
-  return config;
+  withCredentials: true, // ✅ send cookies/session automatically
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
 // ✅ Create a new order
