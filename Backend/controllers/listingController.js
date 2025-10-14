@@ -11,14 +11,12 @@ import AppError from "../utils/AppError.js";
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
-// Helper to process images to progressive
 const processImage = async (file) => {
   const ext = path.extname(file.filename).toLowerCase();
   const inputPath = path.join(uploadDir, file.filename);
   const tempPath = path.join(uploadDir, `temp-${file.filename}`);
 
   let buffer;
-
   if (ext === ".jpg" || ext === ".jpeg") {
     buffer = await sharp(inputPath).jpeg({ progressive: true }).toBuffer();
   } else if (ext === ".png") {
@@ -29,13 +27,9 @@ const processImage = async (file) => {
     return { url: `/uploads/${file.filename}`, placeholder: null };
   }
 
-  // write to temp file
   await fs.promises.writeFile(tempPath, buffer);
-
-  // replace original (avoids OneDrive lock issue)
   await fs.promises.rename(tempPath, inputPath);
 
-  // generate tiny blurred placeholder
   const placeholder = await sharp(buffer).resize(20).blur().toBuffer();
   const placeholderBase64 = `data:image/${ext.replace(
     ".",
@@ -45,11 +39,10 @@ const processImage = async (file) => {
   return { url: `/uploads/${file.filename}`, placeholder: placeholderBase64 };
 };
 
-// Build query for filters
 const buildQuery = ({ q, category, minPrice, maxPrice, owner, condition }) => {
   const query = {};
   if (q) query.$text = { $search: q };
-  if (category) query.category = new RegExp(`^${category}$`, "i"); // case-insensitive match
+  if (category) query.category = new RegExp(`^${category}$`, "i");
   if (owner) query.owner = owner;
   if (condition) query.condition = condition;
   if (minPrice || maxPrice) {
@@ -60,7 +53,10 @@ const buildQuery = ({ q, category, minPrice, maxPrice, owner, condition }) => {
   return query;
 };
 
-// List all listings
+// -----------------
+// Listings APIs
+// -----------------
+
 export const listListings = catchAsync(async (req, res, next) => {
   const {
     page = 1,
@@ -102,33 +98,31 @@ export const listListings = catchAsync(async (req, res, next) => {
   });
 });
 
-// Get single listing + related
 export const getListingById = catchAsync(async (req, res, next) => {
   const listing = await Listing.findById(req.params.id).lean();
   if (!listing) return next(new AppError("Listing not found", 404));
 
-  // Track views
   let view = await ProductView.findOne({ product: req.params.id });
   if (!view) view = new ProductView({ product: req.params.id, views: 1 });
   else view.views += 1;
   await view.save();
 
-  // 🔹 Find related products (same category, not this product)
   const related = await Listing.find({
     category: listing.category,
     _id: { $ne: listing._id },
   })
-    .limit(4) // show max 4 related
+    .limit(4)
     .lean();
 
   res.json({ listing, related });
 });
 
-// Create listing
+// -----------------
+// Protected routes
+// -----------------
 
 export const createListing = catchAsync(async (req, res, next) => {
   const { title, description, price, category, condition, location } = req.body;
-
   if (!title || !description || !price)
     return next(
       new AppError("title, description, and price are required", 400)
@@ -149,10 +143,9 @@ export const createListing = catchAsync(async (req, res, next) => {
     condition,
     location,
     images,
-    owner: req.user._id,
+    owner: req.session.user._id, // <-- session-based
   });
 
-  // Send email to all newsletter subscribers
   const subscribers = await Newsletter.find({});
   for (const subscriber of subscribers) {
     await sendEmail({
@@ -171,7 +164,6 @@ export const createListing = catchAsync(async (req, res, next) => {
   res.status(201).json(listing);
 });
 
-// Update listing
 export const updateListing = catchAsync(async (req, res, next) => {
   const { id } = req.params;
   const {
@@ -186,7 +178,7 @@ export const updateListing = catchAsync(async (req, res, next) => {
 
   const listing = await Listing.findById(id);
   if (!listing) return next(new AppError("Listing not found", 404));
-  if (String(listing.owner) !== String(req.user._id))
+  if (String(listing.owner) !== String(req.session.user._id))
     return next(new AppError("Not allowed", 403));
 
   let images = listing.images;
@@ -226,13 +218,12 @@ export const updateListing = catchAsync(async (req, res, next) => {
   res.json(saved);
 });
 
-// Delete listing
 export const deleteListing = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
   const listing = await Listing.findById(id);
   if (!listing) return next(new AppError("Listing not found", 404));
-  if (String(listing.owner) !== String(req.user._id))
+  if (String(listing.owner) !== String(req.session.user._id))
     return next(new AppError("Not allowed", 403));
 
   listing.images.forEach((img) => {
@@ -243,10 +234,9 @@ export const deleteListing = catchAsync(async (req, res, next) => {
   await listing.deleteOne();
   res.json({ message: "Listing deleted" });
 });
-// Get all listings with pagination only
+
 export const getAllListings = catchAsync(async (req, res, next) => {
   const { page = 1, limit = 12, sort = "-createdAt" } = req.query;
-
   const pageNum = Math.max(1, parseInt(page));
   const pageSize = Math.min(60, Math.max(1, parseInt(limit)));
   const skip = (pageNum - 1) * pageSize;
@@ -266,7 +256,6 @@ export const getAllListings = catchAsync(async (req, res, next) => {
   });
 });
 
-// Get all distinct categories
 export const getCategories = catchAsync(async (req, res, next) => {
   try {
     const categories = await Listing.distinct("category");
