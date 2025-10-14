@@ -8,7 +8,10 @@ const userSchema = new mongoose.Schema(
     },
     phone: {
       type: String,
-      required: [true, "Phone number is required"],
+      // Make optional for OAuth users
+      required: function () {
+        return !this.oauthProvider;
+      },
     },
     avatar: {
       type: String,
@@ -35,7 +38,14 @@ const userSchema = new mongoose.Schema(
 
     password: {
       type: String,
-      required: [true, "Password is required"],
+      // Only required for regular email/password users
+      required: function () {
+        return !this.oauthProvider;
+      },
+    },
+
+    oauthProvider: {
+      type: String, // e.g., 'github', 'google'
     },
   },
   { timestamps: true }
