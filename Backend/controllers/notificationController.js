@@ -4,7 +4,7 @@ import { Notification } from "../models/Notification.js";
 
 // Get all notifications for logged-in user
 export const getNotifications = catchAsync(async (req, res, next) => {
-  const userId = req.user?._id;
+  const userId = req.session.user?._id;
   if (!userId) return next(new AppError("Not authorized", 401));
 
   const notifications = await Notification.find({ user: userId }).sort({
@@ -15,7 +15,7 @@ export const getNotifications = catchAsync(async (req, res, next) => {
 
 // Create a new notification
 export const createNotification = catchAsync(async (req, res, next) => {
-  const userId = req.user?._id;
+  const userId = req.session.user?._id;
   if (!userId) return next(new AppError("Not authorized", 401));
 
   const { type, title, message } = req.body;
@@ -35,7 +35,7 @@ export const createNotification = catchAsync(async (req, res, next) => {
 
 // Mark a notification as read
 export const markAsRead = catchAsync(async (req, res, next) => {
-  const userId = req.user?._id;
+  const userId = req.session.user?._id;
   if (!userId) return next(new AppError("Not authorized", 401));
 
   const notification = await Notification.findOneAndUpdate(
@@ -51,7 +51,7 @@ export const markAsRead = catchAsync(async (req, res, next) => {
 
 // Delete a notification
 export const deleteNotification = catchAsync(async (req, res, next) => {
-  const userId = req.user?._id;
+  const userId = req.session.user?._id;
   if (!userId) return next(new AppError("Not authorized", 401));
 
   const notification = await Notification.findOneAndDelete({
