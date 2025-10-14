@@ -1,17 +1,9 @@
 import axios from "axios";
 
-// ✅ Base API instance for cart endpoints
+// ✅ Base API instance for cart endpoints (session-based)
 const CART_API = axios.create({
   baseURL: import.meta.env.VITE_CART_URL || "http://localhost:5000/api/cart",
-});
-
-// ✅ Attach JWT token if available
-CART_API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  withCredentials: true, // ✅ send cookies automatically
 });
 
 // ➕ Add item to cart
@@ -46,16 +38,15 @@ export const getCart = async () => {
   };
 };
 
+// Update cart item
 export const updateCartItem = async ({ listingId, quantity }) => {
-  const res = await CART_API.put("/update", { listingId, quantity });
-  return res.data;
+  const { data } = await CART_API.put("/update", { listingId, quantity });
+  return data;
 };
 
 // ❌ Remove item from cart
 export const removeFromCart = async (listingId) => {
-  const { data } = await CART_API.delete("/remove", {
-    data: { listingId },
-  });
+  const { data } = await CART_API.delete("/remove", { data: { listingId } });
   return data;
 };
 
@@ -66,20 +57,17 @@ export const clearCart = async () => {
 };
 
 //
-// ✅ Checkout + Payment Section
+// ✅ Checkout + Payment Section (session-based)
 //
+
+const ORDER_API = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api/orders",
+  withCredentials: true, // ✅ session cookies
+});
 
 // Checkout cart → creates an order in backend
 export const checkoutCart = async () => {
-  const { data } = await axios.post(
-    `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/orders`,
-    {}, // body is empty since order is created from cart
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    }
-  );
+  const { data } = await ORDER_API.post("/");
   return data; // returns the new order
 };
 
@@ -90,11 +78,7 @@ export const payWithCOD = async (orderId) => {
       import.meta.env.VITE_API_URL || "http://localhost:5000"
     }/api/payments/cod`,
     { orderId },
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    }
+    { withCredentials: true } // ✅ session cookies
   );
   return data;
 };
@@ -106,11 +90,7 @@ export const payWithTeleBirr = async (orderId, phone) => {
       import.meta.env.VITE_API_URL || "http://localhost:5000"
     }/api/payments/telebirr`,
     { orderId, phone },
-    {
-      headers: {
-        Authorization: `Bearer ${localStorage.getItem("token")}`,
-      },
-    }
+    { withCredentials: true } // ✅ session cookies
   );
   return data; // contains { paymentUrl, order }
 };
