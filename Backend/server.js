@@ -1,13 +1,22 @@
+import "dotenv/config";
 import http from "http";
 import { Server } from "socket.io";
+import { connectDB } from "./config/db.js";
 import app from "./app.js";
 import { protectSocket } from "./middlewares/socketAuthMiddleware.js";
-import { connectDB } from "./config/db.js";
-import { configDotenv } from "dotenv";
-configDotenv(); // Load environment variables from .env file
+
+// ----------------------------
+// Connect to MongoDB
+// ----------------------------
 connectDB();
+
+// ----------------------------
+// Create HTTP server & Socket.io
+// ----------------------------
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, {
+  cors: { origin: process.env.FRONTEND_URL, credentials: true },
+});
 
 // Socket authentication
 io.use(protectSocket);
@@ -31,6 +40,9 @@ io.on("connection", (socket) => {
 // Make io accessible in controllers
 app.set("io", io);
 
+// ----------------------------
+// Start server
+// ----------------------------
 server.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);
 });
