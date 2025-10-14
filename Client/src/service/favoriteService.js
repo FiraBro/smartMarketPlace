@@ -1,19 +1,10 @@
-// src/service/favoriteService.js
 import axios from "axios";
 
-// ✅ Base API instance for favorites endpoints
+// ✅ Base API instance for favorites endpoints (session-based)
 const FAVORITE_API = axios.create({
   baseURL:
     import.meta.env.VITE_FAV_URL || "http://localhost:5000/api/favorites",
-});
-
-// ✅ Attach JWT token if available
-FAVORITE_API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  withCredentials: true, // ✅ send session cookies automatically
 });
 
 // ➕ Add a listing/product to favorites
@@ -48,7 +39,6 @@ export const getFavorites = async () => {
   };
 };
 
-// ❌ Remove a listing/product from favorites
 // ❌ Remove a listing/product from favorites
 export const removeFavorite = async (listingId) => {
   const { data } = await FAVORITE_API.delete("/", {
