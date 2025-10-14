@@ -2,9 +2,10 @@ import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
-import { generateToken } from "../utils/generateToken.js";
 
+// ---------------------
 // ✅ Register
+// ---------------------
 export const registerUser = catchAsync(async (req, res, next) => {
   const { name, email, password, role, phone } = req.body;
 
@@ -21,16 +22,23 @@ export const registerUser = catchAsync(async (req, res, next) => {
     phone,
   });
 
-  const token = generateToken(user._id);
+  // Store user in session
+  req.session.user = {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 
   res.status(201).json({
     message: "User registered successfully",
-    token,
-    user: { id: user._id, name: user.name, email: user.email, role: user.role },
+    user: req.session.user,
   });
 });
 
+// ---------------------
 // ✅ Login
+// ---------------------
 export const loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -40,25 +48,35 @@ export const loginUser = catchAsync(async (req, res, next) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return next(new AppError("Invalid credentials", 400));
 
-  const token = generateToken(user._id);
+  // Store user in session
+  req.session.user = {
+    id: user._id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+  };
 
   res.json({
-    token,
-    user: { id: user._id, name: user.name, email: user.email },
+    message: "Login successful",
+    user: req.session.user,
   });
 });
 
-// ✅ Get Me
+// ---------------------
+// ✅ Get current user
+// ---------------------
 export const getMe = catchAsync(async (req, res, next) => {
-  if (!req.user) {
+  if (!req.session.user) {
     return res.status(401).json({ message: "Not authorized" });
   }
-  res.json({ user: req.user });
+  res.json({ user: req.session.user });
 });
 
+// ---------------------
 // ✅ Update Profile
+// ---------------------
 export const updateMe = catchAsync(async (req, res, next) => {
-  if (!req.user) {
+  if (!req.session.user) {
     return res.status(401).json({ message: "Not authorized" });
   }
 
@@ -68,22 +86,47 @@ export const updateMe = catchAsync(async (req, res, next) => {
   if (name) updates.name = name;
   if (email) updates.email = email;
   if (phone) updates.phone = phone;
-  if (password) {
-    updates.password = await bcrypt.hash(password, 10);
-  }
+  if (password) updates.password = await bcrypt.hash(password, 10);
 
-  const updatedUser = await User.findByIdAndUpdate(req.user._id, updates, {
-    new: true,
-    runValidators: true,
-  });
+  const updatedUser = await User.findByIdAndUpdate(
+    req.session.user.id,
+    updates,
+    { new: true, runValidators: true }
+  );
+
+  // Update session user
+  req.session.user = {
+    id: updatedUser._id,
+    name: updatedUser.name,
+    email: updatedUser.email,
+    role: updatedUser.role,
+  };
 
   res.json({
     message: "Profile updated successfully",
-    user: {
-      id: updatedUser._id,
-      name: updatedUser.name,
-      email: updatedUser.email,
-      role: updatedUser.role,
-    },
+    user: req.session.user,
   });
+});
+
+// ---------------------
+// ✅ Logout
+// ---------------------
+export const logoutUser = catchAsync(async (req, res, next) => {
+  req.session.destroy((err) => {
+    if (err) return next(new AppError("Logout failed", 500));
+    res.clearCookie("connect.sid"); // Clear session cookie
+    res.json({ message: "Logged out successfully" });
+  });
+});
+
+// ✅ check login status
+export const checkAuth = catchAsync(async (req, res) => {
+  if (req.session === undefined) {
+    return res.json({ loggedIn: false });
+  }
+  if (req.session.user) {
+    res.json({ loggedIn: true, user: req.session.user });
+  } else {
+    res.json({ loggedIn: false });
+  }
 });
