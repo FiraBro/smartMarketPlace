@@ -1,18 +1,10 @@
 import axios from "axios";
 
-// Base API instance for addresses
+// Base API instance for addresses (session-based)
 const ADDRESS_API = axios.create({
   baseURL:
     import.meta.env.VITE_ADDRESS_URL || "http://localhost:5000/api/addresses",
-});
-
-// Attach JWT token if available
-ADDRESS_API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  withCredentials: true, // ✅ send cookies for session auth
 });
 
 // Get all addresses for the logged-in user
