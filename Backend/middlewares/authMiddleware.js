@@ -1,44 +1,32 @@
-import jwt from "jsonwebtoken";
-import AppError from "../utils/AppError.js";
-import catchAsync from "../utils/catchAsync.js";
-import { User } from "../models/User.js";
-import e from "express";
+// ---------------------
+// General protection
+// ---------------------
+export const protect = (req, res, next) => {
+  if (req.session.user) return next();
+  res.status(401).json({ status: "fail", message: "Not authorized" });
+};
 
-export const protect = catchAsync(async (req, res, next) => {
-  let token;
-
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
-    token = req.headers.authorization.split(" ")[1];
-  }
-
-  if (!token) {
-    return next(new AppError("Not authorized, token missing", 401));
-  }
-
-  const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  req.user = await User.findById(decoded.id).select("-password");
-
-  if (!req.user) {
-    return next(new AppError("User not found", 404));
-  }
-
-  next();
-});
+// ---------------------
+// Seller-only routes
+// ---------------------
 export const protectSeller = (req, res, next) => {
-  if (!req.user || req.user.role !== "seller") {
-    return next(new AppError("Access denied: Seller only route", 403));
+  if (!req.session.user || req.session.user.role !== "seller") {
+    return res
+      .status(403)
+      .json({ status: "fail", message: "Seller only route" });
   }
   next();
 };
+
+// ---------------------
+// Restrict to specific roles
+// ---------------------
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return next(
-        new AppError("Access denied: You do not have permission", 403)
-      );
+    if (!req.session.user || !roles.includes(req.session.user.role)) {
+      return res
+        .status(403)
+        .json({ status: "fail", message: "Insufficient permission" });
     }
     next();
   };
