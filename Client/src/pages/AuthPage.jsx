@@ -1,12 +1,10 @@
 import { motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaGithub } from "react-icons/fa";
-import { continueWithGithub } from "../service/authService";
-
+import { FaGithub, FaGoogle } from "react-icons/fa";
 export default function AuthPage() {
-  const { login, register } = useAuth();
+  const { user, setUser, login, register } = useAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -16,33 +14,62 @@ export default function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const navigate = useNavigate();
 
+  // -------------------
+  // Detect OAuth session
+  // -------------------
+  useEffect(() => {
+    const fetchSession = async () => {
+      try {
+        const res = await fetch(
+          `${
+            import.meta.env.VITE_AUTH_URL || "http://localhost:5000/api/auth"
+          }/me`,
+          { credentials: "include" }
+        );
+        const data = await res.json();
+        if (data.user) {
+          setUser(data.user); // update context
+          navigate("/"); // redirect home AFTER context update
+        }
+      } catch {}
+    };
+    fetchSession();
+  }, [setUser, navigate]);
+
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (isLogin) {
-        await login({ email: form.email, password: form.password });
-      } else {
-        await register(form);
-      }
-      navigate("/"); // redirect after login/register
+      if (isLogin) await login({ email: form.email, password: form.password });
+      else await register(form);
+      navigate("/"); // redirect
     } catch (err) {
-      console.error("Auth error:", err);
-      alert("Something went wrong. Please try again.");
+      alert(err.response?.data?.message || "Something went wrong");
     }
   };
+
+  const continueWithGithub = () => {
+    window.location.href = `${
+      import.meta.env.VITE_AUTH_URL || "http://localhost:5000/api/auth"
+    }/github`;
+  };
+  const continueWithGoogle = () => {
+    window.location.href = `${
+      import.meta.env.VITE_AUTH_URL || "http://localhost:5000/api/auth"
+    }/google`;
+  };
+
+  if (user) return null;
 
   const socialButtonClass =
     "flex items-center justify-center gap-2 w-full py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition";
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-gray-50">
-      {/* Left Side (Welcome Section) */}
+      {/* Left Side */}
       <div className="relative md:w-1/2 w-full bg-gradient-to-br from-yellow-400 to-yellow-600 text-white flex flex-col justify-center items-center p-10">
-        <div className="absolute top-0 right-0 h-full w-32 bg-gray-50 rounded-l-[120px] hidden md:block" />
-
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
@@ -60,7 +87,7 @@ export default function AuthPage() {
         </motion.div>
       </div>
 
-      {/* Right Side (Form Section) */}
+      {/* Right Side */}
       <motion.div
         initial={{ x: 100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
@@ -114,7 +141,6 @@ export default function AuthPage() {
               required
               className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none"
             />
-
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition"
@@ -123,14 +149,17 @@ export default function AuthPage() {
             </button>
           </form>
 
-          {/* OAUTH LOGIN */}
+          {/* OAuth Buttons */}
           <div className="flex flex-col gap-3 mt-6">
             <button onClick={continueWithGithub} className={socialButtonClass}>
               <FaGithub /> Continue with GitHub
             </button>
+            <button onClick={continueWithGoogle} className={socialButtonClass}>
+              <FaGoogle /> Continue with Google
+            </button>
           </div>
 
-          {/* Toggle between Login/Register */}
+          {/* Toggle Sign In/Sign Up */}
           <div className="text-center mt-6 text-gray-600">
             <p className="text-sm text-gray-500">
               {isLogin
