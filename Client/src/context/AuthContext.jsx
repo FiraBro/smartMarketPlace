@@ -1,11 +1,11 @@
-// context/AuthContext.jsx
 import { createContext, useContext, useState, useEffect } from "react";
 import {
   loginUser,
   registerUser,
   logoutUser,
-  getCurrentUser,
-} from "../service/authService";
+  updateProfile,
+  checkAuthStatus,
+} from "../service/AuthService"; // adjust path if needed
 
 const AuthContext = createContext();
 
@@ -13,49 +13,63 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load current user on mount
+  // -----------------------------
+  // 🔹 Check if user is logged in
+  // -----------------------------
   useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return setLoading(false);
-
+    const verifyAuth = async () => {
       try {
-        const currentUser = await getCurrentUser();
-        setUser(currentUser);
+        const data = await checkAuthStatus();
+        if (data.loggedIn) setUser(data.user);
+        else setUser(null);
       } catch {
         setUser(null);
-        localStorage.removeItem("token");
       } finally {
         setLoading(false);
       }
     };
-    fetchUser();
+    verifyAuth();
   }, []);
 
+  // -----------------------------
+  // 🔹 Auth Actions
+  // -----------------------------
   const login = async (credentials) => {
     const data = await loginUser(credentials);
     setUser(data.user);
+    return data.user;
   };
 
   const register = async (info) => {
     const data = await registerUser(info);
     setUser(data.user);
+    return data.user;
   };
 
-  const logout = () => {
-    logoutUser();
+  const logout = async () => {
+    await logoutUser();
     setUser(null);
   };
 
-  const updateUser = (updatedUser) => {
-    setUser(updatedUser);
+  const updateUser = async (updates) => {
+    const updated = await updateProfile(updates);
+    setUser(updated);
+    return updated;
   };
 
   return (
     <AuthContext.Provider
-      value={{ user, login, register, logout, updateUser, loading }}
+      value={{
+        user,
+        login,
+        register,
+        logout,
+        updateUser,
+        loading,
+        isAuthenticated: !!user,
+      }}
     >
-      {children}
+      {!loading && children}
     </AuthContext.Provider>
   );
 };
