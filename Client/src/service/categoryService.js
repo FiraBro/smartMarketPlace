@@ -1,18 +1,10 @@
 import axios from "axios";
 
-// ✅ Base API instance for category/listing endpoints
+// ✅ Base API instance for category/listing endpoints (session-based)
 const CATEGORY_API = axios.create({
   baseURL:
     import.meta.env.VITE_CATEGORY_URL || "http://localhost:5000/api/listings",
-});
-
-// ✅ Attach JWT token if available (not always required for browsing, but safe)
-CATEGORY_API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
+  withCredentials: true, // ✅ send session cookies automatically
 });
 
 // 🛍️ Fetch products by category (no normalization)
