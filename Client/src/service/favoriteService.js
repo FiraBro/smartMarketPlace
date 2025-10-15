@@ -18,7 +18,6 @@ export const addFavorite = async (product) => {
 // 🧾 Get user favorites
 export const getFavorites = async () => {
   const { data } = await FAVORITE_API.get("/"); // full favorites object
-  console.log("Raw favorites data from backend:", data);
 
   return {
     items: data.items.map((item) => {
