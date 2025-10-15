@@ -8,19 +8,15 @@ export const githubLogin = passport.authenticate("github", {
 });
 
 export const githubCallback = [
-  passport.authenticate("github", {
-    failureRedirect: "/login",
-  }),
+  passport.authenticate("github", { failureRedirect: "/login" }),
   (req, res) => {
-    // Store user info in session
+    // ✅ Store session consistently
     req.session.user = {
-      id: req.user._id,
+      _id: req.user._id, // always _id
       name: req.user.name,
       email: req.user.email,
-      role: req.user.role || "user",
+      role: req.user.role || "buyer", // default role
     };
-
-    // Redirect to frontend without token
     res.redirect(process.env.FRONTEND_URL || "http://localhost:5173");
   },
 ];
@@ -33,19 +29,15 @@ export const googleLogin = passport.authenticate("google", {
 });
 
 export const googleCallback = [
-  passport.authenticate("google", {
-    failureRedirect: "/login",
-  }),
+  passport.authenticate("google", { failureRedirect: "/login" }),
   (req, res) => {
-    // Store user info in session
+    // ✅ Store session consistently
     req.session.user = {
-      id: req.user._id,
+      _id: req.user._id,
       name: req.user.name,
       email: req.user.email,
-      role: req.user.role || "user",
+      role: req.user.role || "buyer",
     };
-
-    // Redirect to frontend without token
     res.redirect(process.env.FRONTEND_URL || "http://localhost:5173");
   },
 ];
