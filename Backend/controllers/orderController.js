@@ -4,8 +4,13 @@ import Listing from "../models/Listing.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
 
-// ✅ Create an order
+// ✅ Create an order (session-based)
 export const createOrder = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  if (!sessionUser) {
+    return next(new AppError("Not authorized. Please login.", 401));
+  }
+
   const { products, address, paymentMethod, totalPrice, deliveryMethod } =
     req.body;
 
@@ -28,7 +33,7 @@ export const createOrder = catchAsync(async (req, res, next) => {
         const listing = await Listing.findById(p.product);
         if (!listing) throw new AppError("Invalid product ID", 400);
         return {
-          product: p.product,
+          product: listing._id,
           seller: listing.owner,
           quantity: p.quantity,
           status: "pending",
@@ -36,13 +41,15 @@ export const createOrder = catchAsync(async (req, res, next) => {
       })
     );
   } else {
-    const cart = await Cart.findOne({ user: req.user._id });
+    // Get items from session-based cart
+    const cart = await Cart.findOne({ user: sessionUser._id });
     if (!cart || cart.items.length === 0)
       return next(new AppError("Cart is empty", 400));
 
     orderProducts = await Promise.all(
       cart.items.map(async (item) => {
         const listing = await Listing.findById(item.listing);
+        if (!listing) throw new AppError("Invalid product ID in cart", 400);
         return {
           product: listing._id,
           seller: listing.owner,
@@ -57,7 +64,7 @@ export const createOrder = catchAsync(async (req, res, next) => {
   }
 
   const order = new Order({
-    user: req.user._id,
+    user: sessionUser._id, // ✅ use session user
     products: orderProducts,
     address: deliveryMethod === "delivery" ? address : null,
     totalPrice,
@@ -73,17 +80,23 @@ export const createOrder = catchAsync(async (req, res, next) => {
 
 // ✅ Get all orders (admin only)
 export const getOrders = catchAsync(async (req, res, next) => {
-  if (req.user.role !== "admin")
+  const sessionUser = req.session.user;
+  if (!sessionUser || sessionUser.role !== "admin")
     return next(new AppError("Not authorized, admin only", 403));
+
   const orders = await Order.find()
     .populate("products.product")
     .populate("user", "name email");
+
   res.json(orders);
 });
 
 // ✅ Get my orders (buyer)
 export const getMyOrders = catchAsync(async (req, res) => {
-  const orders = await Order.find({ user: req.user._id }).populate(
+  const sessionUser = req.session.user;
+  if (!sessionUser) return next(new AppError("Not authorized", 401));
+
+  const orders = await Order.find({ user: sessionUser._id }).populate(
     "products.product"
   );
   res.json(orders);
@@ -91,14 +104,17 @@ export const getMyOrders = catchAsync(async (req, res) => {
 
 // ✅ Get single order
 export const getOrderById = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  if (!sessionUser) return next(new AppError("Not authorized", 401));
+
   const order = await Order.findById(req.params.id).populate(
     "products.product"
   );
   if (!order) return next(new AppError("Order not found", 404));
 
   if (
-    req.user.role !== "admin" &&
-    String(order.user) !== String(req.user._id)
+    sessionUser.role !== "admin" &&
+    String(order.user) !== String(sessionUser._id)
   ) {
     return next(new AppError("Not authorized to view this order", 403));
   }
@@ -108,8 +124,10 @@ export const getOrderById = catchAsync(async (req, res, next) => {
 
 // ✅ Update order status (admin only)
 export const updateOrderStatus = catchAsync(async (req, res, next) => {
-  if (req.user.role !== "admin")
+  const sessionUser = req.session.user;
+  if (!sessionUser || sessionUser.role !== "admin")
     return next(new AppError("Not authorized, admin only", 403));
+
   const { status } = req.body;
   const order = await Order.findById(req.params.id);
   if (!order) return next(new AppError("Order not found", 404));
@@ -121,12 +139,15 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
 
 // ✅ Pay order
 export const payOrder = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  if (!sessionUser) return next(new AppError("Not authorized", 401));
+
   const order = await Order.findById(req.params.id);
   if (!order) return next(new AppError("Order not found", 404));
 
   if (
-    req.user.role !== "admin" &&
-    String(order.user) !== String(req.user._id)
+    sessionUser.role !== "admin" &&
+    String(order.user) !== String(sessionUser._id)
   ) {
     return next(new AppError("Not authorized to pay this order", 403));
   }
@@ -167,12 +188,15 @@ export const payOrder = catchAsync(async (req, res, next) => {
 
 // ✅ Cancel order
 export const cancelOrder = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  if (!sessionUser) return next(new AppError("Not authorized", 401));
+
   const order = await Order.findById(req.params.id);
   if (!order) return next(new AppError("Order not found", 404));
 
   if (
-    req.user.role !== "admin" &&
-    String(order.user) !== String(req.user._id)
+    sessionUser.role !== "admin" &&
+    String(order.user) !== String(sessionUser._id)
   ) {
     return next(new AppError("Not authorized to cancel this order", 403));
   }
@@ -187,10 +211,11 @@ export const cancelOrder = catchAsync(async (req, res, next) => {
 
 // ✅ Seller: Get orders for this seller
 export const getSellerOrders = catchAsync(async (req, res, next) => {
-  if (req.user.role !== "seller")
+  const sessionUser = req.session.user;
+  if (!sessionUser || sessionUser.role !== "seller")
     return next(new AppError("Not authorized, sellers only", 403));
 
-  const orders = await Order.find({ "products.seller": req.user._id })
+  const orders = await Order.find({ "products.seller": sessionUser._id })
     .populate("user", "name email")
     .populate("products.product", "title price images")
     .lean();
@@ -200,18 +225,19 @@ export const getSellerOrders = catchAsync(async (req, res, next) => {
 
 // ✅ Seller: Update status of seller products
 export const updateSellerOrderStatus = catchAsync(async (req, res, next) => {
-  if (req.user.role !== "seller")
+  const sessionUser = req.session.user;
+  if (!sessionUser || sessionUser.role !== "seller")
     return next(new AppError("Not authorized, sellers only", 403));
 
   const { orderId, status } = req.body;
   const order = await Order.findOne({
     _id: orderId,
-    "products.seller": req.user._id,
+    "products.seller": sessionUser._id,
   });
   if (!order) return next(new AppError("Order not found", 404));
 
   order.products = order.products.map((p) => {
-    if (String(p.seller) === String(req.user._id)) p.status = status;
+    if (String(p.seller) === String(sessionUser._id)) p.status = status;
     return p;
   });
 
