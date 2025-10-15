@@ -19,6 +19,7 @@ import newsLetter from "./routes/newsLetterRoutes.js";
 import verificationRoutes from "./routes/verificationRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use("/api/newsletter", newsLetter);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/verify", verificationRoutes);
 app.use("/api/seller", sellerRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ----------------------------
 // Global Error Handler
