@@ -15,7 +15,6 @@ export const addToCart = async (listingId, quantity = 1) => {
 // 🛒 Get user cart
 export const getCart = async () => {
   const { data } = await CART_API.get("/");
-  console.log("Raw cart data from backend:", data);
   const items = data.items || [];
 
   return {
