@@ -1,23 +1,54 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaEdit } from "react-icons/fa";
 import Lottie from "lottie-react";
 import successAnim from "../../assets/animations/success.json";
+import {
+  getSellerProfile,
+  updateSellerProfile,
+} from "../../service/sellerService";
+import { toast } from "react-toastify";
 
 export default function SellerProfile() {
   const [form, setForm] = useState({
-    shopName: "My Awesome Shop",
-    description: "We sell high-quality products with love",
-    address: "Dire Dawa, Ethiopia",
-    contact: "+251 900 000 000",
+    shopName: "",
+    description: "",
+    address: "",
+    contact: "",
     facebook: "",
     instagram: "",
     logo: "",
     banner: "",
   });
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  // ✅ Handle file upload (for both logo & banner)
+  // ✅ Fetch profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      setLoading(true);
+      try {
+        const data = await getSellerProfile();
+        setForm({
+          shopName: data.shopName || "",
+          description: data.description || "",
+          address: data.address || "",
+          contact: data.contact || "",
+          facebook: data.facebook || "",
+          instagram: data.instagram || "",
+          logo: data.logo || "",
+          banner: data.banner || "",
+        });
+      } catch (err) {
+        console.error(err);
+        toast.error(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfile();
+  }, []);
+
   const handleImageUpload = (e, type) => {
     const file = e.target.files[0];
     if (file) {
@@ -29,11 +60,23 @@ export default function SellerProfile() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    try {
+      await updateSellerProfile(form);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+      toast.success("Profile updated successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message);
+    }
   };
+
+  if (loading)
+    return (
+      <p className="text-center mt-10 text-gray-500">Loading profile...</p>
+    );
 
   return (
     <motion.div
@@ -41,7 +84,7 @@ export default function SellerProfile() {
       animate={{ opacity: 1, y: 0 }}
       className="bg-white rounded-2xl shadow-lg w-full max-w-4xl mx-auto overflow-hidden"
     >
-      {/* Banner */}
+      {/* Banner & Logo */}
       <div className="relative h-48 bg-gradient-to-r from-indigo-400 to-purple-500">
         {form.banner && (
           <img
@@ -60,7 +103,6 @@ export default function SellerProfile() {
           />
         </label>
 
-        {/* Logo */}
         <div className="absolute bottom-[-40px] left-8">
           <div className="relative">
             <img
@@ -71,10 +113,7 @@ export default function SellerProfile() {
               alt="Shop Logo"
               className="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover bg-gray-50"
             />
-            <label
-              // className="absolute bottom-0 right-0 bg-[#f9A03f] text-white p-1 rounded-full text-xs cursor-pointer hover:bg-[#faa64d] transition">
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 cursor-pointer focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
-            >
+            <label className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 cursor-pointer focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200">
               <FaEdit />
               <input
                 type="file"
@@ -102,8 +141,7 @@ export default function SellerProfile() {
               type="text"
               value={form.shopName}
               onChange={(e) => setForm({ ...form, shopName: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
-              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] transition duration-200"
               required
             />
           </div>
@@ -119,9 +157,7 @@ export default function SellerProfile() {
                 setForm({ ...form, description: e.target.value })
               }
               rows="3"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
-
-              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] transition duration-200"
             />
           </div>
 
@@ -134,9 +170,7 @@ export default function SellerProfile() {
               type="text"
               value={form.address}
               onChange={(e) => setForm({ ...form, address: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
-
-              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] transition duration-200"
             />
           </div>
 
@@ -149,13 +183,11 @@ export default function SellerProfile() {
               type="text"
               value={form.contact}
               onChange={(e) => setForm({ ...form, contact: e.target.value })}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
-
-              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] transition duration-200"
             />
           </div>
 
-          {/* Facebook */}
+          {/* Social Links */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Facebook
@@ -165,13 +197,10 @@ export default function SellerProfile() {
               value={form.facebook}
               onChange={(e) => setForm({ ...form, facebook: e.target.value })}
               placeholder="https://facebook.com/yourshop"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
-
-              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] transition duration-200"
             />
           </div>
 
-          {/* Instagram */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Instagram
@@ -181,9 +210,7 @@ export default function SellerProfile() {
               value={form.instagram}
               onChange={(e) => setForm({ ...form, instagram: e.target.value })}
               placeholder="https://instagram.com/yourshop"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200"
-
-              // className="w-full border border-gray-200 focus:border-[#faa64d] focus:ring-0 rounded-lg px-3 py-2 text-sm transition"
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] transition duration-200"
             />
           </div>
 
