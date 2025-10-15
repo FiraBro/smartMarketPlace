@@ -1,17 +1,19 @@
-// src/pages/seller/SellerAddProduct.jsx
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaUpload, FaArrowRight, FaArrowLeft } from "react-icons/fa";
-
+import { createListing } from "../../service/listingService";
 export default function AddProduct() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     name: "",
+    description: "",
     category: "",
     price: "",
     images: [],
   });
   const [preview, setPreview] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const categories = [
     "Cosmetic",
@@ -33,17 +35,40 @@ export default function AddProduct() {
   const handleNext = () => setStep((prev) => Math.min(prev + 1, 3));
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Product submitted:", form);
-    alert(
-      `Product added: ${form.name} (${form.category}) with ${form.images.length} image(s)`
-    );
+    setLoading(true);
+    setError("");
 
-    // Reset form
-    setForm({ name: "", category: "", price: "", images: [] });
-    setPreview([]);
-    setStep(1);
+    try {
+      // Prepare FormData for multiple images
+      const formData = new FormData();
+      formData.append("name", form.name);
+      formData.append("description", form.description);
+      formData.append("category", form.category);
+      formData.append("price", form.price);
+      form.images.forEach((file) => formData.append("images", file));
+
+      const data = await createListing(formData);
+
+      alert(`Product "${data.product.name}" added successfully!`);
+
+      // Reset form
+      setForm({
+        name: "",
+        description: "",
+        category: "",
+        price: "",
+        images: [],
+      });
+      setPreview([]);
+      setStep(1);
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Failed to add product");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,6 +80,8 @@ export default function AddProduct() {
       <h2 className="text-2xl font-semibold text-gray-800 mb-6 text-center">
         Add New Product
       </h2>
+
+      {error && <p className="text-red-500 mb-3">{error}</p>}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Step 1: Product Info */}
@@ -72,6 +99,19 @@ export default function AddProduct() {
                 placeholder="Enter product name"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
+                required
+              />
+              <label className="text-gray-600 text-sm mb-1">
+                Product Description
+              </label>
+              <input
+                type="text"
+                placeholder="Enter product description"
+                value={form.description}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
                 required
               />
@@ -168,7 +208,7 @@ export default function AddProduct() {
             <button
               type="button"
               onClick={handleNext}
-              className="ml-auto flex items-center gap-2 bg-[#f9A03f] text-white px-4 py-2 rounded-lg hover:bg-[#faa64d] cursor-pointer  transition"
+              className="ml-auto flex items-center gap-2 bg-[#f9A03f] text-white px-4 py-2 rounded-lg hover:bg-[#faa64d] cursor-pointer transition"
             >
               Next <FaArrowRight />
             </button>
@@ -177,9 +217,10 @@ export default function AddProduct() {
           {step === 3 && (
             <button
               type="submit"
+              disabled={loading}
               className="ml-auto bg-[#f9A03f] text-white px-4 py-2 rounded-lg hover:bg-[#faa64d] cursor-pointer transition"
             >
-              Add Product
+              {loading ? "Adding..." : "Add Product"}
             </button>
           )}
         </div>
