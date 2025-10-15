@@ -5,7 +5,7 @@ import catchAsync from "../utils/catchAsync.js";
 
 // ---------------------
 // ✅ Register
-// ---------------------
+// ✅ Register
 export const registerUser = catchAsync(async (req, res, next) => {
   const { name, email, password, role, phone } = req.body;
 
@@ -22,9 +22,9 @@ export const registerUser = catchAsync(async (req, res, next) => {
     phone,
   });
 
-  // Store user in session
+  // Store user in session (use _id!)
   req.session.user = {
-    id: user._id,
+    _id: user._id,
     name: user.name,
     email: user.email,
     role: user.role,
@@ -36,9 +36,7 @@ export const registerUser = catchAsync(async (req, res, next) => {
   });
 });
 
-// ---------------------
 // ✅ Login
-// ---------------------
 export const loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
@@ -48,9 +46,9 @@ export const loginUser = catchAsync(async (req, res, next) => {
   const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) return next(new AppError("Invalid credentials", 400));
 
-  // Store user in session
+  // Store user in session (use _id!)
   req.session.user = {
-    id: user._id,
+    _id: user._id,
     name: user.name,
     email: user.email,
     role: user.role,
@@ -89,14 +87,14 @@ export const updateMe = catchAsync(async (req, res, next) => {
   if (password) updates.password = await bcrypt.hash(password, 10);
 
   const updatedUser = await User.findByIdAndUpdate(
-    req.session.user.id,
+    req.session.user._id,
     updates,
     { new: true, runValidators: true }
   );
 
   // Update session user
   req.session.user = {
-    id: updatedUser._id,
+    _id: updatedUser._id,
     name: updatedUser.name,
     email: updatedUser.email,
     role: updatedUser.role,
