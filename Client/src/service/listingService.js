@@ -47,7 +47,6 @@ export const createListing = async (payload) => {
 export const getAllCategories = async () => {
   try {
     const { data } = await LISTING_API.get("/listings/categories");
-    console.log("Categories API Response:", data);
     return data;
   } catch (error) {
     console.error("Error in getAllCategories:", error);
