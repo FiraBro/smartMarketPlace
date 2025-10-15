@@ -12,14 +12,16 @@ import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
 import SearchBar from "./SearchBar";
 import { fetchProductsByCategory } from "../service/categoryService";
+import { becomeSeller } from "../service/sellerService"; // ✅ import service
 
 export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser } = useAuth(); // ✅ make sure setUser is available in your context
   const { cart } = useCart();
   const { favorites } = useFavorites();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalFavItems = favorites?.length || 0;
@@ -30,15 +32,46 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
     setProfileOpen(false);
   };
 
+  // ✅ Become a Seller handler
+  const handleBecomeSeller = async () => {
+    try {
+      setLoading(true);
+      const res = await becomeSeller();
+      alert(res.message || "You are now a seller!");
+
+      // Update role using context method
+      await updateUser({ role: "seller" });
+
+      navigate("/seller/dashboard");
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <nav className="bg-white px-4 md:px-6 py-3 shadow-sm relative">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-        {/* Logo */}
-        <div
-          onClick={() => navigate("/")}
-          className="text-2xl font-bold text-blue-600 cursor-pointer flex-shrink-0"
-        >
-          Lo<span className="text-[#f9A03f]">go</span>
+        {/* Logo + Become Seller */}
+        <div className="flex items-center gap-4">
+          <div
+            onClick={() => navigate("/")}
+            className="text-2xl font-bold text-blue-600 cursor-pointer flex-shrink-0"
+          >
+            Lo<span className="text-[#f9A03f]">go</span>
+          </div>
+
+          {/* ✅ Become a Seller Link (only for logged-in buyers) */}
+          {user && user.role === "buyer" && (
+            <button
+              onClick={handleBecomeSeller}
+              disabled={loading}
+              className="text-sm font-medium text-blue-600 hover:text-orange-500 cursor-pointer transition-colors"
+            >
+              {loading ? "Processing..." : "Become a Seller"}
+            </button>
+          )}
         </div>
 
         {/* SearchBar (desktop) */}
@@ -160,6 +193,15 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           <div className="flex flex-col gap-2">
             {user ? (
               <>
+                {user.role === "buyer" && (
+                  <button
+                    onClick={handleBecomeSeller}
+                    disabled={loading}
+                    className="w-full px-4 py-2 text-blue-600 bg-white border rounded-lg hover:bg-gray-100"
+                  >
+                    {loading ? "Processing..." : "Become a Seller"}
+                  </button>
+                )}
                 <button
                   onClick={openFav}
                   className="w-full px-4 py-2 bg-white border rounded-lg hover:bg-gray-100"
