@@ -1,29 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
+import { getSellerProducts, deleteProduct } from "../../service/sellerService";
+import { toast } from "react-toastify";
 
 export default function SellerProducts() {
   const navigate = useNavigate();
-  const [products, setProducts] = useState([
-    {
-      id: 1,
-      name: "Nike Air Max",
-      category: "Shoes",
-      price: 120,
-      image: "https://images.unsplash.com/photo-1606813902784-4b8d4f3f8a3c",
-    },
-    {
-      id: 2,
-      name: "Adidas Hoodie",
-      category: "Clothing",
-      price: 60,
-      image: "https://images.unsplash.com/photo-1602810315611-ef9e4f6e9a6f",
-    },
-  ]);
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  const handleDelete = (id) => {
-    setProducts(products.filter((p) => p.id !== id));
+  // Fetch products on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const data = await getSellerProducts();
+        setProducts(data);
+      } catch (err) {
+        console.error(err);
+        toast.error(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProducts();
+  }, []);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this product?"))
+      return;
+
+    try {
+      await deleteProduct(id);
+      setProducts(products.filter((p) => p._id !== id));
+      toast.success("Product deleted successfully");
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message);
+    }
   };
 
   const handleEdit = (id) => {
@@ -45,7 +60,9 @@ export default function SellerProducts() {
       </div>
 
       {/* Table */}
-      {products.length === 0 ? (
+      {loading ? (
+        <p className="text-gray-500 text-center mt-20">Loading products...</p>
+      ) : products.length === 0 ? (
         <p className="text-gray-500 text-center mt-20">
           No products added yet.
         </p>
@@ -69,21 +86,21 @@ export default function SellerProducts() {
             <tbody>
               {products.map((product) => (
                 <motion.tr
-                  key={product.id}
+                  key={product._id}
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: product.id * 0.05 }}
+                  transition={{ delay: 0.05 }}
                   className="border-b border-gray-100 hover:bg-gray-50"
                 >
                   <td className="py-3 px-4">
                     <img
-                      src={product.image}
-                      alt={product.name}
+                      src={product.images?.[0] || ""}
+                      alt={product.title}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
                   </td>
                   <td className="py-3 px-4 font-medium text-gray-700">
-                    {product.name}
+                    {product.title}
                   </td>
                   <td className="py-3 px-4 text-gray-600">
                     {product.category}
@@ -93,13 +110,13 @@ export default function SellerProducts() {
                   </td>
                   <td className="py-3 px-4 flex flex-wrap items-center gap-3">
                     <button
-                      onClick={() => handleEdit(product.id)}
+                      onClick={() => handleEdit(product._id)}
                       className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition text-sm"
                     >
                       <FaEdit /> Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(product.id)}
+                      onClick={() => handleDelete(product._id)}
                       className="flex items-center gap-1 text-red-500 hover:text-red-700 transition text-sm"
                     >
                       <FaTrash /> Delete
