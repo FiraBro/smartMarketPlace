@@ -27,7 +27,6 @@ export const getPopularProducts = async (limit = 12) => {
   const { data } = await PRODUCT_API.get(`/metrics/popular`, {
     params: { limit },
   });
-  console.log(data);
   return data; // ✅ always an array
 };
 
