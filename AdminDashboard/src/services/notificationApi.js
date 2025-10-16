@@ -16,8 +16,13 @@ export const sendNotification = async (data) => {
 };
 
 // Get all notification history (admin only)
-export const getNotificationHistory = async () => {
-  const res = await axios.get(`${API_BASE_URL}/admin`);
+export const getNotificationHistory = async (filters = {}) => {
+  // Build query string from filters
+  const queryString = new URLSearchParams(filters).toString(); // channel=email&status=sent
+  const url = `${API_BASE_URL}/admin${queryString ? `?${queryString}` : ""}`;
+
+  const res = await axios.get(url);
+  console.log("Fetched notification history:", res.data);
   return res.data.notifications;
 };
 
