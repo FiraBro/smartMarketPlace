@@ -1,53 +1,84 @@
-// src/components/NotificationsTab.jsx
 import { motion } from "framer-motion";
-import { useState } from "react";
-import Lottie from "lottie-react";
-// import emptyAnim from "../assets/animations/empty.json";
+import { useState, useEffect } from "react";
 import { FaBox, FaTruck, FaCheckCircle, FaPercent } from "react-icons/fa";
+import {
+  fetchNotifications,
+  markAllAsRead,
+  markAsRead,
+} from "../service/notificationService";
+import { useAuth } from "../context/AuthContext";
+import { io } from "socket.io-client";
 
 export default function NotificationsTab() {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      type: "order",
-      title: "Order Confirmed",
-      message: "Your order #1234 has been confirmed!",
-      icon: <FaBox className="text-[#f9A03f]" />,
-      time: "2 hours ago",
-      read: false,
-    },
-    {
-      id: 2,
-      type: "delivery",
-      title: "Out for Delivery",
-      message: "Your order #1234 is on its way 🚚",
-      icon: <FaTruck className="text-[#4CAF50]" />,
-      time: "1 hour ago",
-      read: false,
-    },
-    {
-      id: 3,
-      type: "promo",
-      title: "Limited Offer",
-      message: "Get 15% off your next order — valid today only!",
-      icon: <FaPercent className="text-[#2196F3]" />,
-      time: "Yesterday",
-      read: true,
-    },
-    {
-      id: 4,
-      type: "delivery",
-      title: "Delivered Successfully",
-      message: "Order #1234 has been delivered. Enjoy your purchase!",
-      icon: <FaCheckCircle className="text-[#4CAF50]" />,
-      time: "2 days ago",
-      read: true,
-    },
-  ]);
+  const { user } = useAuth();
+  const [notifications, setNotifications] = useState([]);
+  const [socket, setSocket] = useState(null);
 
-  const markAllRead = () =>
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  // -----------------------------
+  // Fetch notifications & setup Socket.IO
+  // -----------------------------
+  useEffect(() => {
+    if (!user) return;
 
+    // 1️⃣ Fetch existing notifications
+    const loadNotifications = async () => {
+      try {
+        const data = await fetchNotifications();
+        setNotifications(data);
+      } catch (err) {
+        console.error("Failed to fetch notifications", err);
+      }
+    };
+    loadNotifications();
+
+    // 2️⃣ Connect to Socket.IO
+    const newSocket = io(import.meta.env.VITE_API_URL, {
+      withCredentials: true,
+    });
+
+    // Join user-specific room
+    newSocket.emit("join", `notifications:${user._id}`);
+
+    // Listen for real-time notifications
+    newSocket.on("notification", (notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+    });
+
+    setSocket(newSocket);
+
+    // Cleanup on unmount
+    return () => newSocket.disconnect();
+  }, [user]);
+
+  // -----------------------------
+  // Mark all notifications as read
+  // -----------------------------
+  const handleMarkAllRead = async () => {
+    try {
+      await markAllAsRead();
+      setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Failed to mark all notifications as read", err);
+    }
+  };
+
+  // -----------------------------
+  // Mark single notification as read
+  // -----------------------------
+  const handleMarkRead = async (id) => {
+    try {
+      await markAsRead(id);
+      setNotifications((prev) =>
+        prev.map((n) => (n._id === id ? { ...n, read: true } : n))
+      );
+    } catch (err) {
+      console.error("Failed to mark notification as read", err);
+    }
+  };
+
+  // -----------------------------
+  // Render notifications
+  // -----------------------------
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -58,7 +89,7 @@ export default function NotificationsTab() {
         <h2 className="text-xl font-semibold text-gray-800">Notifications</h2>
         {notifications.length > 0 && (
           <button
-            onClick={markAllRead}
+            onClick={handleMarkAllRead}
             className="text-sm bg-[#f9A03f] text-white px-4 py-1.5 rounded-lg hover:bg-[#faa64d] transition"
           >
             Mark all as read
@@ -70,19 +101,29 @@ export default function NotificationsTab() {
         <div className="space-y-4">
           {notifications.map((notif, index) => (
             <motion.div
-              key={notif.id}
+              key={notif._id || index}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
+              onClick={() => !notif.read && handleMarkRead(notif._id)}
               className={`flex items-start gap-4 border border-gray-100 p-4 rounded-xl hover:shadow-md transition cursor-pointer ${
                 notif.read ? "bg-gray-50" : "bg-[#fff9f2]"
               }`}
             >
-              <div className="text-2xl">{notif.icon}</div>
+              <div className="text-2xl">
+                {{
+                  order: <FaBox className="text-[#f9A03f]" />,
+                  delivery: <FaTruck className="text-[#4CAF50]" />,
+                  promo: <FaPercent className="text-[#2196F3]" />,
+                  success: <FaCheckCircle className="text-[#4CAF50]" />,
+                }[notif.type] || <FaBox />}
+              </div>
               <div className="flex-1">
                 <h3 className="font-medium text-gray-800">{notif.title}</h3>
                 <p className="text-sm text-gray-600">{notif.message}</p>
-                <p className="text-xs text-gray-400 mt-1">{notif.time}</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {new Date(notif.createdAt).toLocaleString()}
+                </p>
               </div>
               {!notif.read && (
                 <div className="w-3 h-3 bg-[#f9A03f] rounded-full mt-1"></div>
@@ -92,7 +133,6 @@ export default function NotificationsTab() {
         </div>
       ) : (
         <div className="flex flex-col items-center justify-center py-10">
-          {/* <Lottie animationData={emptyAnim} className="w-48 h-48" /> */}
           <p className="text-gray-500 mt-4">No notifications yet</p>
         </div>
       )}
