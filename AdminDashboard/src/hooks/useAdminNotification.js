@@ -7,6 +7,7 @@ import {
 } from "../services/notificationApi.js";
 
 export function useAdminNotifications() {
+  const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -16,7 +17,7 @@ export function useAdminNotifications() {
       setLoading(true);
       setError(null);
       const res = await sendNotificationAPI(data);
-      return res; // You can return { message, notification, etc. } from backend
+      return res;
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send notification");
       throw err;
@@ -25,12 +26,20 @@ export function useAdminNotifications() {
     }
   };
 
-  // 🔹 Get notification history (for admin)
-  const fetchHistory = async () => {
+  // 🔹 Get notification history with filters
+  const fetchHistory = async (filters = {}) => {
     try {
       setLoading(true);
-      const notifications = await getNotificationHistory();
-      return notifications;
+      setError(null);
+
+      // Send filters as query params
+      const params = new URLSearchParams();
+      if (filters.channel) params.append("channel", filters.channel);
+      if (filters.status) params.append("status", filters.status);
+      if (filters.dateRange) params.append("dateRange", filters.dateRange);
+
+      const notifications = await getNotificationHistory(params.toString());
+      setNotifications(notifications);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load notifications");
     } finally {
@@ -56,6 +65,7 @@ export function useAdminNotifications() {
     try {
       setLoading(true);
       await deleteNotification(id);
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
       return true;
     } catch (err) {
       setError(err.response?.data?.message || "Failed to delete notification");
@@ -65,6 +75,7 @@ export function useAdminNotifications() {
   };
 
   return {
+    notifications,
     sendNotification,
     fetchHistory,
     fetchNotificationById,
