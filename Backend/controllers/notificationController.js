@@ -1,65 +1,141 @@
+import Notification from "../models/Notification.js";
+import { User } from "../models/User.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
-import { Notification } from "../models/Notification.js";
 
-// Get all notifications for logged-in user
-export const getNotifications = catchAsync(async (req, res, next) => {
-  const userId = req.session.user?._id;
-  if (!userId) return next(new AppError("Not authorized", 401));
+// ========================== ADMIN CONTROLLERS ===============================
 
-  const notifications = await Notification.find({ user: userId }).sort({
-    createdAt: -1,
-  });
-  res.status(200).json({ notifications });
-});
+// Send a new notification
+export const sendNotification = catchAsync(async (req, res, next) => {
+  const { title, message, channel, type, recipientType } = req.body;
 
-// Create a new notification
-export const createNotification = catchAsync(async (req, res, next) => {
-  const userId = req.session.user?._id;
-  if (!userId) return next(new AppError("Not authorized", 401));
+  // ✅ Validate input fields
+  if (!title || !message || !channel || !type || !recipientType) {
+    return next(new AppError("Required field is missing", 400));
+  }
 
-  const { type, title, message } = req.body;
+  // ✅ Determine recipients based on recipientType
+  let recipients = [];
+  if (recipientType === "all") {
+    const users = await User.find({}, "_id");
+    recipients = users.map((u) => u._id);
+  } else if (recipientType === "seller") {
+    const sellers = await User.find({ role: "seller" }, "_id");
+    recipients = sellers.map((s) => s._id);
+  } else if (recipientType === "buyer") {
+    const buyers = await User.find({ role: "buyer" }, "_id");
+    recipients = buyers.map((b) => b._id);
+  } else {
+    return next(new AppError("Invalid recipient type", 400));
+  }
+
+  // ✅ Create the notification document
   const notification = await Notification.create({
-    user: userId,
-    type,
     title,
     message,
+    channel,
+    type,
+    recipientType,
+    recipients,
+    createdBy: req.user?._id || null,
   });
 
-  // Emit via socket if io is set
+  // ✅ Emit real-time notifications to all recipients
   const io = req.app.get("io");
-  if (io) io.to(`user:${userId}`).emit("newNotification", notification);
+  recipients.forEach((userId) => {
+    io.to(`notifications:${userId}`).emit("notification", notification);
+  });
 
-  res.status(201).json({ notification });
+  // ✅ Send success response
+  res.status(201).json({
+    status: "success",
+    message: "Notification sent successfully",
+    notification,
+  });
 });
 
-// Mark a notification as read
-export const markAsRead = catchAsync(async (req, res, next) => {
-  const userId = req.session.user?._id;
-  if (!userId) return next(new AppError("Not authorized", 401));
+// Delete notification
+export const deleteNotification = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const notification = await Notification.findByIdAndDelete(id);
+  if (!notification) {
+    return next(new AppError("Notification not found", 404));
+  }
 
-  const notification = await Notification.findOneAndUpdate(
-    { _id: req.params.id, user: userId },
-    { read: true },
-    { new: true }
+  res.status(200).json({
+    status: "success",
+    message: "Notification deleted successfully",
+  });
+});
+
+// Get notification history
+export const getNotificationHistory = catchAsync(async (req, res) => {
+  const notifications = await Notification.find().sort({ createdAt: -1 });
+  res.status(200).json({
+    status: "success",
+    results: notifications.length,
+    notifications,
+  });
+});
+
+// Get single notification
+export const getNotificationById = catchAsync(async (req, res, next) => {
+  const { id } = req.params;
+  const notification = await Notification.findById(id);
+  if (!notification) {
+    return next(new AppError("Notification not found", 404));
+  }
+
+  res.status(200).json({
+    status: "success",
+    notification,
+  });
+});
+
+// ========================== USER CONTROLLERS ================================
+
+export const getUserNotifications = catchAsync(async (req, res) => {
+  const userId = req.user._id;
+  const notifications = await Notification.find({ recipients: userId }).sort({
+    createdAt: -1,
+  });
+
+  res.status(200).json({
+    status: "success",
+    results: notifications.length,
+    notifications,
+  });
+});
+
+export const markAsRead = catchAsync(async (req, res, next) => {
+  const userId = req.user._id;
+  const { id } = req.params;
+
+  const notification = await Notification.findById(id);
+  if (!notification) {
+    return next(new AppError("Notification not found", 404));
+  }
+
+  if (!notification.readBy.includes(userId)) {
+    notification.readBy.push(userId);
+    await notification.save();
+  }
+
+  res.status(200).json({
+    status: "success",
+    message: "Notification marked as read",
+  });
+});
+
+export const markAllAsRead = catchAsync(async (req, res) => {
+  const userId = req.user._id;
+  await Notification.updateMany(
+    { recipients: userId, readBy: { $ne: userId } },
+    { $push: { readBy: userId } }
   );
 
-  if (!notification) return next(new AppError("Notification not found", 404));
-
-  res.status(200).json({ notification });
-});
-
-// Delete a notification
-export const deleteNotification = catchAsync(async (req, res, next) => {
-  const userId = req.session.user?._id;
-  if (!userId) return next(new AppError("Not authorized", 401));
-
-  const notification = await Notification.findOneAndDelete({
-    _id: req.params.id,
-    user: userId,
+  res.status(200).json({
+    status: "success",
+    message: "All notifications marked as read",
   });
-
-  if (!notification) return next(new AppError("Notification not found", 404));
-
-  res.status(204).send();
 });
