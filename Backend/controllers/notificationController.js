@@ -68,9 +68,49 @@ export const deleteNotification = catchAsync(async (req, res, next) => {
   });
 });
 
-// Get notification history
+// controllers/notificationController.js
 export const getNotificationHistory = catchAsync(async (req, res) => {
-  const notifications = await Notification.find().sort({ createdAt: -1 });
+  const { channel, status, dateRange } = req.query;
+
+  const query = {};
+
+  // Filter by channel
+  if (channel && channel !== "all") {
+    query.channel = channel;
+  }
+
+  // Filter by status
+  if (status && status !== "all") {
+    query.status = status;
+  }
+
+  // Filter by dateRange
+  if (dateRange) {
+    const now = new Date();
+    let startDate;
+    switch (dateRange) {
+      case "today":
+        startDate = new Date(now.setHours(0, 0, 0, 0));
+        break;
+      case "7days":
+        startDate = new Date(now.setDate(now.getDate() - 7));
+        break;
+      case "30days":
+        startDate = new Date(now.setDate(now.getDate() - 30));
+        break;
+      case "90days":
+        startDate = new Date(now.setDate(now.getDate() - 90));
+        break;
+      default:
+        startDate = null;
+    }
+    if (startDate) {
+      query.createdAt = { $gte: startDate };
+    }
+  }
+
+  const notifications = await Notification.find(query).sort({ createdAt: -1 });
+
   res.status(200).json({
     status: "success",
     results: notifications.length,
