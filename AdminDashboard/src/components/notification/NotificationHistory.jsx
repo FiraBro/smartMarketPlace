@@ -22,7 +22,7 @@ export default function NotificationHistory() {
   // Fetch history whenever filters change
   useEffect(() => {
     fetchHistory(filters);
-  }, [filters]);
+  }, [filters.channel, filters.status, filters.dateRange]);
 
   const getChannelIcon = (channel) => {
     switch (channel) {
@@ -107,9 +107,8 @@ export default function NotificationHistory() {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">All Channels</option>
-              <option value="in_app">In-App</option>
+              <option value="in-app">In-App</option>
               <option value="email">Email</option>
-              <option value="both">Both</option>
             </select>
           </div>
 
@@ -173,6 +172,7 @@ export default function NotificationHistory() {
       {/* Table */}
       {!loading && (
         <DataTable
+          keyField="_id"
           columns={columns}
           data={notifications || []}
           actions={actions}
