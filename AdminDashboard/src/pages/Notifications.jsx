@@ -1,12 +1,18 @@
-// src/pages/Notifications.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import NotificationManager from "../components/notification/NotificationManager";
 import NotificationHistory from "../components/notification/NotificationHistory";
 import NotificationTemplates from "../components/notification/NotificationTemplate";
+import { useAdminNotifications } from "../hooks/useAdminNotification";
 
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState("send");
+  const { notifications, fetchHistory } = useAdminNotifications();
+
+  // Fetch notifications count when component mounts
+  useEffect(() => {
+    fetchHistory();
+  }, [fetchHistory]);
 
   return (
     <motion.div
@@ -30,8 +36,12 @@ export default function Notifications() {
         <nav className="-mb-px flex space-x-8">
           {[
             { id: "send", name: "Send Notification", count: null },
-            { id: "history", name: "Notification History", count: 1247 },
-            { id: "templates", name: "Templates", count: 12 },
+            {
+              id: "history",
+              name: "Notification History",
+              count: notifications.length,
+            },
+            { id: "templates", name: "Templates", count: 0 }, // templates count later
           ].map((tab) => (
             <button
               key={tab.id}
@@ -43,7 +53,7 @@ export default function Notifications() {
               }`}
             >
               {tab.name}
-              {tab.count && (
+              {tab.count !== null && (
                 <span className="ml-2 py-0.5 px-2 text-xs bg-gray-200 rounded-full">
                   {tab.count}
                 </span>
