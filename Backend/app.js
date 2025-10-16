@@ -20,6 +20,7 @@ import verificationRoutes from "./routes/verificationRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import adminRotes from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use("/api/addresses", addressRoutes);
 app.use("/api/verify", verificationRoutes);
 app.use("/api/seller", sellerRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRotes);
 
 // ----------------------------
 // Global Error Handler
