@@ -134,11 +134,14 @@ export const getNotificationById = catchAsync(async (req, res, next) => {
 
 // ========================== USER CONTROLLERS ================================
 
-export const getUserNotifications = catchAsync(async (req, res) => {
-  const userId = req.user._id;
-  const notifications = await Notification.find({ recipients: userId }).sort({
-    createdAt: -1,
-  });
+export const getUserNotifications = catchAsync(async (req, res, next) => {
+  if (!req.user || !req.user._id) {
+    return res.status(400).json({ status: "fail", message: "User not found" });
+  }
+
+  const notifications = await Notification.find({
+    $or: [{ recipients: req.user._id }, { recipientType: "all" }],
+  }).sort({ createdAt: -1 });
 
   res.status(200).json({
     status: "success",
