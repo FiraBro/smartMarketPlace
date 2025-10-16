@@ -1,0 +1,81 @@
+// src/data/mockData.js
+export const mockSellers = [
+  {
+    id: 1,
+    name: "John Doe",
+    email: "john@example.com",
+    company: "Tech Gadgets Inc.",
+    joinDate: "2024-01-15",
+    status: "approved",
+    totalSales: 125000,
+    commissionRate: "15%",
+    phone: "+1-555-0123",
+    address: "123 Tech St, San Francisco, CA",
+    documents: ["business_license.pdf", "tax_certificate.pdf"],
+  },
+  {
+    id: 2,
+    name: "Jane Smith",
+    email: "jane@example.com",
+    company: "Fashion Store",
+    joinDate: "2024-02-01",
+    status: "pending",
+    totalSales: 0,
+    commissionRate: "12%",
+    phone: "+1-555-0124",
+    address: "456 Fashion Ave, New York, NY",
+    documents: ["business_license.pdf"],
+  },
+];
+
+export const mockProducts = [
+  {
+    id: 1,
+    name: "Wireless Headphones",
+    seller: "Tech Gadgets Inc.",
+    category: "Electronics",
+    price: 99.99,
+    stock: 45,
+    status: "active",
+    createdAt: "2024-01-15",
+    sku: "WH-001",
+    description: "High-quality wireless headphones with noise cancellation",
+  },
+  {
+    id: 2,
+    name: "Running Shoes",
+    seller: "Sports Gear Co.",
+    category: "Sports",
+    price: 129.99,
+    stock: 0,
+    status: "inactive",
+    createdAt: "2024-02-01",
+    sku: "RS-002",
+    description: "Professional running shoes for athletes",
+  },
+];
+
+export const mockOrders = [
+  {
+    id: "ORD-001",
+    customer: "Alice Johnson",
+    seller: "Tech Gadgets Inc.",
+    amount: 299.97,
+    status: "shipped",
+    orderDate: "2024-03-01",
+    items: 3,
+    shippingAddress: "789 Customer St, Chicago, IL",
+    paymentMethod: "Credit Card",
+  },
+  {
+    id: "ORD-002",
+    customer: "Bob Smith",
+    seller: "Fashion Store",
+    amount: 159.99,
+    status: "pending",
+    orderDate: "2024-03-02",
+    items: 2,
+    shippingAddress: "321 Buyer Ave, Miami, FL",
+    paymentMethod: "PayPal",
+  },
+];
