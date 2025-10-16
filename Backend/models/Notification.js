@@ -2,17 +2,21 @@ import mongoose from "mongoose";
 
 const notificationSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
     title: { type: String, required: true },
     message: { type: String, required: true },
-    read: { type: Boolean, default: false },
-    type: {
+    recipientType: {
       type: String,
-      enum: ["info", "warning", "success", "error"],
-      default: "info",
+      enum: ["all", "seller", "buyer"],
+      required: true,
     },
+    recipients: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    channel: { type: String, enum: ["email", "in-app", "sms"], required: true },
+    type: { type: String, enum: ["info", "alert", "reminder"], required: true },
+    readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
   },
   { timestamps: true }
 );
 
-export const Notification = mongoose.model("Notification", notificationSchema);
+const Notification = mongoose.model("Notification", notificationSchema);
+export default Notification;
