@@ -1,4 +1,3 @@
-// src/components/notifications/NotificationHistory.jsx
 import React, { useState, useEffect } from "react";
 import DataTable from "../common/DataTable";
 import StatusBadge from "../common/StatusBadge";
@@ -11,7 +10,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 export default function NotificationHistory() {
-  const { notifications, fetchNotificationHistory, loading, error } =
+  const { notifications, fetchHistory, loading, error } =
     useAdminNotifications();
 
   const [filters, setFilters] = useState({
@@ -20,9 +19,10 @@ export default function NotificationHistory() {
     dateRange: "7days",
   });
 
+  // Fetch history whenever filters change
   useEffect(() => {
-    fetchNotificationHistory(filters);
-  }, [filters, fetchNotificationHistory]);
+    fetchHistory(filters);
+  }, [filters]);
 
   const getChannelIcon = (channel) => {
     switch (channel) {
@@ -60,7 +60,7 @@ export default function NotificationHistory() {
       render: (value) => <span className="capitalize">{value}</span>,
     },
     {
-      key: "sentAt",
+      key: "createdAt",
       title: "Sent At",
       render: (value) =>
         value ? new Date(value).toLocaleString() : "Scheduled",
@@ -69,22 +69,6 @@ export default function NotificationHistory() {
       key: "status",
       title: "Status",
       render: (value) => <StatusBadge status={value} />,
-    },
-    {
-      key: "stats",
-      title: "Engagement",
-      render: (value, row) => (
-        <div className="text-sm">
-          {row.channel === "email" && <div>Sent: {value?.emailSent || 0}</div>}
-          {row.channel === "in_app" && <div>Sent: {value?.inAppSent || 0}</div>}
-          {row.channel === "both" && (
-            <div className="space-y-1">
-              <div>In-App: {value?.inAppSent || 0}</div>
-              <div>Email: {value?.emailSent || 0}</div>
-            </div>
-          )}
-        </div>
-      ),
     },
   ];
 
@@ -105,19 +89,12 @@ export default function NotificationHistory() {
     </div>
   );
 
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 rounded-md p-4">
-        <p className="text-red-800">Error: {error}</p>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Channel */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Channel
@@ -136,6 +113,7 @@ export default function NotificationHistory() {
             </select>
           </div>
 
+          {/* Status */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Status
@@ -154,6 +132,7 @@ export default function NotificationHistory() {
             </select>
           </div>
 
+          {/* Date Range */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date Range
@@ -172,9 +151,10 @@ export default function NotificationHistory() {
             </select>
           </div>
 
+          {/* Refresh Button */}
           <div className="flex items-end">
             <button
-              onClick={() => fetchNotificationHistory(filters)}
+              onClick={() => fetchHistory(filters)}
               className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
             >
               Refresh
@@ -192,7 +172,18 @@ export default function NotificationHistory() {
 
       {/* Table */}
       {!loading && (
-        <DataTable columns={columns} data={notifications} actions={actions} />
+        <DataTable
+          columns={columns}
+          data={notifications || []}
+          actions={actions}
+        />
+      )}
+
+      {/* Error */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+          <p className="text-red-800">Error: {error}</p>
+        </div>
       )}
     </div>
   );
