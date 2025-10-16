@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
   sendNotification as sendNotificationAPI,
   getNotificationHistory,
@@ -27,25 +27,26 @@ export function useAdminNotifications() {
   };
 
   // 🔹 Get notification history with filters
-  const fetchHistory = async (filters = {}) => {
+  const fetchHistory = useCallback(async (filters = {}) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Send filters as query params
       const params = new URLSearchParams();
-      if (filters.channel) params.append("channel", filters.channel);
-      if (filters.status) params.append("status", filters.status);
+      if (filters.channel && filters.channel !== "all")
+        params.append("channel", filters.channel);
+      if (filters.status && filters.status !== "all")
+        params.append("status", filters.status);
       if (filters.dateRange) params.append("dateRange", filters.dateRange);
 
-      const notifications = await getNotificationHistory(params.toString());
-      setNotifications(notifications);
+      const data = await getNotificationHistory(params.toString());
+      setNotifications(data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load notifications");
     } finally {
       setLoading(false);
     }
-  };
+  }, []); // ✅ stable reference
 
   // 🔹 Get single notification by ID
   const fetchNotificationById = async (id) => {
