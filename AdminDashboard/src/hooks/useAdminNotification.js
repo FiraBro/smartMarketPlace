@@ -40,6 +40,7 @@ export function useAdminNotifications() {
       if (filters.dateRange) params.append("dateRange", filters.dateRange);
 
       const data = await getNotificationHistory(params.toString());
+      console.log("Fetched notification history:", data);
       setNotifications(data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load notifications");
