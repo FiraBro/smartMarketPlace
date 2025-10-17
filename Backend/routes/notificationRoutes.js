@@ -9,7 +9,11 @@ import {
   markAllAsRead,
 } from "../controllers/notificationController.js";
 
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
+import { protect } from "../middlewares/authMiddleware.js";
+import {
+  protectAdmin,
+  restrictToAdmin,
+} from "../middlewares/adminMiddleware.js";
 
 const router = express.Router();
 
@@ -17,13 +21,13 @@ const router = express.Router();
 // Only admin can send, view, or delete notifications
 router
   .route("/admin")
-  .post(protect, restrictTo("admin"), sendNotification) // Send new notification
-  .get(protect, restrictTo("admin"), getNotificationHistory); // Get all notification history
+  .post(protectAdmin, restrictToAdmin("admin"), sendNotification) // Send new notification
+  .get(protectAdmin, restrictToAdmin("admin"), getNotificationHistory); // Get all notification history
 
 router
   .route("/admin/:id")
-  .get(protect, restrictTo("admin"), getNotificationById) // Get specific notification by ID
-  .delete(protect, restrictTo("admin"), deleteNotification); // Delete notification
+  .get(protect, restrictToAdmin("admin"), getNotificationById) // Get specific notification by ID
+  .delete(protect, restrictToAdmin("admin"), deleteNotification); // Delete notification
 
 // ============================ USER ROUTES ============================== //
 // User-specific notifications
