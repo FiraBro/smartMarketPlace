@@ -1,11 +1,20 @@
 // src/pages/UserManagement.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import SellerManagement from "../components/user/SellerManagement";
 import BuyerManagement from "../components/user/BuyerManagement";
+import { useAuth } from "../context/AuthContext";
 
 export default function UserManagement() {
   const [activeTab, setActiveTab] = useState("sellers");
+  const { sellers, buyers, fetchSellers, fetchBuyers } = useAuth();
+  console.log("Buyers:", buyers);
+
+  // Fetch users on mount
+  useEffect(() => {
+    fetchSellers();
+    fetchBuyers();
+  }, []); // run once
 
   return (
     <motion.div
@@ -22,8 +31,8 @@ export default function UserManagement() {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           {[
-            { id: "sellers", name: "Seller Management", count: 1247 },
-            { id: "buyers", name: "Buyer Management", count: 23489 },
+            { id: "sellers", name: "Seller Management" },
+            { id: "buyers", name: "Buyer Management" },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -50,8 +59,8 @@ export default function UserManagement() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        {activeTab === "sellers" && <SellerManagement />}
-        {activeTab === "buyers" && <BuyerManagement />}
+        {activeTab === "sellers" && <SellerManagement users={sellers} />}
+        {activeTab === "buyers" && <BuyerManagement buyers={buyers} />}
       </motion.div>
     </motion.div>
   );
