@@ -1,8 +1,12 @@
 import React, { useState } from "react";
 import { createBrowserRouter, RouterProvider, Outlet } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
+
+import { AuthProvider } from "./context/AuthContext"; // <-- import AuthProvider
+
 import Sidebar from "./components/layout/Sidebar";
 import Header from "./components/layout/Header";
+
 import Dashboard from "./pages/Dashboard";
 import UserManagement from "./pages/UserManagement";
 import ProductManagement from "./pages/ProductManagement";
@@ -12,6 +16,7 @@ import DisputeResolution from "./pages/DisputeResolution";
 import Marketing from "./pages/Marketing";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
+
 import AuthPage from "./pages/AuthPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -35,10 +40,10 @@ function AppContent() {
   );
 }
 
-// ✅ Router configuration
+// Router configuration
 const router = createBrowserRouter([
   {
-    element: <ProtectedRoute />, // protect all admin routes
+    element: <ProtectedRoute />, // protect admin routes
     children: [
       {
         path: "/",
@@ -58,7 +63,7 @@ const router = createBrowserRouter([
     ],
   },
 
-  // ✅ Public Auth Routes
+  // Public Auth Routes
   {
     path: "/auth",
     element: <AuthPage />,
@@ -69,8 +74,12 @@ const router = createBrowserRouter([
   },
 ]);
 
-function App() {
-  return <RouterProvider router={router} />;
+export default function App() {
+  return (
+    <AuthProvider>
+      {" "}
+      {/* <-- wrap everything in AuthProvider */}
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
-
-export default App;
