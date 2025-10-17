@@ -1,16 +1,37 @@
-// src/components/users/BuyerManagement.jsx
-import React, { useState } from "react";
+// src/components/user/BuyerManagement.jsx
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import BuyerTable from "./BuyerTable";
 import BuyerFilters from "./BuyerFilters";
 
-export default function BuyerManagement() {
+export default function BuyerManagement({ buyers }) {
+  console.log(buyers);
   const [filters, setFilters] = useState({
     status: "all",
     search: "",
     dateRange: "all",
     activity: "all",
   });
+
+  // Compute stats dynamically
+  const stats = useMemo(() => {
+    const total = buyers?.length || 0;
+    const activeThisMonth =
+      buyers?.filter((b) => b.status === "active").length || 0;
+    const suspended =
+      buyers?.filter((b) => b.status === "suspended").length || 0;
+    const highValue = buyers?.filter((b) => b.totalSpent > 1000).length || 0; // Example threshold
+    return [
+      { label: "Total Buyers", value: total, color: "bg-blue-500" },
+      {
+        label: "Active This Month",
+        value: activeThisMonth,
+        color: "bg-green-500",
+      },
+      { label: "Suspended", value: suspended, color: "bg-red-500" },
+      { label: "High Value", value: highValue, color: "bg-purple-500" },
+    ];
+  }, [buyers]);
 
   return (
     <div className="space-y-6">
@@ -39,12 +60,7 @@ export default function BuyerManagement() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total Buyers", value: "23,847", color: "bg-blue-500" },
-          { label: "Active This Month", value: "8,452", color: "bg-green-500" },
-          { label: "Suspended", value: "12", color: "bg-red-500" },
-          { label: "High Value", value: "1,234", color: "bg-purple-500" },
-        ].map((stat, index) => (
+        {stats.map((stat, index) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -66,7 +82,7 @@ export default function BuyerManagement() {
       </div>
 
       {/* Table */}
-      <BuyerTable filters={filters} />
+      <BuyerTable buyers={buyers} filters={filters} />
     </div>
   );
 }

@@ -15,29 +15,10 @@ export default function BuyerDetailModal({ buyer, isOpen, onClose }) {
     { id: "notes", name: "Admin Notes" },
   ];
 
-  const purchaseHistory = [
-    {
-      id: "ORD-1001",
-      date: "2024-03-15",
-      amount: 299.99,
-      status: "delivered",
-      items: 2,
-    },
-    {
-      id: "ORD-1002",
-      date: "2024-03-10",
-      amount: 150.5,
-      status: "delivered",
-      items: 1,
-    },
-    {
-      id: "ORD-1003",
-      date: "2024-03-05",
-      amount: 450.75,
-      status: "shipped",
-      items: 3,
-    },
-  ];
+  const safeNumber = (num) => (num !== undefined && num !== null ? num : 0);
+  const safeDate = (date) => (date ? new Date(date).toLocaleDateString() : "-");
+
+  const purchaseHistory = buyer.purchaseHistory || [];
 
   return (
     <Modal
@@ -75,32 +56,14 @@ export default function BuyerDetailModal({ buyer, isOpen, onClose }) {
                 <h4 className="font-semibold text-gray-900">
                   Basic Information
                 </h4>
-                <div className="space-y-3">
-                  <div>
+                {["name", "email", "phone", "location"].map((key) => (
+                  <div key={key}>
                     <label className="text-sm font-medium text-gray-500">
-                      Full Name
+                      {key.replace(/^\w/, (c) => c.toUpperCase())}
                     </label>
-                    <p className="text-gray-900">{buyer.name}</p>
+                    <p className="text-gray-900">{buyer[key] || "-"}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Email
-                    </label>
-                    <p className="text-gray-900">{buyer.email}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Phone
-                    </label>
-                    <p className="text-gray-900">{buyer.phone}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">
-                      Location
-                    </label>
-                    <p className="text-gray-900">{buyer.location}</p>
-                  </div>
-                </div>
+                ))}
               </div>
 
               {/* Account Stats */}
@@ -124,25 +87,25 @@ export default function BuyerDetailModal({ buyer, isOpen, onClose }) {
                           : "text-green-600"
                       }`}
                     >
-                      {buyer.riskLevel?.toUpperCase()}
+                      {buyer.riskLevel?.toUpperCase() || "-"}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Member Since</span>
                     <span className="text-sm text-gray-900">
-                      {new Date(buyer.joinDate).toLocaleDateString()}
+                      {safeDate(buyer.joinDate)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Last Active</span>
                     <span className="text-sm text-gray-900">
-                      {new Date(buyer.lastActive).toLocaleDateString()}
+                      {safeDate(buyer.lastActive)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-500">Total Orders</span>
                     <span className="text-sm text-gray-900">
-                      {buyer.totalOrders}
+                      {safeNumber(buyer.totalOrders)}
                     </span>
                   </div>
                   <div className="flex justify-between">
@@ -150,7 +113,7 @@ export default function BuyerDetailModal({ buyer, isOpen, onClose }) {
                       Lifetime Value
                     </span>
                     <span className="text-sm text-gray-900">
-                      ${buyer.totalSpent?.toLocaleString()}
+                      ${safeNumber(buyer.totalSpent).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -190,21 +153,16 @@ export default function BuyerDetailModal({ buyer, isOpen, onClose }) {
                 <table className="min-w-full divide-y divide-gray-300">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Order ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Date
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Amount
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Items
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Status
-                      </th>
+                      {["Order ID", "Date", "Amount", "Items", "Status"].map(
+                        (h) => (
+                          <th
+                            key={h}
+                            className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
+                          >
+                            {h}
+                          </th>
+                        )
+                      )}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
@@ -214,13 +172,13 @@ export default function BuyerDetailModal({ buyer, isOpen, onClose }) {
                           {order.id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {new Date(order.date).toLocaleDateString()}
+                          {safeDate(order.date)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          ${order.amount}
+                          ${safeNumber(order.amount).toLocaleString()}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {order.items}
+                          {safeNumber(order.items)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge status={order.status} />
@@ -238,37 +196,16 @@ export default function BuyerDetailModal({ buyer, isOpen, onClose }) {
               <h4 className="font-semibold text-gray-900">
                 Behavior Analytics
               </h4>
-
-              {/* Risk Indicators */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <h5 className="font-medium text-yellow-800 mb-2">
-                  Risk Indicators
-                </h5>
-                <ul className="text-sm text-yellow-700 space-y-1">
-                  {buyer.riskLevel === "high" && (
-                    <>
-                      <li>• Multiple chargeback requests in last 30 days</li>
-                      <li>• Unusual purchasing patterns detected</li>
-                      <li>• High-value orders from new account</li>
-                    </>
-                  )}
-                  {buyer.riskLevel === "medium" && (
-                    <li>• Moderate risk - monitor for unusual activity</li>
-                  )}
-                  {buyer.riskLevel === "low" && (
-                    <li>• No significant risk indicators detected</li>
-                  )}
-                </ul>
-              </div>
-
-              {/* Purchase Patterns */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
                   <h5 className="font-medium text-gray-900 mb-2">
                     Average Order Value
                   </h5>
                   <p className="text-2xl font-bold text-blue-600">
-                    ${(buyer.totalSpent / buyer.totalOrders).toFixed(2)}
+                    $
+                    {buyer.totalOrders
+                      ? (buyer.totalSpent / buyer.totalOrders).toFixed(2)
+                      : "0.00"}
                   </p>
                 </div>
                 <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -303,35 +240,21 @@ export default function BuyerDetailModal({ buyer, isOpen, onClose }) {
                   Add Note
                 </button>
               </div>
-
               <div className="space-y-3">
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-medium text-gray-900">
-                      Support Agent
-                    </span>
-                    <span className="text-sm text-gray-500">2024-03-10</span>
+                {(buyer.notes || []).map((note, idx) => (
+                  <div key={idx} className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <span className="font-medium text-gray-900">
+                        {note.author}
+                      </span>
+                      <span className="text-sm text-gray-500">
+                        {safeDate(note.date)}
+                      </span>
+                    </div>
+                    <p className="text-gray-700">{note.content}</p>
                   </div>
-                  <p className="text-gray-700">
-                    Customer contacted support regarding shipping delay. Issue
-                    resolved with expedited shipping.
-                  </p>
-                </div>
-
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <span className="font-medium text-gray-900">
-                      Risk Analyst
-                    </span>
-                    <span className="text-sm text-gray-500">2024-02-28</span>
-                  </div>
-                  <p className="text-gray-700">
-                    Account flagged for review due to multiple high-value orders
-                    in short period. Verified as legitimate.
-                  </p>
-                </div>
+                ))}
               </div>
-
               {/* Add Note Form */}
               <div className="border-t pt-4">
                 <textarea

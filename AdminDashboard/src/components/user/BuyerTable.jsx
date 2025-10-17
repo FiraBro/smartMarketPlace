@@ -1,69 +1,26 @@
 // src/components/users/BuyerTable.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DataTable from "../common/DataTable";
 import StatusBadge from "../common/StatusBadge";
 import BuyerDetailModal from "./BuyerDetailModal";
-import { motion } from "framer-motion";
 
-export default function BuyerTable({ filters }) {
+export default function BuyerTable({ buyers = [], filters = {} }) {
   const [selectedBuyer, setSelectedBuyer] = useState(null);
 
-  const buyers = [
-    {
-      id: 1,
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      phone: "+1-555-0125",
-      joinDate: "2023-11-15",
-      lastActive: "2024-03-10",
-      status: "active",
-      totalOrders: 15,
-      totalSpent: 2450.75,
-      location: "New York, NY",
-      riskLevel: "low",
-    },
-    {
-      id: 2,
-      name: "Bob Smith",
-      email: "bob@example.com",
-      phone: "+1-555-0126",
-      joinDate: "2024-01-20",
-      lastActive: "2024-03-15",
-      status: "active",
-      totalOrders: 8,
-      totalSpent: 890.5,
-      location: "Los Angeles, CA",
-      riskLevel: "medium",
-    },
-    {
-      id: 3,
-      name: "Carol Davis",
-      email: "carol@example.com",
-      phone: "+1-555-0127",
-      joinDate: "2023-09-05",
-      lastActive: "2024-01-15",
-      status: "inactive",
-      totalOrders: 3,
-      totalSpent: 450.25,
-      location: "Chicago, IL",
-      riskLevel: "low",
-    },
-    {
-      id: 4,
-      name: "David Wilson",
-      email: "david@example.com",
-      phone: "+1-555-0128",
-      joinDate: "2024-02-28",
-      lastActive: "2024-03-14",
-      status: "flagged",
-      totalOrders: 12,
-      totalSpent: 3200.0,
-      location: "Miami, FL",
-      riskLevel: "high",
-      flagReason: "Multiple chargebacks",
-    },
-  ];
+  // Filter buyers dynamically based on filters
+  const filteredBuyers = useMemo(() => {
+    return buyers.filter((buyer) => {
+      const matchesStatus =
+        filters.status === "all" || buyer.status === filters.status;
+      const matchesSearch =
+        !filters.search ||
+        buyer.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+        buyer.email.toLowerCase().includes(filters.search.toLowerCase());
+      return matchesStatus && matchesSearch;
+    });
+  }, [buyers, filters]);
 
+  // Define columns dynamically
   const columns = [
     { key: "name", title: "Buyer Name" },
     { key: "email", title: "Email" },
@@ -85,16 +42,18 @@ export default function BuyerTable({ filters }) {
     {
       key: "totalSpent",
       title: "Total Spent",
-      render: (value) => `$${value.toLocaleString()}`,
+      render: (value) =>
+        value != null ? `$${Number(value).toLocaleString()}` : "$0",
     },
     {
       key: "lastActive",
       title: "Last Active",
-      render: (value) => new Date(value).toLocaleDateString(),
+      render: (value) => (value ? new Date(value).toLocaleDateString() : "N/A"),
     },
     { key: "location", title: "Location" },
   ];
 
+  // Dynamic actions
   const actions = (buyer) => (
     <div className="flex space-x-2">
       <button
@@ -109,12 +68,11 @@ export default function BuyerTable({ filters }) {
       <button className="text-green-600 hover:text-green-900 text-sm">
         Message
       </button>
-      {buyer.status !== "suspended" && (
+      {buyer.status !== "suspended" ? (
         <button className="text-red-600 hover:text-red-900 text-sm">
           Suspend
         </button>
-      )}
-      {buyer.status === "suspended" && (
+      ) : (
         <button className="text-green-600 hover:text-green-900 text-sm">
           Unsuspend
         </button>
@@ -126,7 +84,7 @@ export default function BuyerTable({ filters }) {
     <>
       <DataTable
         columns={columns}
-        data={buyers}
+        data={filteredBuyers}
         onRowClick={setSelectedBuyer}
         actions={actions}
       />

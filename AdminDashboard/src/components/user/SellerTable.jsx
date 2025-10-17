@@ -1,34 +1,44 @@
-// src/components/users/SellerTable.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import DataTable from "../common/DataTable";
 import StatusBadge from "../common/StatusBadge";
 import SellerDetailModal from "./SellerDetailModal";
 
-export default function SellerTable({ filters }) {
+export default function SellerTable({ users = [], filters }) {
   const [selectedSeller, setSelectedSeller] = useState(null);
 
-  const sellers = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      company: "Tech Gadgets Inc.",
-      joinDate: "2024-01-15",
-      status: "approved",
-      totalSales: 125000,
-      commissionRate: "15%",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      company: "Fashion Store",
-      joinDate: "2024-02-01",
-      status: "pending",
-      totalSales: 0,
-      commissionRate: "12%",
-    },
-  ];
+  // Filter sellers based on filters
+  const filteredSellers = useMemo(() => {
+    return users.filter((seller) => {
+      // Filter by status
+      if (filters.status !== "all" && seller.status !== filters.status)
+        return false;
+      // Filter by search (name or email)
+      if (
+        filters.search &&
+        !(
+          seller.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+          seller.email.toLowerCase().includes(filters.search.toLowerCase())
+        )
+      )
+        return false;
+      // Filter by dateRange
+      if (filters.dateRange !== "all") {
+        const joinDate = new Date(seller.joinDate);
+        const now = new Date();
+        if (
+          filters.dateRange === "7days" &&
+          (now - joinDate) / (1000 * 60 * 60 * 24) > 7
+        )
+          return false;
+        if (
+          filters.dateRange === "30days" &&
+          (now - joinDate) / (1000 * 60 * 60 * 24) > 30
+        )
+          return false;
+      }
+      return true;
+    });
+  }, [users, filters]);
 
   const columns = [
     { key: "name", title: "Seller Name" },
@@ -42,8 +52,9 @@ export default function SellerTable({ filters }) {
     {
       key: "totalSales",
       title: "Total Sales",
-      render: (value) => `$${value.toLocaleString()}`,
+      render: (value) => `$${(value || 0).toLocaleString()}`,
     },
+
     { key: "commissionRate", title: "Commission Rate" },
   ];
 
@@ -62,7 +73,7 @@ export default function SellerTable({ filters }) {
     <>
       <DataTable
         columns={columns}
-        data={sellers}
+        data={filteredSellers}
         onRowClick={setSelectedSeller}
         actions={actions}
       />
