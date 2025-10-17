@@ -41,6 +41,7 @@ export function useAdminNotifications() {
 
       const data = await getNotificationHistory(params.toString());
       console.log("Fetched notification history:", data);
+      console.log("Fetched notification history:", data);
       setNotifications(data);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to load notifications");
