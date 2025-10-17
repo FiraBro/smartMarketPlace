@@ -1,19 +1,32 @@
-// src/components/users/SellerManagement.jsx
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import SellerTable from "./SellerTable";
 import SellerFilters from "./SellerFilters";
 
-export default function SellerManagement() {
+export default function SellerManagement({ users }) {
+  console.log(users);
   const [filters, setFilters] = useState({
     status: "all",
     search: "",
     dateRange: "all",
   });
 
+  // Compute stats dynamically
+  const stats = useMemo(() => {
+    const total = users.length;
+    const pending = users.filter((u) => u.status === "pending").length;
+    const suspended = users.filter((u) => u.status === "suspended").length;
+    const featured = users.filter((u) => u.isFeatured).length;
+    return [
+      { label: "Total Sellers", value: total, color: "bg-blue-500" },
+      { label: "Pending Approval", value: pending, color: "bg-yellow-500" },
+      { label: "Suspended", value: suspended, color: "bg-red-500" },
+      { label: "Featured", value: featured, color: "bg-green-500" },
+    ];
+  }, [users]);
+
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-semibold text-gray-900">
@@ -28,17 +41,10 @@ export default function SellerManagement() {
         </button>
       </div>
 
-      {/* Filters */}
       <SellerFilters filters={filters} onFiltersChange={setFilters} />
 
-      {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        {[
-          { label: "Total Sellers", value: "1,247", color: "bg-blue-500" },
-          { label: "Pending Approval", value: "23", color: "bg-yellow-500" },
-          { label: "Suspended", value: "8", color: "bg-red-500" },
-          { label: "Featured", value: "45", color: "bg-green-500" },
-        ].map((stat, index) => (
+        {stats.map((stat, index) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
@@ -59,8 +65,7 @@ export default function SellerManagement() {
         ))}
       </div>
 
-      {/* Table */}
-      <SellerTable filters={filters} />
+      <SellerTable users={users} filters={filters} />
     </div>
   );
 }
