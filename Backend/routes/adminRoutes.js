@@ -1,27 +1,33 @@
 import express from "express";
 import {
-  register,
-  login,
-  logout,
-  getMe,
+  registerAdmin,
+  loginAdmin,
+  logoutAdmin,
+  getMeAdmin,
 } from "../controllers/adminController.js";
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
+import {
+  protectAdmin,
+  restrictToAdmin,
+} from "../middlewares/adminMiddleware.js";
+import { getAllBuyer, getAllSellers } from "../controllers/authController.js";
 
 const router = express.Router();
 
 // Public routes
-router.post("/register", register);
-router.post("/login", login);
+router.post("/registerAdmin", registerAdmin);
+router.post("/loginAdmin", loginAdmin);
 // router.get("/check-auth", isAuthenticated);
 
 // Protected routes
-router.use(protect); // All routes after this middleware are protected
+router.use(protectAdmin); // All routes after this middleware are protected
 
-router.post("/logout", logout);
-router.get("/me", getMe);
+router.post("/logoutAdmin", logoutAdmin);
+router.get("/meAdmin", getMeAdmin);
+router.get("/buyers", restrictToAdmin("admin", "super-admin"), getAllBuyer);
+router.get("/sellers", restrictToAdmin("admin", "super-admin"), getAllSellers);
 
 // Super admin only routes
-router.get("/admin-only", restrictTo("super-admin"), (req, res) => {
+router.get("/admin-only", restrictToAdmin("super-admin"), (req, res) => {
   res.status(200).json({
     status: "success",
     message: "Welcome super admin!",
