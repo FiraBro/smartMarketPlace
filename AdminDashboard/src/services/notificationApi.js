@@ -22,7 +22,6 @@ export const getNotificationHistory = async (filters = {}) => {
   const url = `${API_BASE_URL}/admin${queryString ? `?${queryString}` : ""}`;
 
   const res = await axios.get(url);
-  console.log("Fetched notification history:", res.data);
   return res.data.notifications;
 };
 
