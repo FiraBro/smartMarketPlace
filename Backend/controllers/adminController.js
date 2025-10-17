@@ -3,8 +3,8 @@ import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 
 // Register admin
-export const register = catchAsync(async (req, res, next) => {
-  const { username, email, password, passwordConfirm, role } = req.body;
+export const registerAdmin = catchAsync(async (req, res, next) => {
+  const { email, password, passwordConfirm, role } = req.body;
 
   // Check if password matches confirmation
   if (password !== passwordConfirm) {
@@ -13,7 +13,7 @@ export const register = catchAsync(async (req, res, next) => {
 
   // Check if admin already exists
   const existingAdmin = await Admin.findOne({
-    $or: [{ email }, { username }],
+    $or: [{ email }],
   });
 
   if (existingAdmin) {
@@ -24,7 +24,6 @@ export const register = catchAsync(async (req, res, next) => {
 
   // Create new admin
   const newAdmin = await Admin.create({
-    username,
     email,
     password,
     role: role || "admin",
@@ -43,7 +42,8 @@ export const register = catchAsync(async (req, res, next) => {
 });
 
 // Login admin
-export const login = catchAsync(async (req, res, next) => {
+export const loginAdmin = catchAsync(async (req, res, next) => {
+  // console.log(req.session);
   const { email, password } = req.body;
 
   // 1) Check if email and password exist
@@ -84,7 +84,7 @@ export const login = catchAsync(async (req, res, next) => {
 });
 
 // Logout admin
-export const logout = catchAsync(async (req, res, next) => {
+export const logoutAdmin = catchAsync(async (req, res, next) => {
   req.session.destroy((err) => {
     if (err) {
       return next(new AppError("Could not log out", 500));
@@ -99,7 +99,16 @@ export const logout = catchAsync(async (req, res, next) => {
 });
 
 // Get current admin
-export const getMe = catchAsync(async (req, res, next) => {
+export const getMeAdmin = catchAsync(async (req, res, next) => {
+  console.log("Session in getMeAdmin:", req.session);
+
+  if (!req.session.admin) {
+    return res.status(401).json({
+      status: "fail",
+      message: "Not authorized — no admin session",
+    });
+  }
+
   res.status(200).json({
     status: "success",
     data: {
