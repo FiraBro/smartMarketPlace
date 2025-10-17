@@ -8,6 +8,7 @@ export default function Register() {
     name: "",
     email: "",
     password: "",
+    passwordConfirm: "",
     phone: "",
     role: "admin", // only admin allowed
   });
@@ -21,11 +22,18 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // ✅ Password match validation
+    if (form.password !== form.passwordConfirm) {
+      setError("Passwords do not match");
+      return;
+    }
+
     try {
       setLoading(true);
       setError("");
-      await registerUser(form); // call backend
-      navigate("/auth/login"); // redirect after successful registration
+      await registerUser(form); // Call backend
+      navigate("/auth/login"); // Redirect after successful registration
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
     } finally {
@@ -78,6 +86,17 @@ export default function Register() {
             required
           />
 
+          {/* Confirm Password */}
+          <input
+            type="password"
+            name="passwordConfirm"
+            placeholder="Confirm Password"
+            value={form.passwordConfirm}
+            onChange={handleChange}
+            className="w-full border rounded-md p-2 focus:ring-2 focus:ring-indigo-500"
+            required
+          />
+
           {/* Phone (optional for admin) */}
           <input
             type="text"
@@ -104,14 +123,18 @@ export default function Register() {
             </select>
           </div>
 
-          {/* Error */}
+          {/* Error message */}
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
 
-          {/* Submit */}
+          {/* Submit button */}
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
+            className={`w-full py-2 rounded-md transition text-white ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-indigo-600 hover:bg-indigo-700"
+            }`}
           >
             {loading ? "Registering..." : "Register"}
           </button>
