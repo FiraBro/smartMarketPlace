@@ -1,13 +1,15 @@
+// src/pages/Login.jsx
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { loginUser } from "../services/authService";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loadingLocal, setLoadingLocal] = useState(false);
+  const [errorLocal, setErrorLocal] = useState("");
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -16,14 +18,14 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      setLoading(true);
-      setError("");
-      await loginUser(form);
+      setLoadingLocal(true);
+      setErrorLocal("");
+      await login(form); // update context
       navigate("/"); // redirect after login
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      setErrorLocal(err.response?.data?.message || "Login failed");
     } finally {
-      setLoading(false);
+      setLoadingLocal(false);
     }
   };
 
@@ -35,7 +37,7 @@ export default function Login() {
         animate={{ opacity: 1, y: 0 }}
       >
         <h2 className="text-2xl font-bold mb-4 text-center text-gray-800">
-          Login
+          Admin Login
         </h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -45,6 +47,7 @@ export default function Login() {
             placeholder="Email"
             value={form.email}
             onChange={handleChange}
+            required
             className="w-full border rounded-md p-2 focus:ring-2 focus:ring-indigo-500"
           />
           <input
@@ -53,17 +56,20 @@ export default function Login() {
             placeholder="Password"
             value={form.password}
             onChange={handleChange}
+            required
             className="w-full border rounded-md p-2 focus:ring-2 focus:ring-indigo-500"
           />
 
-          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+          {errorLocal && (
+            <p className="text-red-500 text-sm text-center">{errorLocal}</p>
+          )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loadingLocal}
             className="w-full bg-indigo-600 text-white py-2 rounded-md hover:bg-indigo-700 transition"
           >
-            {loading ? "Logging in..." : "Login"}
+            {loadingLocal ? "Logging in..." : "Login"}
           </button>
         </form>
 
