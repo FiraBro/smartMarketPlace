@@ -17,6 +17,7 @@ import AllListingsPage from "./pages/AllListingPage";
 import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
 import OrderSuccessPage from "./pages/OrderSuccussPage";
+
 // ------------------------------
 // Seller Pages
 // ------------------------------
@@ -29,6 +30,12 @@ import SellerProfile from "./pages/seller/SellerProfile";
 import SellerNotifications from "./pages/seller/SellerNotification";
 
 // ------------------------------
+// Shared / Auth
+// ------------------------------
+import AuthPage from "./pages/AuthPage";
+import Unauthorized from "./pages/Unauthorized"; // ✅ New unauthorized page
+
+// ------------------------------
 // Contexts
 // ------------------------------
 import { AuthProvider } from "./context/AuthContext";
@@ -39,9 +46,7 @@ import { FavoriteProvider } from "./context/FavoriteContext";
 // Components
 // ------------------------------
 import Spinner from "./components/Spinner";
-import PrivateRoute from "./components/PrivateRoute"; // ✅ your existing route guard
-
-import AuthPage from "./pages/AuthPage";
+import PrivateRoute from "./components/PrivateRoute"; // ✅ Auth + Role Guard
 
 export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -100,7 +105,9 @@ export default function App() {
       ],
     },
 
-    // Profile
+    // ------------------------------
+    // 👤 PROFILE
+    // ------------------------------
     {
       path: "/profile",
       element: (
@@ -113,19 +120,26 @@ export default function App() {
     // ------------------------------
     // 🔐 AUTH PAGE
     // ------------------------------
-    //
     {
       path: "/auth",
       element: <AuthPage />,
     },
 
     // ------------------------------
-    // 🧑‍💼 SELLER ROUTES
+    // 🚫 UNAUTHORIZED PAGE
+    // ------------------------------
+    {
+      path: "/unauthorized",
+      element: <Unauthorized />,
+    },
+
+    // ------------------------------
+    // 🧑‍💼 SELLER ROUTES (Require seller role)
     // ------------------------------
     {
       path: "/seller/dashboard",
       element: (
-        <PrivateRoute>
+        <PrivateRoute requireRole="seller">
           <SellerLayout>
             <SellerDashboard />
           </SellerLayout>
@@ -135,7 +149,7 @@ export default function App() {
     {
       path: "/seller/products",
       element: (
-        <PrivateRoute>
+        <PrivateRoute requireRole="seller">
           <SellerLayout>
             <SellerProducts />
           </SellerLayout>
@@ -145,7 +159,7 @@ export default function App() {
     {
       path: "/seller/orders",
       element: (
-        <PrivateRoute>
+        <PrivateRoute requireRole="seller">
           <SellerLayout>
             <SellerOrders />
           </SellerLayout>
@@ -155,7 +169,7 @@ export default function App() {
     {
       path: "/seller/profile",
       element: (
-        <PrivateRoute>
+        <PrivateRoute requireRole="seller">
           <SellerLayout>
             <SellerProfile />
           </SellerLayout>
@@ -165,7 +179,7 @@ export default function App() {
     {
       path: "/seller/add-product",
       element: (
-        <PrivateRoute>
+        <PrivateRoute requireRole="seller">
           <SellerLayout>
             <AddProduct />
           </SellerLayout>
@@ -175,7 +189,7 @@ export default function App() {
     {
       path: "/seller/update-product/:id",
       element: (
-        <PrivateRoute>
+        <PrivateRoute requireRole="seller">
           <SellerLayout>
             <UpdateProduct />
           </SellerLayout>
@@ -185,7 +199,7 @@ export default function App() {
     {
       path: "/seller/notifications",
       element: (
-        <PrivateRoute>
+        <PrivateRoute requireRole="seller">
           <SellerLayout>
             <SellerNotifications />
           </SellerLayout>
