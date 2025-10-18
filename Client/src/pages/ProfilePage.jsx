@@ -8,6 +8,7 @@ import OrderTab from "../components/OrderTab";
 import AddressesTab from "../components/AddressTab";
 import SettingsTab from "../components/SettingTab";
 import NotificationTab from "../components/NotificationTab";
+import CreateTab from "../components/CreateTab";
 import { getOrders } from "../service/orderService";
 import {
   getAddresses,
@@ -183,6 +184,7 @@ const ProfilePage = () => {
           )}
           {activeTab === "settings" && <SettingsTab logout={logout} />}
           {activeTab === "notifications" && <NotificationTab />}
+          {activeTab === "admin" && <CreateTab />}
         </div>
       </div>
     </div>
