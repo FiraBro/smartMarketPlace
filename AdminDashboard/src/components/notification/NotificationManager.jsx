@@ -131,7 +131,7 @@ export default function NotificationManager() {
           whileTap={{ scale: 0.95 }}
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-[#f9a03f] text-white font-medium px-4 py-3 rounded-lg shadow-md hover:bg-[#faa46d] cursor-pointer transition"
+          className="w-full flex items-center justify-center gap-2 bg-[#f9a03f] text-white font-medium px-4 py-3 rounded-lg shadow-md hover:bg-[#faa64d] cursor-pointer transition"
         >
           {loading ? "Sending..." : "Send Notification"}
           <CheckIcon className="h-5 w-5" />

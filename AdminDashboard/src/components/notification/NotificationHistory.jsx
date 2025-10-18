@@ -8,6 +8,7 @@ import {
   EyeIcon,
   ChartBarIcon,
 } from "@heroicons/react/24/outline";
+import CustomSelect from "../common/CustomSelect";
 
 export default function NotificationHistory() {
   const { notifications, fetchHistory, loading, error } =
@@ -95,66 +96,46 @@ export default function NotificationHistory() {
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           {/* Channel */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Channel
-            </label>
-            <select
-              value={filters.channel}
-              onChange={(e) =>
-                setFilters({ ...filters, channel: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Channels</option>
-              <option value="in-app">In-App</option>
-              <option value="email">Email</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Channel"
+            value={filters.channel}
+            onChange={(value) => setFilters({ ...filters, channel: value })}
+            options={[
+              { value: "all", label: "All Channels" },
+              { value: "in-app", label: "In-App" },
+              { value: "email", label: "Email" },
+            ]}
+          />
 
-          {/* Status */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Status
-            </label>
-            <select
-              value={filters.status}
-              onChange={(e) =>
-                setFilters({ ...filters, status: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Status</option>
-              <option value="sent">Sent</option>
-              <option value="scheduled">Scheduled</option>
-              <option value="failed">Failed</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Status"
+            value={filters.status}
+            onChange={(value) => setFilters({ ...filters, status: value })}
+            options={[
+              { value: "all", label: "All Status" },
+              { value: "sent", label: "Sent" },
+              { value: "scheduled", label: "Scheduled" },
+              { value: "failed", label: "Failed" },
+            ]}
+          />
 
-          {/* Date Range */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date Range
-            </label>
-            <select
-              value={filters.dateRange}
-              onChange={(e) =>
-                setFilters({ ...filters, dateRange: e.target.value })
-              }
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="today">Today</option>
-              <option value="7days">Last 7 Days</option>
-              <option value="30days">Last 30 Days</option>
-              <option value="90days">Last 90 Days</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Date Range"
+            value={filters.dateRange}
+            onChange={(value) => setFilters({ ...filters, dateRange: value })}
+            options={[
+              { value: "today", label: "Today" },
+              { value: "7days", label: "Last 7 Days" },
+              { value: "30days", label: "Last 30 Days" },
+              { value: "90days", label: "Last 90 Days" },
+            ]}
+          />
 
           {/* Refresh Button */}
           <div className="flex items-end">
             <button
               onClick={() => fetchHistory(filters)}
-              className="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors"
+              className="w-full bg-[#f9a03f] text-white px-4 py-2 rounded-md hover:bg-[#faa64d]transition-colors"
             >
               Refresh
             </button>
