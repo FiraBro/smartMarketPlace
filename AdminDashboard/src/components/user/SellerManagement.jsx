@@ -36,7 +36,7 @@ export default function SellerManagement({ users }) {
             Manage seller accounts and onboarding
           </p>
         </div>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+        <button className="bg-[#f9A03f] text-white px-4 py-2 rounded-lg hover:bg-[#faa64d] transition-colors">
           Export Report
         </button>
       </div>

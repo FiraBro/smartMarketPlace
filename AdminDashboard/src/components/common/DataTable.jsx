@@ -3,6 +3,7 @@ import React from "react";
 import { motion } from "framer-motion";
 
 export default function DataTable({ columns, data, onRowClick, actions }) {
+  console.log("DataTable data:", data);
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
       <div className="overflow-x-auto">
