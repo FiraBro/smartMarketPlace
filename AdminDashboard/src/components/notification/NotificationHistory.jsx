@@ -8,20 +8,24 @@ import {
   EyeIcon,
   ChartBarIcon,
 } from "@heroicons/react/24/outline";
-import { useAdminNotifications } from "../../hooks/useAdminNotification";
 
 export default function NotificationHistory({ notificationsHook }) {
   const { notifications, fetchHistory, loading, error } = notificationsHook;
 
-  // filters, etc.
+  // Filters
   const [filters, setFilters] = useState({
     channel: "all",
     status: "all",
     dateRange: "30days",
   });
+
+  // Fetch history whenever filters change
   useEffect(() => {
-    fetchHistory();
-  }, [fetchHistory]);
+    const fetchData = async () => {
+      await fetchHistory(filters); // pass filters
+    };
+    fetchData();
+  }, [filters, fetchHistory]);
 
   const getChannelIcon = (channel) => {
     switch (channel) {
@@ -90,6 +94,7 @@ export default function NotificationHistory({ notificationsHook }) {
 
   return (
     <div className="space-y-6">
+      {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <CustomSelect
@@ -98,7 +103,7 @@ export default function NotificationHistory({ notificationsHook }) {
             onChange={(v) => setFilters({ ...filters, channel: v })}
             options={[
               { value: "all", label: "All Channels" },
-              { value: "in_app", label: "In-App" },
+              { value: "in-app", label: "In-App" },
               { value: "email", label: "Email" },
             ]}
           />
@@ -135,14 +140,23 @@ export default function NotificationHistory({ notificationsHook }) {
         </div>
       </div>
 
+      {/* Loading */}
       {loading && (
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       )}
 
-      {!loading && (
+      {/* Table */}
+      {!loading && notifications.length > 0 && (
         <DataTable columns={columns} data={notifications} actions={actions} />
+      )}
+
+      {/* Empty state */}
+      {!loading && notifications.length === 0 && (
+        <div className="text-center py-10 text-gray-500">
+          No notifications found.
+        </div>
       )}
 
       {error && (
