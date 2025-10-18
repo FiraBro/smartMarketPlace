@@ -3,13 +3,16 @@ import { motion } from "framer-motion";
 import NotificationManager from "../components/notification/NotificationManager";
 import NotificationHistory from "../components/notification/NotificationHistory";
 import NotificationTemplates from "../components/notification/NotificationTemplate";
-import { useAdminNotifications } from "../hooks/useAdminNotification";
+import { useAdminNotifications } from "../hooks/useAdminNotifications";
 
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState("send");
-  const { notifications, fetchHistory } = useAdminNotifications();
 
-  // Fetch notifications count when component mounts
+  // ⚡ Keep all state here
+  const notificationsHook = useAdminNotifications();
+  const { notifications, fetchHistory } = notificationsHook;
+
+  // Fetch notifications on mount
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
@@ -21,16 +24,6 @@ export default function Notifications() {
       exit={{ opacity: 0, y: -20 }}
       className="space-y-6"
     >
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Notifications</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Send notifications to users and sellers, manage templates, and view
-            history
-          </p>
-        </div>
-      </div>
-
       {/* Tabs */}
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
@@ -41,7 +34,7 @@ export default function Notifications() {
               name: "Notification History",
               count: notifications.length,
             },
-            { id: "templates", name: "Templates", count: 0 }, // templates count later
+            { id: "templates", name: "Templates", count: 0 },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -70,8 +63,15 @@ export default function Notifications() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3 }}
       >
-        {activeTab === "send" && <NotificationManager />}
-        {activeTab === "history" && <NotificationHistory />}
+        {activeTab === "send" && (
+          <NotificationManager
+            notificationsHook={notificationsHook} // pass hook to update state
+            onSend={fetchHistory} // automatically refresh after sending
+          />
+        )}
+        {activeTab === "history" && (
+          <NotificationHistory notificationsHook={notificationsHook} />
+        )}
         {activeTab === "templates" && <NotificationTemplates />}
       </motion.div>
     </motion.div>
