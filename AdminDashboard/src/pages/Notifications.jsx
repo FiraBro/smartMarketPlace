@@ -48,13 +48,13 @@ export default function Notifications() {
               onClick={() => setActiveTab(tab.id)}
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
-                  ? "border-blue-500 text-blue-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                  ? "border-[#f9A03f] text-gray-500 cursor-pointer"
+                  : "border-transparent text-gray-500 hover:text-gray-700 cursor-pointer hover:border-[#faa46d]"
               }`}
             >
               {tab.name}
               {tab.count !== null && (
-                <span className="ml-2 py-0.5 px-2 text-xs bg-gray-200 rounded-full">
+                <span className="ml-2 py-0.5 px-2 text-xs bg-[#faa46d] rounded-full">
                   {tab.count}
                 </span>
               )}
