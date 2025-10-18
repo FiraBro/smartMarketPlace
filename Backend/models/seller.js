@@ -1,21 +1,28 @@
 import mongoose from "mongoose";
 
-const sellerSchema = new mongoose.Schema(
-  {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-      unique: true,
-    },
-    shopName: { type: String, required: true },
-    logo: { url: String, placeholder: String },
-    description: { type: String },
-    contact: { type: String },
-    bankAccount: { type: String },
-    payoutMethod: { type: String, default: "bank" },
+const sellerSchema = new mongoose.Schema({
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User",
+    required: true,
+    unique: true,
   },
-  { timestamps: true }
-);
+  shopName: { type: String, required: true },
+  logo: { url: String, placeholder: String },
+  contact: { type: String },
+  description: String,
+  address: String,
+  bankAccount: { type: String },
+  payoutMethod: { type: String, default: "bank" },
+  status: {
+    type: String,
+    enum: ["pending", "approved", "suspended"],
+    default: "pending",
+  },
+  createdAt: { type: Date, default: Date.now },
+});
 
-export default mongoose.model("Seller", sellerSchema);
+// ✅ Prevent OverwriteModelError
+const Seller = mongoose.models.Seller || mongoose.model("Seller", sellerSchema);
+
+export default Seller;
