@@ -14,6 +14,7 @@ import {
 const CartPopup = ({ isOpen, onClose }) => {
   const { cart, increaseQuantity, decreaseQuantity, removeItem, clear } =
     useCart();
+  console.log(cart);
   const navigate = useNavigate();
 
   const [payment, setPayment] = useState("COD"); // COD, Telebirr, Chapa
