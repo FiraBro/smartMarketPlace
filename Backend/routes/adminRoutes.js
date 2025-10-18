@@ -4,6 +4,8 @@ import {
   loginAdmin,
   logoutAdmin,
   getMeAdmin,
+  approveSeller,
+  suspendSeller,
 } from "../controllers/adminController.js";
 import {
   protectAdmin,
@@ -26,6 +28,8 @@ router.get("/meAdmin", getMeAdmin);
 router.get("/buyers", restrictToAdmin("admin", "super-admin"), getAllBuyer);
 router.get("/sellers", restrictToAdmin("admin", "super-admin"), getAllSellers);
 
+router.patch("/:sellerId/approve", restrictToAdmin("admin"), approveSeller);
+router.patch("/:sellerId/suspend", restrictToAdmin("admin"), suspendSeller);
 // Super admin only routes
 router.get("/admin-only", restrictToAdmin("super-admin"), (req, res) => {
   res.status(200).json({
