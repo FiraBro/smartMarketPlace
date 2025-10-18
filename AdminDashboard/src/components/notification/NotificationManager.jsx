@@ -1,18 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, Fragment } from "react";
 import { motion } from "framer-motion";
-import { useAdminNotifications } from "../../hooks/useAdminNotification";
 import { CheckIcon, BellIcon } from "@heroicons/react/24/outline";
 import CustomSelect from "../common/CustomSelect";
 
-export default function NotificationManager() {
-  const { sendNotification, loading, error } = useAdminNotifications();
+export default function NotificationManager({ notificationsHook, onSend }) {
+  const { sendNotification, loading, error } = notificationsHook;
 
+  // ⚡ Fix: Declare formData state
   const [formData, setFormData] = useState({
     subject: "",
     message: "",
     channel: "in-app",
     type: "info",
-    recipientType: "all", // all | users | sellers
+    recipientType: "all",
   });
 
   const handleChange = (e) => {
@@ -36,6 +36,8 @@ export default function NotificationManager() {
 
     console.log("📤 Sending notification:", notificationData);
     await sendNotification(notificationData);
+
+    // Reset form
     setFormData({
       subject: "",
       message: "",
@@ -43,6 +45,9 @@ export default function NotificationManager() {
       type: "info",
       recipientType: "all",
     });
+
+    // Refresh notifications & count
+    if (onSend) onSend();
   };
 
   return (
@@ -62,6 +67,7 @@ export default function NotificationManager() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Subject */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Subject
@@ -77,6 +83,7 @@ export default function NotificationManager() {
           />
         </div>
 
+        {/* Message */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Message
@@ -89,9 +96,10 @@ export default function NotificationManager() {
             placeholder="Write your message here..."
             rows={4}
             className="w-full px-4 py-2.5 border border-[#f9a03f]/40 rounded-lg shadow-sm focus:ring-2 focus:ring-[#f9a03f] focus:outline-none transition resize-none"
-          ></textarea>
+          />
         </div>
 
+        {/* Dropdowns */}
         <div className="grid grid-cols-3 gap-4">
           <CustomSelect
             label="Channel"
@@ -103,7 +111,6 @@ export default function NotificationManager() {
               { value: "both", label: "Both" },
             ]}
           />
-
           <CustomSelect
             label="Type"
             value={formData.type}
@@ -114,7 +121,6 @@ export default function NotificationManager() {
               { value: "reminder", label: "Reminder" },
             ]}
           />
-
           <CustomSelect
             label="Recipient Type"
             value={formData.recipientType}
@@ -127,12 +133,14 @@ export default function NotificationManager() {
           />
         </div>
 
+        {/* Error */}
         {error && (
           <p className="text-red-600 text-sm bg-red-50 p-2 rounded-md border border-red-200">
             {error}
           </p>
         )}
 
+        {/* Submit */}
         <motion.button
           whileTap={{ scale: 0.95 }}
           type="submit"

@@ -1,29 +1,27 @@
 import React, { useState, useEffect } from "react";
 import DataTable from "../common/DataTable";
 import StatusBadge from "../common/StatusBadge";
-import { useAdminNotifications } from "../../hooks/useAdminNotification";
+import CustomSelect from "../common/CustomSelect";
 import {
   EnvelopeIcon,
   BellIcon,
   EyeIcon,
   ChartBarIcon,
 } from "@heroicons/react/24/outline";
-import CustomSelect from "../common/CustomSelect";
+import { useAdminNotifications } from "../../hooks/useAdminNotification";
 
-export default function NotificationHistory() {
-  const { notifications, fetchHistory, loading, error } =
-    useAdminNotifications();
+export default function NotificationHistory({ notificationsHook }) {
+  const { notifications, fetchHistory, loading, error } = notificationsHook;
 
+  // filters, etc.
   const [filters, setFilters] = useState({
     channel: "all",
     status: "all",
-    dateRange: "7days",
+    dateRange: "30days",
   });
-
-  // Fetch history whenever filters change
   useEffect(() => {
-    fetchHistory(filters);
-  }, [filters.channel, filters.status, filters.dateRange]);
+    fetchHistory();
+  }, [fetchHistory]);
 
   const getChannelIcon = (channel) => {
     switch (channel) {
@@ -92,25 +90,22 @@ export default function NotificationHistory() {
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {/* Channel */}
           <CustomSelect
             label="Channel"
             value={filters.channel}
-            onChange={(value) => setFilters({ ...filters, channel: value })}
+            onChange={(v) => setFilters({ ...filters, channel: v })}
             options={[
               { value: "all", label: "All Channels" },
-              { value: "in-app", label: "In-App" },
+              { value: "in_app", label: "In-App" },
               { value: "email", label: "Email" },
             ]}
           />
-
           <CustomSelect
             label="Status"
             value={filters.status}
-            onChange={(value) => setFilters({ ...filters, status: value })}
+            onChange={(v) => setFilters({ ...filters, status: v })}
             options={[
               { value: "all", label: "All Status" },
               { value: "sent", label: "Sent" },
@@ -118,11 +113,10 @@ export default function NotificationHistory() {
               { value: "failed", label: "Failed" },
             ]}
           />
-
           <CustomSelect
             label="Date Range"
             value={filters.dateRange}
-            onChange={(value) => setFilters({ ...filters, dateRange: value })}
+            onChange={(v) => setFilters({ ...filters, dateRange: v })}
             options={[
               { value: "today", label: "Today" },
               { value: "7days", label: "Last 7 Days" },
@@ -130,12 +124,10 @@ export default function NotificationHistory() {
               { value: "90days", label: "Last 90 Days" },
             ]}
           />
-
-          {/* Refresh Button */}
           <div className="flex items-end">
             <button
               onClick={() => fetchHistory(filters)}
-              className="w-full bg-[#f9a03f] text-white px-4 py-2 rounded-md hover:bg-[#faa64d]transition-colors"
+              className="w-full bg-[#f9a03f] text-white px-4 py-2 rounded-md hover:bg-[#faa64d] transition-colors"
             >
               Refresh
             </button>
@@ -143,27 +135,19 @@ export default function NotificationHistory() {
         </div>
       </div>
 
-      {/* Loading State */}
       {loading && (
         <div className="flex justify-center items-center py-8">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
         </div>
       )}
 
-      {/* Table */}
       {!loading && (
-        <DataTable
-          keyField="_id"
-          columns={columns}
-          data={notifications || []}
-          actions={actions}
-        />
+        <DataTable columns={columns} data={notifications} actions={actions} />
       )}
 
-      {/* Error */}
       {error && (
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
-          <p className="text-red-800">Error: {error}</p>
+          <p className="text-red-800">{error}</p>
         </div>
       )}
     </div>
