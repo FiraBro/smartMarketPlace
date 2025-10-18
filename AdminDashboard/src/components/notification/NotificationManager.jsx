@@ -36,6 +36,13 @@ export default function NotificationManager() {
 
     console.log("📤 Sending notification:", notificationData);
     await sendNotification(notificationData);
+    setFormData({
+      subject: "",
+      message: "",
+      channel: "in-app",
+      type: "info",
+      recipientType: "all",
+    });
   };
 
   return (
@@ -103,9 +110,8 @@ export default function NotificationManager() {
             onChange={(val) => setFormData({ ...formData, type: val })}
             options={[
               { value: "info", label: "Info" },
-              { value: "success", label: "Success" },
-              { value: "warning", label: "Warning" },
-              { value: "error", label: "Error" },
+              { value: "alert", label: "Alert" },
+              { value: "reminder", label: "Reminder" },
             ]}
           />
 
