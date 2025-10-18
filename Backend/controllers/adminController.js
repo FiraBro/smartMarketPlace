@@ -1,6 +1,7 @@
 import Admin from "../models/Admin.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
+import Seller from "../models/Seller.js";
 
 // Register admin
 export const registerAdmin = catchAsync(async (req, res, next) => {
@@ -114,5 +115,36 @@ export const getMeAdmin = catchAsync(async (req, res, next) => {
     data: {
       admin: req.session.admin,
     },
+  });
+});
+
+export const approveSeller = catchAsync(async (req, res, next) => {
+  const { sellerId } = req.params;
+
+  const seller = await Seller.findById(sellerId);
+  if (!seller) return next(new AppError("Seller not found", 404));
+
+  seller.status = "approved";
+  await seller.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Seller approved successfully",
+    data: seller,
+  });
+});
+export const suspendSeller = catchAsync(async (req, res, next) => {
+  const { sellerId } = req.params;
+
+  const seller = await Seller.findById(sellerId);
+  if (!seller) return next(new AppError("Seller not found", 404));
+
+  seller.status = "suspended";
+  await seller.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Seller suspended successfully",
+    data: seller,
   });
 });
