@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useAdminNotifications } from "../../hooks/useAdminNotification";
 import { CheckIcon, BellIcon } from "@heroicons/react/24/outline";
+import CustomSelect from "../common/CustomSelect";
 
 export default function NotificationManager() {
   const { sendNotification, loading, error } = useAdminNotifications();
@@ -21,7 +22,6 @@ export default function NotificationManager() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // ✅ Map recipientType to backend values
     let recipientType = "all";
     if (formData.recipientType === "users") recipientType = "buyer";
     if (formData.recipientType === "sellers") recipientType = "seller";
@@ -43,11 +43,11 @@ export default function NotificationManager() {
       initial={{ opacity: 0, y: 25 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="max-w-2xl mx-auto mt-10 p-8 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-gray-100"
+      className="max-w-2xl mx-auto mt-10 p-8 bg-gradient-to-br from-white to-gray-50 rounded-2xl shadow-lg border border-[#f9a03f]/60"
     >
       <div className="flex items-center gap-3 mb-6">
-        <div className="p-2 bg-blue-100 rounded-full">
-          <BellIcon className="h-6 w-6 text-blue-600" />
+        <div className="p-2 bg-[#f9a03f]/20 rounded-full">
+          <BellIcon className="h-6 w-6 text-[#f9a03f]" />
         </div>
         <h2 className="text-2xl font-semibold text-gray-800">
           Send Notification
@@ -66,7 +66,7 @@ export default function NotificationManager() {
             onChange={handleChange}
             required
             placeholder="Enter subject"
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition"
+            className="w-full px-4 py-2.5 border border-[#f9a03f]/40 rounded-lg shadow-sm focus:ring-2 focus:ring-[#f9a03f] focus:outline-none transition"
           />
         </div>
 
@@ -81,59 +81,44 @@ export default function NotificationManager() {
             required
             placeholder="Write your message here..."
             rows={4}
-            className="w-full px-4 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none transition resize-none"
+            className="w-full px-4 py-2.5 border border-[#f9a03f]/40 rounded-lg shadow-sm focus:ring-2 focus:ring-[#f9a03f] focus:outline-none transition resize-none"
           ></textarea>
         </div>
 
         <div className="grid grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Channel
-            </label>
-            <select
-              name="channel"
-              value={formData.channel}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="in-app">In-App</option>
-              <option value="email">Email</option>
-              <option value="both">Both</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Channel"
+            value={formData.channel}
+            onChange={(val) => setFormData({ ...formData, channel: val })}
+            options={[
+              { value: "in-app", label: "In-App" },
+              { value: "email", label: "Email" },
+              { value: "both", label: "Both" },
+            ]}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Type
-            </label>
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="info">Info</option>
-              <option value="success">Success</option>
-              <option value="warning">Warning</option>
-              <option value="error">Error</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Type"
+            value={formData.type}
+            onChange={(val) => setFormData({ ...formData, type: val })}
+            options={[
+              { value: "info", label: "Info" },
+              { value: "success", label: "Success" },
+              { value: "warning", label: "Warning" },
+              { value: "error", label: "Error" },
+            ]}
+          />
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Recipient Type
-            </label>
-            <select
-              name="recipientType"
-              value={formData.recipientType}
-              onChange={handleChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-            >
-              <option value="all">All Users</option>
-              <option value="users">Buyers Only</option>
-              <option value="sellers">Sellers Only</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="Recipient Type"
+            value={formData.recipientType}
+            onChange={(val) => setFormData({ ...formData, recipientType: val })}
+            options={[
+              { value: "all", label: "All Users" },
+              { value: "users", label: "Buyers Only" },
+              { value: "sellers", label: "Sellers Only" },
+            ]}
+          />
         </div>
 
         {error && (
@@ -146,7 +131,7 @@ export default function NotificationManager() {
           whileTap={{ scale: 0.95 }}
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white font-medium px-4 py-3 rounded-lg shadow-md hover:bg-blue-700 transition"
+          className="w-full flex items-center justify-center gap-2 bg-[#f9a03f] text-white font-medium px-4 py-3 rounded-lg shadow-md hover:bg-[#faa46d] cursor-pointer transition"
         >
           {loading ? "Sending..." : "Send Notification"}
           <CheckIcon className="h-5 w-5" />
