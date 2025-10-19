@@ -1,3 +1,5 @@
+import AppError from "../utils/AppError.js";
+import Seller from "../models/Seller.js";
 // ---------------------
 // General protection
 // ---------------------
@@ -31,4 +33,20 @@ export const restrictTo = (...roles) => {
     }
     next();
   };
+};
+
+// middlewares/checkSellerStatus.js
+
+export const checkSellerStatus = async (req, res, next) => {
+  const seller = await Seller.findOne({ user: req.user._id });
+
+  if (!seller) return next(new AppError("Seller account not found", 404));
+
+  if (seller.status === "suspended") {
+    return next(
+      new AppError("Your account is suspended. Contact support.", 403)
+    );
+  }
+
+  next();
 };
