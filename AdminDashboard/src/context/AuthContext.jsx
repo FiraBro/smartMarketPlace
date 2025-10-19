@@ -70,6 +70,7 @@ export const AuthProvider = ({ children }) => {
   const fetchListings = async () => {
     try {
       const data = await getListingDetails();
+      console.log("Fetched listings:", data);
       setListings(data.data); // assuming backend returns { success: true, data: [...] }
       return data.data;
     } catch (err) {
