@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import NotificationManager from "../components/notification/NotificationManager";
 import NotificationHistory from "../components/notification/NotificationHistory";
 import NotificationTemplates from "../components/notification/NotificationTemplate";
-import { useAdminNotifications } from "../hooks/useAdminNotifications";
+import { useAdminNotifications } from "../hooks/useAdminNotification";
 
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState("send");

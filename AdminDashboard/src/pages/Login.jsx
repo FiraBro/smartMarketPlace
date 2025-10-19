@@ -23,7 +23,7 @@ export default function Login() {
       await login(form); // update context
       navigate("/"); // redirect after login
     } catch (err) {
-      setErrorLocal(err.response?.data?.message || "Login failed");
+      setErrorLocal(err.response?.data?.message);
     } finally {
       setLoadingLocal(false);
     }
