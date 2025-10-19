@@ -1,5 +1,5 @@
 import express from "express";
-import { protect, restrictTo } from "../middlewares/authMiddleware.js";
+import { protect, checkSellerStatus } from "../middlewares/authMiddleware.js";
 import {
   createSellerProfile,
   getSellerProfile,
@@ -24,7 +24,7 @@ router.put("/profile", updateSellerProfile);
 router.get("/products", getSellerProducts);
 
 // Seller orders
-router.get("/orders", getSellerOrders);
-router.put("/orders/:id", updateOrderStatus);
+router.get("/orders", checkSellerStatus, getSellerOrders);
+router.put("/orders/:id", checkSellerStatus, updateOrderStatus);
 
 export default router;
