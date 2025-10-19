@@ -10,94 +10,85 @@ export default function DataTable({
 }) {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col h-[calc(100vh-150px)]">
-      {/* Header */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
+      {/* Table with header and body */}
+      <Scrollbar
+        noScrollX
+        style={{ width: "100%", height: "100%" }}
+        trackYProps={{
+          style: {
+            backgroundColor: "#f0f0f0",
+            borderRadius: "8px",
+            width: "8px",
+          },
+        }}
+        thumbYProps={{
+          style: {
+            backgroundColor: "#f9A03f",
+            borderRadius: "8px",
+            width: "8px",
+          },
+        }}
+      >
+        <table className="min-w-full divide-y divide-gray-200 table-fixed">
+          {/* Header */}
           <thead className="bg-gray-50 sticky top-0 z-10">
             <tr>
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
                   {column.title}
                 </th>
               ))}
-              {actions && (
-                <th className="px-6 py-3 text-center min-w-[150px]">Actions</th>
-              )}
+              {actions && <th className="px-6 py-3 text-center">Actions</th>}
             </tr>
           </thead>
-        </table>
-      </div>
 
-      {/* Body — scrolls with custom scrollbar */}
-      <div className="flex-1">
-        <Scrollbar
-          noScrollX
-          style={{ width: "100%", height: "100%" }}
-          trackYProps={{
-            style: {
-              backgroundColor: "#f0f0f0",
-              borderRadius: "8px",
-              width: "8px",
-            },
-          }}
-          thumbYProps={{
-            style: {
-              backgroundColor: "#f9A03f",
-              borderRadius: "8px",
-              width: "8px",
-            },
-          }}
-        >
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <tbody className="bg-white divide-y divide-gray-200">
-                {data.length === 0 ? (
-                  <tr>
+          {/* Body */}
+          <tbody className="bg-white divide-y divide-gray-200">
+            {data.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={columns.length + (actions ? 1 : 0)}
+                  className="text-center py-8 text-gray-400"
+                >
+                  No data available
+                </td>
+              </tr>
+            ) : (
+              data.map((row, index) => (
+                <motion.tr
+                  key={row.orderId || index}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.03 }}
+                  className="hover:bg-gray-50 cursor-pointer"
+                  onClick={() => onRowClick?.(row)}
+                >
+                  {columns.map((column) => (
                     <td
-                      colSpan={columns.length + (actions ? 1 : 0)}
-                      className="text-center py-8 text-gray-400"
+                      key={column.key}
+                      className="px-6 py-4 whitespace-nowrap text-sm text-gray-900"
                     >
-                      No data available
+                      {column.render
+                        ? column.render(row[column.key] ?? "-", row)
+                        : row[column.key] ?? "-"}
                     </td>
-                  </tr>
-                ) : (
-                  data.map((row, index) => (
-                    <motion.tr
-                      key={row.id || index}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: index * 0.03 }}
-                      className="hover:bg-gray-50 cursor-pointer"
-                      onClick={() => onRowClick?.(row)}
-                    >
-                      {columns.map((column) => (
-                        <td
-                          key={column.key}
-                          className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 min-w-[100px]"
-                        >
-                          {column.render
-                            ? column.render(row[column.key] ?? "-", row)
-                            : row[column.key] ?? "-"}
-                        </td>
-                      ))}
-                      {actions && (
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                          <div className="flex justify-center space-x-2">
-                            {actions(row)}
-                          </div>
-                        </td>
-                      )}
-                    </motion.tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-        </Scrollbar>
-      </div>
+                  ))}
+                  {actions && (
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+                      <div className="flex justify-center space-x-2">
+                        {actions(row)}
+                      </div>
+                    </td>
+                  )}
+                </motion.tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </Scrollbar>
     </div>
   );
 }
