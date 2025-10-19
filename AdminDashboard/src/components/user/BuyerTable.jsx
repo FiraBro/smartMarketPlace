@@ -54,31 +54,6 @@ export default function BuyerTable({ buyers = [], filters = {} }) {
   ];
 
   // Dynamic actions
-  const actions = (buyer) => (
-    <div className="flex space-x-2">
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          setSelectedBuyer(buyer);
-        }}
-        className="text-blue-600 hover:text-blue-900 text-sm"
-      >
-        View
-      </button>
-      <button className="text-green-600 hover:text-green-900 text-sm">
-        Message
-      </button>
-      {buyer.status !== "suspended" ? (
-        <button className="text-red-600 hover:text-red-900 text-sm">
-          Suspend
-        </button>
-      ) : (
-        <button className="text-green-600 hover:text-green-900 text-sm">
-          Unsuspend
-        </button>
-      )}
-    </div>
-  );
 
   return (
     <>
@@ -86,7 +61,6 @@ export default function BuyerTable({ buyers = [], filters = {} }) {
         columns={columns}
         data={filteredBuyers}
         onRowClick={setSelectedBuyer}
-        actions={actions}
       />
 
       <BuyerDetailModal
