@@ -38,3 +38,7 @@ export const getAllSellers = async () => {
   const res = await axios.get(`${API_BASE_URL}/sellers`);
   return res.data;
 };
+export const getListingDetails = async () => {
+  const res = await axios.get(`${API_BASE_URL}/listings/details`);
+  return res.data;
+};
