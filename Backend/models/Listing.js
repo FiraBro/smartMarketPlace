@@ -26,6 +26,7 @@ const ListingSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
+    stock: { type: Number, default: 0, min: 0 },
 
     isPopular: { type: Boolean, default: false },
     isMostSold: { type: Boolean, default: false },
