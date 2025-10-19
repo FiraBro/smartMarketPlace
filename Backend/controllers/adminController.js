@@ -2,6 +2,8 @@ import Admin from "../models/Admin.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import Seller from "../models/Seller.js";
+import Listing from "../models/Listing.js";
+import Order from "../models/Order.js"; // import Order model
 
 // Register admin
 export const registerAdmin = catchAsync(async (req, res, next) => {
@@ -147,4 +149,46 @@ export const suspendSeller = catchAsync(async (req, res, next) => {
     message: "Seller suspended successfully",
     data: seller,
   });
+});
+
+// GET /listings/details
+
+export const getListingDetails = catchAsync(async (req, res) => {
+  // fetch listings with owner → seller populated
+  const listings = await Listing.find()
+    .populate({
+      path: "owner",
+      select: "_id",
+      populate: {
+        path: "seller",
+        model: "Seller",
+        select: "shopName status",
+      },
+    })
+    .select("title category stock"); // include stock
+
+  // map listings to include **single order info**
+  const result = await Promise.all(
+    listings.map(async (listing) => {
+      // fetch the most recent order for this listing
+      const order = await Order.findOne({ "products.product": listing._id })
+        .sort({ orderDate: -1 }) // get latest order
+        .select("_id amount orderDate status") // ✅ include status
+        .lean();
+
+      return {
+        productTitle: listing.title,
+        category: listing.category,
+        stock: listing.stock || 0,
+        sellerName: listing.owner?.seller?.shopName || "Unknown",
+        sellerStatus: listing.owner?.seller?.status || "pending",
+        orderId: order?._id || null,
+        orderAmount: order?.amount || 0,
+        orderDate: order?.orderDate || null,
+        orderStatus: order?.status || "N/A", // ✅ now returns actual status
+      };
+    })
+  );
+
+  res.status(200).json({ success: true, data: result });
 });
