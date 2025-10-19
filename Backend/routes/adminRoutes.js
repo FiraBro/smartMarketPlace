@@ -6,6 +6,7 @@ import {
   getMeAdmin,
   approveSeller,
   suspendSeller,
+  getListingDetails,
 } from "../controllers/adminController.js";
 import {
   protectAdmin,
@@ -27,6 +28,7 @@ router.post("/logoutAdmin", logoutAdmin);
 router.get("/meAdmin", getMeAdmin);
 router.get("/buyers", restrictToAdmin("admin", "super-admin"), getAllBuyer);
 router.get("/sellers", restrictToAdmin("admin", "super-admin"), getAllSellers);
+router.get("/listings/details", restrictToAdmin("admin"), getListingDetails);
 
 router.patch("/:sellerId/approve", restrictToAdmin("admin"), approveSeller);
 router.patch("/:sellerId/suspend", restrictToAdmin("admin"), suspendSeller);
