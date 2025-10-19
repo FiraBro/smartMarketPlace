@@ -6,6 +6,7 @@ import {
   getCurrentUser,
   getAllSellers,
   getAllBuyer,
+  getListingDetails, // ✅ import service
 } from "../services/authService";
 
 const AuthContext = createContext();
@@ -14,6 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [admin, setAdmin] = useState(null);
   const [sellers, setSellers] = useState([]);
   const [buyers, setBuyers] = useState([]);
+  const [listings, setListings] = useState([]); // ✅ new state for listings
   const [loading, setLoading] = useState(true);
 
   // Check session on mount
@@ -64,6 +66,18 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // ✅ new function to fetch listing details
+  const fetchListings = async () => {
+    try {
+      const data = await getListingDetails();
+      setListings(data.data); // assuming backend returns { success: true, data: [...] }
+      return data.data;
+    } catch (err) {
+      console.error("Failed to fetch listings:", err);
+      return [];
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -73,8 +87,10 @@ export const AuthProvider = ({ children }) => {
         loading,
         sellers,
         buyers,
+        listings, // ✅ expose listings in context
         fetchSellers,
         fetchBuyers,
+        fetchListings, // ✅ expose fetchListings
       }}
     >
       {children}
