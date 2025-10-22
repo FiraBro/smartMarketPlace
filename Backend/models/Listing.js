@@ -11,7 +11,7 @@ const ListingSchema = new mongoose.Schema(
       enum: ["new", "like-new", "used", "for-parts"],
       default: "used",
     },
-    location: { type: String },
+    location: { type: String, required: true },
 
     // ✅ allow objects instead of plain strings
     images: [
