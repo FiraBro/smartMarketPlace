@@ -5,7 +5,8 @@ import {
   logoutUser,
   updateProfile,
   checkAuthStatus,
-} from "../service/AuthService"; // adjust path if needed
+  getCurrentUser,
+} from "../service/AuthService";
 
 const AuthContext = createContext();
 
@@ -14,7 +15,7 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   // -----------------------------
-  // 🔹 Check if user is logged in
+  // Check if user is logged in initially
   // -----------------------------
   useEffect(() => {
     const verifyAuth = async () => {
@@ -22,7 +23,8 @@ export const AuthProvider = ({ children }) => {
         const data = await checkAuthStatus();
         if (data.loggedIn) setUser(data.user);
         else setUser(null);
-      } catch {
+      } catch (err) {
+        console.error("Auth check failed:", err);
         setUser(null);
       } finally {
         setLoading(false);
@@ -32,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // -----------------------------
-  // 🔹 Auth Actions
+  // Auth Actions
   // -----------------------------
   const login = async (credentials) => {
     const data = await loginUser(credentials);
@@ -57,6 +59,17 @@ export const AuthProvider = ({ children }) => {
     return updated;
   };
 
+  const fetchCurrentUser = async () => {
+    try {
+      const currentUser = await getCurrentUser();
+      setUser(currentUser);
+      return currentUser;
+    } catch (err) {
+      setUser(null);
+      throw err;
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -65,11 +78,12 @@ export const AuthProvider = ({ children }) => {
         register,
         logout,
         updateUser,
+        fetchCurrentUser,
         loading,
         isAuthenticated: !!user,
       }}
     >
-      {!loading && children}
+      {children} {/* always render children */}
     </AuthContext.Provider>
   );
 };
