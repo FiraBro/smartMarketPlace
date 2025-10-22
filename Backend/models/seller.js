@@ -8,7 +8,8 @@ const sellerSchema = new mongoose.Schema({
     unique: true,
   },
   shopName: { type: String, required: true },
-  logo: { url: String, placeholder: String },
+  banner: { type: String, default: null }, // URL/path to banner image
+  logo: { type: String, default: null },
   contact: { type: String },
   description: String,
   address: String,
@@ -19,7 +20,7 @@ const sellerSchema = new mongoose.Schema({
     enum: ["pending", "approved", "suspended"],
     default: "pending",
   },
-  
+
   createdAt: { type: Date, default: Date.now },
 });
 
