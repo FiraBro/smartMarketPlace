@@ -9,29 +9,28 @@ const getUserId = (req) => {
   if (!req.session || !req.session.user) {
     throw new AppError("Not authorized", 401);
   }
-  return req.session.user._id; // ✅ use _id
+  return req.session.user._id;
 };
 
 // ---------------------
 // Seller Profile
 // ---------------------
 
+// Create Seller Profile
 export const createSellerProfile = catchAsync(async (req, res, next) => {
   const userId = getUserId(req);
 
   const exists = await Seller.findOne({ user: userId });
   if (exists) return next(new AppError("Seller profile already exists", 400));
 
-  const { shopName, description, contact, bankAccount, payoutMethod } =
+  const { shopName, description, contact, bankAccount, payoutMethod, address } =
     req.body;
 
   // Read banner and logo if uploaded
+  const logo = req.files?.logo ? `/uploads/${req.files.logo[0].filename}` : "";
   const banner = req.files?.banner
     ? `/uploads/${req.files.banner[0].filename}`
-    : null;
-  const logo = req.files?.logo
-    ? `/uploads/${req.files.logo[0].filename}`
-    : null;
+    : "";
 
   const seller = await Seller.create({
     user: userId,
@@ -40,13 +39,15 @@ export const createSellerProfile = catchAsync(async (req, res, next) => {
     contact,
     bankAccount,
     payoutMethod,
-    logo: req.files?.logo ? `/uploads/${req.files.logo[0].filename}` : "",
-    banner: req.files?.banner ? `/uploads/${req.files.banner[0].filename}` : "",
+    address,
+    logo,
+    banner,
   });
 
   res.status(201).json(seller);
 });
 
+// Get Seller Profile
 export const getSellerProfile = catchAsync(async (req, res, next) => {
   const userId = getUserId(req);
 
@@ -55,13 +56,21 @@ export const getSellerProfile = catchAsync(async (req, res, next) => {
   res.json(seller);
 });
 
+// Update Seller Profile
 export const updateSellerProfile = catchAsync(async (req, res, next) => {
   const userId = getUserId(req);
 
-  const updates = req.body;
+  const updates = { ...req.body };
+
+  // Handle uploaded files
+  if (req.files?.logo) updates.logo = `/uploads/${req.files.logo[0].filename}`;
+  if (req.files?.banner)
+    updates.banner = `/uploads/${req.files.banner[0].filename}`;
+
   const seller = await Seller.findOneAndUpdate({ user: userId }, updates, {
     new: true,
   });
+
   if (!seller) return next(new AppError("Seller profile not found", 404));
 
   res.json(seller);
@@ -94,6 +103,7 @@ export const getSellerOrders = catchAsync(async (req, res, next) => {
   res.json({ orders });
 });
 
+// Update Order Status
 export const updateOrderStatus = catchAsync(async (req, res, next) => {
   const userId = getUserId(req);
   const { id } = req.params;
