@@ -3,7 +3,6 @@ import axios from "axios";
 // ✅ Base API for listings (session-based)
 const LISTING_API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  timeout: 10000, // Add timeout
   withCredentials: true, // ✅ send session cookies
 });
 
