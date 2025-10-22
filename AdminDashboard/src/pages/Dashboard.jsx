@@ -7,6 +7,7 @@ import SalesChart from "../components/dashboard/SalesChart";
 import QuickStats from "../components/dashboard/QuickStats";
 
 export default function Dashboard() {
+  console.log('yes')
   const metrics = [
     {
       title: "Gross Merchandise Volume",
