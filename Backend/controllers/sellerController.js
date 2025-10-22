@@ -1,10 +1,8 @@
 import Seller from "../models/seller.js";
-import { User } from "../models/User.js";
 import Listing from "../models/Listing.js";
 import Order from "../models/Order.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
-import mongoose from "mongoose";
 
 // ✅ Helper to get logged-in user ID safely
 const getUserId = (req) => {
@@ -101,51 +99,4 @@ export const updateOrderStatus = catchAsync(async (req, res, next) => {
 
   await order.save();
   res.json(order);
-});
-
-// 🆕 Become a Seller
-// ---------------------
-
-export const becomeSeller = catchAsync(async (req, res, next) => {
-  const userId = getUserId(req);
-  const user = await User.findById(new mongoose.Types.ObjectId(userId));
-
-  if (!user) return next(new AppError("User not found", 404));
-
-  if (user.role === "seller") {
-    return next(new AppError("You are already a seller", 400));
-  }
-
-  // Update role to 'seller'
-  user.role = "seller";
-  await user.save();
-
-  // ✅ Update session user
-  if (req.session && req.session.user) {
-    req.session.user.role = "seller";
-  }
-
-  // Create seller profile if not exist
-  const exists = await Seller.findOne({ user: userId });
-  if (!exists) {
-    await Seller.create({
-      user: userId,
-      shopName: user.name + "'s Shop",
-      description: "Welcome to my shop!",
-      contact: "",
-      bankAccount: "",
-      payoutMethod: "",
-    });
-  }
-
-  res.status(200).json({
-    status: "success",
-    message: "Your account has been upgraded to seller.",
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
-  });
 });
