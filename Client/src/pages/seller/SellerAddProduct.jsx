@@ -1,15 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { FaUpload, FaArrowRight, FaArrowLeft } from "react-icons/fa";
+import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { createListing } from "../../service/listingService";
+
 export default function AddProduct() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState({
-    name: "",
+    title: "",
     description: "",
     category: "",
     price: "",
     images: [],
+    condition: "used",
+    location: "",
   });
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -23,11 +26,15 @@ export default function AddProduct() {
     "Electronics",
   ];
 
+  const conditionOptions = ["new", "like-new", "used", "for-parts"];
+
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
+    if (!files.length) return;
+
     setForm({ ...form, images: files });
 
-    // Generate previews
+    // Generate image previews
     const previews = files.map((file) => URL.createObjectURL(file));
     setPreview(previews);
   };
@@ -41,25 +48,29 @@ export default function AddProduct() {
     setError("");
 
     try {
-      // Prepare FormData for multiple images
       const formData = new FormData();
-      formData.append("name", form.name);
+      formData.append("title", form.title);
       formData.append("description", form.description);
       formData.append("category", form.category);
       formData.append("price", form.price);
+      formData.append("condition", form.condition);
+      formData.append("location", form.location);
+
       form.images.forEach((file) => formData.append("images", file));
 
       const data = await createListing(formData);
 
-      alert(`Product "${data.product.name}" added successfully!`);
+      alert(`✅ Product "${data.title}" added successfully!`);
 
       // Reset form
       setForm({
-        name: "",
+        title: "",
         description: "",
         category: "",
         price: "",
         images: [],
+        condition: "used",
+        location: "",
       });
       setPreview([]);
       setStep(1);
@@ -92,16 +103,23 @@ export default function AddProduct() {
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col gap-4"
           >
+            {/* Product Title */}
             <div className="flex flex-col">
-              <label className="text-gray-600 text-sm mb-1">Product Name</label>
+              <label className="text-gray-600 text-sm mb-1">
+                Product Title
+              </label>
               <input
                 type="text"
-                placeholder="Enter product name"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
+                placeholder="Enter product title"
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
                 required
               />
+            </div>
+
+            {/* Product Description */}
+            <div className="flex flex-col">
               <label className="text-gray-600 text-sm mb-1">
                 Product Description
               </label>
@@ -117,6 +135,7 @@ export default function AddProduct() {
               />
             </div>
 
+            {/* Category */}
             <div className="flex flex-col">
               <label className="text-gray-600 text-sm mb-1">Category</label>
               <select
@@ -134,6 +153,37 @@ export default function AddProduct() {
                   </option>
                 ))}
               </select>
+            </div>
+
+            {/* Condition */}
+            <div className="flex flex-col">
+              <label className="text-gray-600 text-sm mb-1">Condition</label>
+              <select
+                value={form.condition}
+                onChange={(e) =>
+                  setForm({ ...form, condition: e.target.value })
+                }
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
+              >
+                {conditionOptions.map((cond, i) => (
+                  <option key={i} value={cond}>
+                    {cond}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Location */}
+            <div className="flex flex-col">
+              <label className="text-gray-600 text-sm mb-1">Location</label>
+              <input
+                type="text"
+                placeholder="Enter product location"
+                value={form.location}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
+                required
+              />
             </div>
           </motion.div>
         )}
@@ -177,6 +227,7 @@ export default function AddProduct() {
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
               required
             />
+
             {preview.length > 0 && (
               <div className="flex gap-2 flex-wrap mt-2">
                 {preview.map((src, index) => (
