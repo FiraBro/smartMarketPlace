@@ -7,7 +7,6 @@ import {
   getSellerProfile,
   updateSellerProfile,
 } from "../../service/sellerService";
-import { toast } from "react-toastify";
 
 export default function SellerProfile() {
   const [form, setForm] = useState({
@@ -15,15 +14,13 @@ export default function SellerProfile() {
     description: "",
     address: "",
     contact: "",
-    facebook: "",
-    instagram: "",
     logo: "",
     banner: "",
   });
   const [saved, setSaved] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // ✅ Fetch profile on mount
+  // Fetch profile on mount
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
@@ -34,14 +31,15 @@ export default function SellerProfile() {
           description: data.description || "",
           address: data.address || "",
           contact: data.contact || "",
-          facebook: data.facebook || "",
-          instagram: data.instagram || "",
-          logo: data.logo || "",
-          banner: data.banner || "",
+          logo: data.logo
+            ? `${import.meta.env.VITE_STATIC_URL}${data.logo}`
+            : "",
+          banner: data.banner
+            ? `${import.meta.env.VITE_STATIC_URL}${data.banner}`
+            : "",
         });
       } catch (err) {
         console.error(err);
-        toast.error(err.message);
       } finally {
         setLoading(false);
       }
@@ -49,21 +47,29 @@ export default function SellerProfile() {
     fetchProfile();
   }, []);
 
+  // Handle image selection
   const handleImageUpload = (e, type) => {
     const file = e.target.files[0];
     if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setForm((prev) => ({ ...prev, [type]: reader.result }));
-      };
-      reader.readAsDataURL(file);
+      setForm((prev) => ({ ...prev, [type]: file }));
     }
   };
 
+  // Submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await updateSellerProfile(form);
+      const formData = new FormData();
+      formData.append("shopName", form.shopName);
+      formData.append("description", form.description);
+      formData.append("address", form.address);
+      formData.append("contact", form.contact);
+
+      // Only append files if they are new uploads
+      if (form.logo instanceof File) formData.append("logo", form.logo);
+      if (form.banner instanceof File) formData.append("banner", form.banner);
+
+      await updateSellerProfile(formData);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       toast.success("Profile updated successfully");
@@ -88,7 +94,11 @@ export default function SellerProfile() {
       <div className="relative h-48 bg-gradient-to-r from-indigo-400 to-purple-500">
         {form.banner && (
           <img
-            src={form.banner}
+            src={
+              form.banner instanceof File
+                ? URL.createObjectURL(form.banner)
+                : form.banner
+            }
             alt="Shop Banner"
             className="absolute inset-0 w-full h-full object-cover"
           />
@@ -107,13 +117,15 @@ export default function SellerProfile() {
           <div className="relative">
             <img
               src={
-                form.logo ||
-                "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
+                form.logo instanceof File
+                  ? URL.createObjectURL(form.logo)
+                  : form.logo ||
+                    "https://cdn-icons-png.flaticon.com/512/3135/3135715.png"
               }
               alt="Shop Logo"
               className="w-20 h-20 rounded-full border-4 border-white shadow-md object-cover bg-gray-50"
             />
-            <label className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 cursor-pointer focus:outline-none focus:ring-0 focus:border-[#f9A03f] focus:shadow-[0_0_0_2px_rgba(249,160,63,0.3)] transition duration-200">
+            <label className="absolute bottom-0 right-0 bg-white/90 text-gray-700 px-2 py-1 rounded-full text-xs cursor-pointer shadow hover:bg-gray-100 transition">
               <FaEdit />
               <input
                 type="file"
@@ -132,7 +144,6 @@ export default function SellerProfile() {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          {/* Shop Name */}
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Shop Name
@@ -146,7 +157,6 @@ export default function SellerProfile() {
             />
           </div>
 
-          {/* Description */}
           <div className="col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Description
@@ -161,7 +171,6 @@ export default function SellerProfile() {
             />
           </div>
 
-          {/* Address */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Address
@@ -174,7 +183,6 @@ export default function SellerProfile() {
             />
           </div>
 
-          {/* Contact */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Contact
@@ -187,34 +195,6 @@ export default function SellerProfile() {
             />
           </div>
 
-          {/* Social Links */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Facebook
-            </label>
-            <input
-              type="url"
-              value={form.facebook}
-              onChange={(e) => setForm({ ...form, facebook: e.target.value })}
-              placeholder="https://facebook.com/yourshop"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] transition duration-200"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Instagram
-            </label>
-            <input
-              type="url"
-              value={form.instagram}
-              onChange={(e) => setForm({ ...form, instagram: e.target.value })}
-              placeholder="https://instagram.com/yourshop"
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:ring-0 focus:border-[#f9A03f] transition duration-200"
-            />
-          </div>
-
-          {/* Save Button */}
           <div className="col-span-2 flex justify-end">
             <button
               type="submit"
