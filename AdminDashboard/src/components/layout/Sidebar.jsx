@@ -19,26 +19,30 @@ import { logoutUser } from "../../services/authService";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: ChartBarSquareIcon },
-  { name: "User Management", href: "/users", icon: UsersIcon },
-  { name: "Product Catalog", href: "/products", icon: ShoppingBagIcon },
+  { name: "User Management", href: "/admin/users", icon: UsersIcon },
+  { name: "Product Catalog", href: "/admin/products", icon: ShoppingBagIcon },
   {
     name: "Orders & Fulfillment",
-    href: "/orders",
+    href: "/admin/orders",
     icon: ClipboardDocumentListIcon,
   },
   {
     name: "Financial Management",
-    href: "/financial",
+    href: "/admin/financial",
     icon: CurrencyDollarIcon,
   },
   {
     name: "Dispute Resolution",
-    href: "/disputes",
+    href: "/admin/disputes",
     icon: ShieldExclamationIcon,
   },
-  { name: "Content & Marketing", href: "/marketing", icon: MegaphoneIcon },
-  { name: "Notifications", href: "/notifications", icon: BellAlertIcon },
-  { name: "Settings", href: "/settings", icon: Cog6ToothIcon },
+  {
+    name: "Content & Marketing",
+    href: "/admin/marketing",
+    icon: MegaphoneIcon,
+  },
+  { name: "Notifications", href: "/admin/notifications", icon: BellAlertIcon },
+  { name: "Settings", href: "/admin/settings", icon: Cog6ToothIcon },
 ];
 
 export default function Sidebar({ open, setOpen }) {
