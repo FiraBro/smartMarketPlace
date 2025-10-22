@@ -23,6 +23,7 @@ export const AuthProvider = ({ children }) => {
     const fetchAdmin = async () => {
       try {
         const user = await getCurrentUser();
+        console.log(user)
         setAdmin(user);
       } catch {
         setAdmin(null);
