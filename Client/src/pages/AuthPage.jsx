@@ -2,65 +2,80 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaGithub, FaGoogle } from "react-icons/fa";
+import { FaGithub, FaGoogle, FaStore, FaShoppingCart } from "react-icons/fa";
+
 export default function AuthPage() {
-  const { user, setUser, login, register } = useAuth();
+  const { user, login, register, loading } = useAuth();
+  const navigate = useNavigate();
+
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
     phone: "",
+    role: "buyer",
   });
   const [isLogin, setIsLogin] = useState(true);
-  const navigate = useNavigate();
 
-  // -------------------
-  // Detect OAuth session
-  // -------------------
+  // -----------------------------
+  // Redirect if already logged in
+  // -----------------------------
   useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await fetch(
-          `${
-            import.meta.env.VITE_AUTH_URL || "http://localhost:5000/api/auth"
-          }/me`,
-          { credentials: "include" }
-        );
-        const data = await res.json();
-        if (data.user) {
-          setUser(data.user); // update context
-          navigate("/"); // redirect home AFTER context update
-        }
-      } catch {}
-    };
-    fetchSession();
-  }, [setUser, navigate]);
+    if (!loading && user) {
+      if (user.role === "seller") navigate("/seller/dashboard");
+      else navigate("/");
+    }
+  }, [user, loading, navigate]);
 
+  // -----------------------------
+  // Handlers
+  // -----------------------------
   const handleChange = (e) =>
     setForm({ ...form, [e.target.name]: e.target.value });
+
+  const handleRoleChange = (role) => setForm({ ...form, role });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      if (isLogin) await login({ email: form.email, password: form.password });
-      else await register(form);
-      navigate("/"); // redirect
+      let loggedInUser;
+      if (isLogin)
+        loggedInUser = await login({
+          email: form.email,
+          password: form.password,
+        });
+      else loggedInUser = await register(form);
+
+      // Use actual role from backend
+      if (loggedInUser.role === "seller") navigate("/seller/dashboard");
+      else navigate("/");
     } catch (err) {
       alert(err.response?.data?.message || "Something went wrong");
     }
   };
 
+  // -----------------------------
+  // Social login handlers
+  // -----------------------------
   const continueWithGithub = () => {
-    window.location.href = `${
-      import.meta.env.VITE_AUTH_URL || "http://localhost:5000/api/auth"
-    }/github`;
+    window.location.href = `${import.meta.env.VITE_AUTH_URL}/github`;
   };
   const continueWithGoogle = () => {
-    window.location.href = `${
-      import.meta.env.VITE_AUTH_URL || "http://localhost:5000/api/auth"
-    }/google`;
+    window.location.href = `${import.meta.env.VITE_AUTH_URL}/google`;
   };
 
+  // -----------------------------
+  // Render
+  // -----------------------------
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        Loading...
+      </div>
+    );
+  }
+
+  // Don't render login form if user is already logged in
   if (user) return null;
 
   const socialButtonClass =
@@ -77,12 +92,14 @@ export default function AuthPage() {
           className="z-10 text-center"
         >
           <h2 className="text-4xl md:text-5xl font-bold mb-3">
-            {isLogin ? "Welcome Back!" : "Join Our Community"}
+            {isLogin ? "Welcome Back!" : "Join Our Marketplace"}
           </h2>
           <p className="text-gray-100 text-sm md:text-base max-w-md mx-auto">
             {isLogin
               ? "Access your account and continue exploring our platform."
-              : "Create an account and start your journey with us today."}
+              : form.role === "buyer"
+              ? "Discover amazing products from local sellers."
+              : "Start your business and reach thousands of buyers."}
           </p>
         </motion.div>
       </div>
@@ -99,6 +116,39 @@ export default function AuthPage() {
             {isLogin ? "Sign In" : "Sign Up"}
           </h2>
 
+          {/* ROLE SELECTION */}
+          {!isLogin && (
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
+                I want to:
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange("buyer")}
+                  className={`flex items-center justify-center gap-2 p-3 border-2 rounded-xl transition-all ${
+                    form.role === "buyer"
+                      ? "border-yellow-400 bg-yellow-50 text-yellow-700"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <FaShoppingCart /> <span>Shop</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleRoleChange("seller")}
+                  className={`flex items-center justify-center gap-2 p-3 border-2 rounded-xl transition-all ${
+                    form.role === "seller"
+                      ? "border-green-400 bg-green-50 text-green-700"
+                      : "border-gray-200 hover:border-gray-300"
+                  }`}
+                >
+                  <FaStore /> <span>Sell</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
@@ -112,6 +162,17 @@ export default function AuthPage() {
                   required
                   className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-yellow-400 outline-none"
                 />
+                {form.role === "seller" && (
+                  <input
+                    type="text"
+                    name="store_name"
+                    placeholder="Store Name"
+                    value={form.store_name || ""}
+                    onChange={handleChange}
+                    required
+                    className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
+                  />
+                )}
                 <input
                   type="tel"
                   name="phone"
@@ -143,13 +204,19 @@ export default function AuthPage() {
             />
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-yellow-400 to-yellow-600 text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition"
+              className={`w-full text-white py-3 rounded-xl font-semibold shadow-md hover:shadow-lg transition ${
+                form.role === "seller"
+                  ? "bg-gradient-to-r from-green-400 to-green-600"
+                  : "bg-gradient-to-r from-yellow-400 to-yellow-600"
+              }`}
             >
-              {isLogin ? "Sign In" : "Sign Up"}
+              {isLogin
+                ? "Sign In"
+                : `Sign Up as ${form.role === "seller" ? "Seller" : "Buyer"}`}
             </button>
           </form>
 
-          {/* OAuth Buttons */}
+          {/* OAuth */}
           <div className="flex flex-col gap-3 mt-6">
             <button onClick={continueWithGithub} className={socialButtonClass}>
               <FaGithub /> Continue with GitHub
@@ -163,10 +230,13 @@ export default function AuthPage() {
           <div className="text-center mt-6 text-gray-600">
             <p className="text-sm text-gray-500">
               {isLogin
-                ? "Don’t have an account? "
+                ? "Don't have an account? "
                 : "Already have an account? "}
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => {
+                  setIsLogin(!isLogin);
+                  if (!isLogin) setForm((prev) => ({ ...prev, role: "buyer" }));
+                }}
                 className="text-yellow-500 font-semibold hover:underline ml-1"
               >
                 {isLogin ? "Sign Up" : "Sign In"}
