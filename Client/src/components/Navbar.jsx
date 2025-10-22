@@ -12,7 +12,6 @@ import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
 import SearchBar from "./SearchBar";
 import { fetchProductsByCategory } from "../service/categoryService";
-import { becomeSeller } from "../service/sellerService"; // ✅ import service
 
 export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const navigate = useNavigate();
@@ -21,7 +20,6 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const { favorites } = useFavorites();
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalFavItems = favorites?.length || 0;
@@ -30,24 +28,6 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
     await logout();
     navigate("/");
     setProfileOpen(false);
-  };
-
-  // ✅ Become a Seller handler
-  const handleBecomeSeller = async () => {
-    try {
-      setLoading(true);
-      const res = await becomeSeller();
-      alert(res.message || "You are now a seller!");
-
-      // Update role using context method
-      await updateUser({ role: "seller" });
-
-      navigate("/seller/dashboard");
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setLoading(false);
-    }
   };
 
   return (
@@ -61,17 +41,6 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           >
             Lo<span className="text-[#f9A03f]">go</span>
           </div>
-
-          {/* ✅ Become a Seller Link (only for logged-in buyers) */}
-          {user && user.role === "buyer" && (
-            <button
-              onClick={handleBecomeSeller}
-              disabled={loading}
-              className="text-sm font-medium text-blue-600 hover:text-orange-500 cursor-pointer transition-colors"
-            >
-              {loading ? "Processing..." : "Become a Seller"}
-            </button>
-          )}
         </div>
 
         {/* SearchBar (desktop) */}
