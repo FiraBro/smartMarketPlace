@@ -19,6 +19,7 @@ const sellerSchema = new mongoose.Schema({
     enum: ["pending", "approved", "suspended"],
     default: "pending",
   },
+  
   createdAt: { type: Date, default: Date.now },
 });
 
