@@ -26,17 +26,14 @@ export default function SellerProfile() {
       setLoading(true);
       try {
         const data = await getSellerProfile();
+        const backendUrl = import.meta.env.VITE_STATIC_URL;
         setForm({
           shopName: data.shopName || "",
           description: data.description || "",
           address: data.address || "",
           contact: data.contact || "",
-          logo: data.logo
-            ? `${import.meta.env.VITE_STATIC_URL}${data.logo}`
-            : "",
-          banner: data.banner
-            ? `${import.meta.env.VITE_STATIC_URL}${data.banner}`
-            : "",
+          logo: data.logo ? `${backendUrl}${data.logo}` : "",
+          banner: data.banner ? `${backendUrl}${data.banner}` : "",
         });
       } catch (err) {
         console.error(err);
@@ -72,10 +69,9 @@ export default function SellerProfile() {
       await updateSellerProfile(formData);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-      toast.success("Profile updated successfully");
+      alert("Profile updated successfully");
     } catch (err) {
       console.error(err);
-      toast.error(err.message);
     }
   };
 
