@@ -9,9 +9,9 @@ export default function SellerNavbar({ toggleSidebar }) {
       initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4 }}
-      className="bg-white border-b border-gray-200 flex justify-between items-center px-4 sm:px-6 py-4 shadow-sm"
+      className="bg-white border-b border-gray-200 flex justify-between items-center px-4  sm:px-6 py-4  shadow-sm"
     >
-      <div className="flex items-center gap-3 py-1.5">
+      <div className="flex items-center  gap-3 py-1.5">
         {/* Hamburger for mobile */}
         <button
           className="text-gray-600 hover:text-blue-600 lg:hidden"

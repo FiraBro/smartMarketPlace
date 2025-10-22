@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   FaBox,
   FaHome,
@@ -6,7 +6,9 @@ import {
   FaPlus,
   FaBell,
   FaClipboardList,
+  FaSignOutAlt,
 } from "react-icons/fa";
+import { useAuth } from "../../context/AuthContext";
 
 const links = [
   { name: "Dashboard", icon: <FaHome />, path: "/seller/dashboard" },
@@ -19,6 +21,17 @@ const links = [
 
 export default function SellerSidebar({ isOpen, toggleSidebar }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { logout } = useAuth(); // ✅ Auth logout
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate("/auth"); // redirect to login page
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  };
 
   return (
     <>
@@ -60,6 +73,15 @@ export default function SellerSidebar({ isOpen, toggleSidebar }) {
               </Link>
             );
           })}
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-3 p-3 rounded-lg font-medium text-gray-700 hover:bg-gray-50 w-full transition-all duration-200"
+          >
+            <FaSignOutAlt />
+            <span>Logout</span>
+          </button>
         </nav>
 
         {/* Footer */}
