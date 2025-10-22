@@ -15,6 +15,7 @@ const getUserId = (req) => {
 // ---------------------
 // Seller Profile
 // ---------------------
+
 export const createSellerProfile = catchAsync(async (req, res, next) => {
   const userId = getUserId(req);
 
@@ -24,6 +25,14 @@ export const createSellerProfile = catchAsync(async (req, res, next) => {
   const { shopName, description, contact, bankAccount, payoutMethod } =
     req.body;
 
+  // Read banner and logo if uploaded
+  const banner = req.files?.banner
+    ? `/uploads/${req.files.banner[0].filename}`
+    : null;
+  const logo = req.files?.logo
+    ? `/uploads/${req.files.logo[0].filename}`
+    : null;
+
   const seller = await Seller.create({
     user: userId,
     shopName,
@@ -31,6 +40,8 @@ export const createSellerProfile = catchAsync(async (req, res, next) => {
     contact,
     bankAccount,
     payoutMethod,
+    logo: req.files?.logo ? `/uploads/${req.files.logo[0].filename}` : "",
+    banner: req.files?.banner ? `/uploads/${req.files.banner[0].filename}` : "",
   });
 
   res.status(201).json(seller);

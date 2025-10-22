@@ -123,7 +123,7 @@ export const getListingById = catchAsync(async (req, res, next) => {
 
 export const createListing = catchAsync(async (req, res, next) => {
   const { title, description, price, category, condition, location } = req.body;
-  if (!title || !description || !price)
+  if (!title || !description || !price || !location)
     return next(
       new AppError("title, description, and price are required", 400)
     );
@@ -160,7 +160,7 @@ export const createListing = catchAsync(async (req, res, next) => {
       `,
     });
   }
-
+  console.log(listing);
   res.status(201).json(listing);
 });
 
