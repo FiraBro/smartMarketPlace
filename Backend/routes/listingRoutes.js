@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   protect,
   protectSeller,
-  checkSellerStatus,
+  // checkSellerStatus,
 } from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/upload.js";
 import {
@@ -27,7 +27,7 @@ router.get("/:id", getListingById);
 router.post(
   "/create",
   protect,
-  checkSellerStatus,
+  // checkSellerStatus,
   protectSeller,
   upload.array("images", 10),
   createListing
@@ -35,7 +35,7 @@ router.post(
 router.patch(
   "/:id",
   protect,
-  checkSellerStatus,
+  // checkSellerStatus,
   protectSeller,
   upload.array("images", 10),
   updateListing
