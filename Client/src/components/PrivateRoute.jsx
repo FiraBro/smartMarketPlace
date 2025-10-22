@@ -3,6 +3,8 @@ import { useAuth } from "../context/AuthContext";
 
 export default function PrivateRoute({ children, requireRole }) {
   const { user, loading } = useAuth();
+  console.log(user);
+  console.log(requireRole);
   const location = useLocation();
 
   if (loading)
