@@ -1,5 +1,5 @@
 import AppError from "../utils/AppError.js";
-import Seller from "../models/Seller.js";
+import Seller from "../models/seller.js";
 // ---------------------
 // General protection
 // ---------------------
