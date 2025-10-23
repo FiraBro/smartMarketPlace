@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL + "/notifications",
+  baseURL: import.meta.env.VITE_NOTIFICATION_URL,
   withCredentials: true, // ✅ include cookies/session for auth
 });
 
