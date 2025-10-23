@@ -1,42 +1,79 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaBell, FaCheckCircle, FaTimesCircle } from "react-icons/fa";
+import io from "socket.io-client";
+import {
+  fetchNotifications,
+  markAllAsRead as markAllAsReadAPI,
+  markAsRead as markAsReadAPI,
+} from "../../service/notificationService";
 
-export default function SellerNotifications() {
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "New Order Received",
-      message: "You received a new order for Nike Air Max.",
-      type: "order",
-      time: "5 mins ago",
-      read: false,
-    },
-    {
-      id: 2,
-      title: "Product Approved",
-      message: "Your product 'Adidas UltraBoost' has been approved.",
-      type: "product",
-      time: "1 hour ago",
-      read: false,
-    },
-    {
-      id: 3,
-      title: "Payment Processed",
-      message: "Payment for Order #4521 has been completed successfully.",
-      type: "payment",
-      time: "Yesterday",
-      read: true,
-    },
-  ]);
+// Replace with your backend URL
+const SOCKET_URL = import.meta.env.VITE_API_URL;
 
-  const markAllAsRead = () => {
+export default function SellerNotifications({ userId }) {
+  const [notifications, setNotifications] = useState([]);
+  const [socket, setSocket] = useState(null);
+
+  // ---------------------------
+  // Fetch initial notifications
+  // ---------------------------
+  useEffect(() => {
+    const loadNotifications = async () => {
+      const data = await fetchNotifications();
+      setNotifications(
+        data.map((n) => ({
+          ...n,
+          read: n.readBy.includes(userId),
+        }))
+      );
+    };
+    loadNotifications();
+  }, [userId]);
+
+  // ---------------------------
+  // Setup real-time socket connection
+  // ---------------------------
+  useEffect(() => {
+    const newSocket = io(SOCKET_URL, {
+      withCredentials: true,
+    });
+    setSocket(newSocket);
+
+    // Join user's notification room
+    newSocket.emit("joinRoom", `notifications:${userId}`);
+
+    // Listen for new notifications
+    newSocket.on("notification", (notif) => {
+      setNotifications((prev) => [
+        { ...notif, read: notif.readBy.includes(userId) },
+        ...prev,
+      ]);
+    });
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [userId]);
+
+  // ---------------------------
+  // Mark all as read
+  // ---------------------------
+  const markAllAsRead = async () => {
+    await markAllAsReadAPI();
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  const toggleRead = (id) => {
+  // ---------------------------
+  // Toggle single notification read
+  // ---------------------------
+  const toggleRead = async (id) => {
+    const notif = notifications.find((n) => n._id === id);
+    if (!notif.read) {
+      await markAsReadAPI(id);
+    }
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
+      prev.map((n) => (n._id === id ? { ...n, read: true } : n))
     );
   };
 
@@ -63,11 +100,11 @@ export default function SellerNotifications() {
         <div className="flex flex-col gap-3">
           {notifications.map((notif, index) => (
             <motion.div
-              key={notif.id}
+              key={notif._id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              onClick={() => toggleRead(notif.id)}
+              onClick={() => toggleRead(notif._id)}
               className={`p-4 rounded-xl border transition-all cursor-pointer ${
                 notif.read
                   ? "bg-white border-gray-100"
@@ -91,7 +128,7 @@ export default function SellerNotifications() {
                     {notif.message}
                   </p>
                   <span className="text-xs text-gray-400 mt-1">
-                    {notif.time}
+                    {new Date(notif.createdAt).toLocaleString()}
                   </span>
                 </div>
                 <div>

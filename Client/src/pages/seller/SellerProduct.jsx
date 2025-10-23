@@ -10,12 +10,15 @@ export default function SellerProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const BaseURL = import.meta.VITE_STATIC_URL || "http://localhost:5000";
+
   // Fetch products on mount
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
         const data = await getSellerProducts();
+        console.log(data);
         setProducts(data);
       } catch (err) {
         console.error(err);
@@ -94,7 +97,12 @@ export default function SellerProducts() {
                 >
                   <td className="py-3 px-4">
                     <img
-                      src={product.images?.[0] || ""}
+                      src={
+                        product.images?.[0]?.url
+                          ? `${BaseURL}${product.images[0].url}`
+                          : product.images?.[0]?.placeholder ||
+                            "/default-placeholder.jpg"
+                      }
                       alt={product.title}
                       className="w-16 h-16 object-cover rounded-lg"
                     />
