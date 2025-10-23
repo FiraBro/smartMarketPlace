@@ -20,7 +20,7 @@ import verificationRoutes from "./routes/verificationRoutes.js";
 import addressRoutes from "./routes/addressRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
-import adminRotes from "./routes/adminRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -28,14 +28,18 @@ const app = express();
 // Middleware
 // ----------------------------
 app.use(cors({ origin: process.env.FRONTEND_URL, credentials: true }));
-app.use(express.json());
+
+// Set JSON and URL-encoded body size limits
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+// Serve uploaded files
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // ----------------------------
-// Session and passport configuration
+// Session and Passport
 // ----------------------------
 app.use(sessionConfig);
-
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -54,9 +58,11 @@ app.use("/api/favorites", favoriteRouter);
 app.use("/api/newsletter", newsLetter);
 app.use("/api/addresses", addressRoutes);
 app.use("/api/verify", verificationRoutes);
-app.use("/api/seller", sellerRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/admin", adminRotes);
+app.use("/api/admin", adminRoutes);
+
+// Seller routes (banner & logo upload handled with multer inside the route)
+app.use("/api/seller", sellerRoutes);
 
 // ----------------------------
 // Global Error Handler
