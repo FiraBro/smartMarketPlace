@@ -1,123 +1,98 @@
-import Seller from "../models/seller.js";
-import Listing from "../models/Listing.js";
-import Order from "../models/Order.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
+import {
+  createSeller,
+  getSeller,
+  updateSeller,
+  getSellerProducts,
+  fetchSellerOrders,
+  changeOrderStatus,
+  getRecentSellerOrders,
+} from "../services/sellerService.js";
 
-// ✅ Helper to get logged-in user ID safely
-const getUserId = (req) => {
-  if (!req.session || !req.session.user) {
-    throw new AppError("Not authorized", 401);
-  }
-  return req.session.user._id;
-};
+const getUserId = (req) => req.session.user?._id;
 
 // ---------------------
-// Seller Profile
+// Seller Profile Controllers
 // ---------------------
 
-// Create Seller Profile
 export const createSellerProfile = catchAsync(async (req, res, next) => {
   const userId = getUserId(req);
+  if (!userId) return next(new AppError("Unauthorized", 401));
 
-  const exists = await Seller.findOne({ user: userId });
-  if (exists) return next(new AppError("Seller profile already exists", 400));
-
-  const { shopName, description, contact, bankAccount, payoutMethod, address } =
-    req.body;
-
-  // Read banner and logo if uploaded
-  const logo = req.files?.logo ? `/uploads/${req.files.logo[0].filename}` : "";
-  const banner = req.files?.banner
-    ? `/uploads/${req.files.banner[0].filename}`
-    : "";
-
-  const seller = await Seller.create({
-    user: userId,
-    shopName,
-    description,
-    contact,
-    bankAccount,
-    payoutMethod,
-    address,
-    logo,
-    banner,
+  const seller = await createSeller({
+    userId,
+    data: req.body,
+    files: req.files,
   });
-
   res.status(201).json(seller);
 });
 
-// Get Seller Profile
 export const getSellerProfile = catchAsync(async (req, res, next) => {
   const userId = getUserId(req);
+  if (!userId) return next(new AppError("Unauthorized", 401));
 
-  const seller = await Seller.findOne({ user: userId }).lean();
-  if (!seller) return next(new AppError("Seller profile not found", 404));
+  const seller = await getSeller(userId);
   res.json(seller);
 });
 
-// Update Seller Profile
 export const updateSellerProfile = catchAsync(async (req, res, next) => {
   const userId = getUserId(req);
+  if (!userId) return next(new AppError("Unauthorized", 401));
 
-  const updates = { ...req.body };
-
-  // Handle uploaded files
-  if (req.files?.logo) updates.logo = `/uploads/${req.files.logo[0].filename}`;
-  if (req.files?.banner)
-    updates.banner = `/uploads/${req.files.banner[0].filename}`;
-
-  const seller = await Seller.findOneAndUpdate({ user: userId }, updates, {
-    new: true,
+  const seller = await updateSeller({
+    userId,
+    data: req.body,
+    files: req.files,
   });
-
-  if (!seller) return next(new AppError("Seller profile not found", 404));
-
   res.json(seller);
 });
 
 // ---------------------
-// Seller Products
+// Seller Products Controllers
 // ---------------------
-export const getSellerProducts = catchAsync(async (req, res, next) => {
-  const userId = getUserId(req);
 
-  const products = await Listing.find({ owner: userId })
-    .sort("-createdAt")
-    .lean();
-  res.json(products);
-});
+export const getSellerProductsControllers = catchAsync(
+  async (req, res, next) => {
+    const userId = getUserId(req);
+    if (!userId) return next(new AppError("Unauthorized", 401));
+
+    const products = await getSellerProducts(userId);
+    res.json(products);
+  }
+);
 
 // ---------------------
-// Seller Orders
+// Seller Orders Controllers
 // ---------------------
-export const getSellerOrders = catchAsync(async (req, res, next) => {
-  const userId = getUserId(req);
 
-  const orders = await Order.find({ "products.seller": userId })
-    .populate("user", "name email") // buyer info
-    .populate("products.product", "title price images")
-    .sort("-createdAt")
-    .lean();
+export const getSellerOrdersControllers = catchAsync(async (req, res, next) => {
+  const sellerId = getUserId(req);
+  if (!sellerId) return next(new AppError("Unauthorized", 401));
 
+  const orders = await fetchSellerOrders(sellerId);
   res.json({ orders });
 });
 
-// Update Order Status
-export const updateOrderStatus = catchAsync(async (req, res, next) => {
-  const userId = getUserId(req);
-  const { id } = req.params;
-  const { status } = req.body;
+export const updateOrderStatusControllers = catchAsync(
+  async (req, res, next) => {
+    const sellerId = getUserId(req);
+    const { id } = req.params;
+    const { status } = req.body;
 
-  const order = await Order.findOne({ _id: id, "products.seller": userId });
-  if (!order) return next(new AppError("Order not found", 404));
+    const order = await changeOrderStatus(id, sellerId, status);
+    res.json(order);
+  }
+);
+export const getRecentSellerOrdersControllers = catchAsync(
+  async (req, res, next) => {
+    const sellerId = getUserId(req);
+    const recentOrders = await getRecentSellerOrders(sellerId, 5);
 
-  // Update status for all products of this seller in the order
-  order.products = order.products.map((p) => {
-    if (String(p.seller) === String(userId)) p.status = status;
-    return p;
-  });
-
-  await order.save();
-  res.json(order);
-});
+    res.status(200).json({
+      success: true,
+      results: recentOrders.length,
+      data: recentOrders,
+    });
+  }
+);

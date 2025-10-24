@@ -3,8 +3,8 @@ import AppError from "../utils/AppError.js";
 import {
   saveVerificationCode,
   verifyUserCode,
-} from "../service/verificationService.js";
-import { sendEmailCode } from "../service/emailService.js";
+} from "../services/verificationService.js";
+import { sendEmailCode } from "../services/emailService.js";
 
 // ✅ Send code to email or phone
 export const sendCode = catchAsync(async (req, res, next) => {
