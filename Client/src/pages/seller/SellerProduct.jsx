@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { getSellerProducts, deleteProduct } from "../../service/sellerService";
+import { getSellerProducts } from "../../service/sellerService";
+import { deleteListing } from "../../service/listingService";
 import { toast } from "react-toastify";
 
 export default function SellerProducts() {
@@ -35,7 +36,7 @@ export default function SellerProducts() {
       return;
 
     try {
-      await deleteProduct(id);
+      await deleteListing(id);
       setProducts(products.filter((p) => p._id !== id));
       toast.success("Product deleted successfully");
     } catch (err) {
@@ -119,13 +120,13 @@ export default function SellerProducts() {
                   <td className="py-3 px-4 flex flex-wrap items-center gap-3">
                     <button
                       onClick={() => handleEdit(product._id)}
-                      className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition text-sm"
+                      className="flex items-center gap-1 text-gray-500 hover:text-gray-700 transition text-sm cursor-pointer"
                     >
                       <FaEdit /> Edit
                     </button>
                     <button
                       onClick={() => handleDelete(product._id)}
-                      className="flex items-center gap-1 text-red-500 hover:text-red-700 transition text-sm"
+                      className="flex items-center gap-1 text-red-500 hover:text-red-700 transition text-sm cursor-pointer"
                     >
                       <FaTrash /> Delete
                     </button>
