@@ -47,6 +47,7 @@ import { FavoriteProvider } from "./context/FavoriteContext";
 // ------------------------------
 import Spinner from "./components/Spinner";
 import PrivateRoute from "./components/PrivateRoute"; // ✅ Auth + Role Guard
+import EditProduct from "./pages/seller/EditProduct";
 
 export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -152,6 +153,16 @@ export default function App() {
         <PrivateRoute requireRole="seller">
           <SellerLayout>
             <SellerProducts />
+          </SellerLayout>
+        </PrivateRoute>
+      ),
+    },
+    {
+      path: "/seller/edit-product/:id",
+      element: (
+        <PrivateRoute requireRole="seller">
+          <SellerLayout>
+            <EditProduct />
           </SellerLayout>
         </PrivateRoute>
       ),
