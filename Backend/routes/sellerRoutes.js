@@ -5,9 +5,10 @@ import {
   createSellerProfile,
   getSellerProfile,
   updateSellerProfile,
-  getSellerProducts,
-  getSellerOrders,
-  updateOrderStatus,
+  getSellerProductsControllers,
+  getSellerOrdersControllers,
+  updateOrderStatusControllers,
+  getRecentSellerOrdersControllers,
 } from "../controllers/sellerController.js";
 
 const router = express.Router();
@@ -34,10 +35,11 @@ router.put(
 );
 
 // Seller products
-router.get("/products", getSellerProducts);
+router.get("/products", getSellerProductsControllers);
 
 // Seller orders
-router.get("/orders", checkSellerStatus, getSellerOrders);
-router.put("/orders/:id", checkSellerStatus, updateOrderStatus);
+router.get("/orders", getSellerOrdersControllers);
+router.put("/orders/:id", checkSellerStatus, updateOrderStatusControllers);
+router.get('/recent-orders',getRecentSellerOrdersControllers)
 
 export default router;
