@@ -18,19 +18,22 @@ export default function SellerOrders() {
       setLoading(true);
       try {
         const data = await getSellerOrders();
-        // Flatten orders to match table display
+
+        // Flatten orders for table display
         const flatOrders = data.orders
           .map((order) => {
             return order.products.map((p) => ({
               _id: p._id,
               orderId: order._id,
-              product: p.listing?.title || "Product",
-              buyer: order.buyer?.name || "Unknown",
+              product: p.product?.title || "Product",
+              buyerName: order.user?.name || "Unknown",
+              buyerEmail: order.user?.email || "N/A",
               status: p.status,
-              total: p.listing?.price * p.quantity || 0,
+              total: (p.product?.price || 0) * p.quantity,
             }));
           })
           .flat();
+
         setOrders(flatOrders);
       } catch (err) {
         console.error(err);
@@ -47,7 +50,7 @@ export default function SellerOrders() {
       await updateOrderStatus(id, newStatus);
       setOrders((prev) =>
         prev.map((order) =>
-          order.id === id ? { ...order, status: newStatus } : order
+          order._id === id ? { ...order, status: newStatus } : order
         )
       );
       toast.success(`Order status updated to ${newStatus}`);
@@ -57,18 +60,19 @@ export default function SellerOrders() {
     }
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Pending":
-        return "text-yellow-600 bg-yellow-50";
-      case "Shipped":
-        return "text-blue-600 bg-blue-50";
-      case "Delivered":
-        return "text-green-600 bg-green-50";
-      default:
-        return "text-gray-500 bg-gray-50";
-    }
-  };
+ const getStatusColor = (status) => {
+  switch (status.toLowerCase()) {
+    case "pending":
+      return "text-yellow-600 bg-yellow-50";
+    case "shipped":
+      return "text-blue-600 bg-blue-50";
+    case "delivered":
+      return "text-green-600 bg-green-50";
+    default:
+      return "text-gray-500 bg-gray-50";
+  }
+};
+
 
   return (
     <div className="flex-1 flex flex-col h-full">
@@ -85,12 +89,13 @@ export default function SellerOrders() {
             className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6"
           >
             <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[600px]">
+              <table className="w-full text-left min-w-[700px]">
                 <thead>
                   <tr className="text-gray-500 text-sm border-b border-gray-200">
                     <th className="py-2 px-2">Order ID</th>
                     <th className="py-2 px-2">Product</th>
                     <th className="py-2 px-2">Buyer</th>
+                    <th className="py-2 px-2">Email</th>
                     <th className="py-2 px-2">Status</th>
                     <th className="py-2 px-2">Total</th>
                     <th className="py-2 px-2">Action</th>
@@ -99,7 +104,7 @@ export default function SellerOrders() {
                 <tbody>
                   {orders.map((order) => (
                     <motion.tr
-                      key={order.id}
+                      key={order._id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.05 }}
@@ -107,7 +112,8 @@ export default function SellerOrders() {
                     >
                       <td className="py-2 px-2 font-medium">{order.orderId}</td>
                       <td className="py-2 px-2">{order.product}</td>
-                      <td className="py-2 px-2">{order.buyer}</td>
+                      <td className="py-2 px-2">{order.buyerName}</td>
+                      <td className="py-2 px-2">{order.buyerEmail}</td>
                       <td className="py-2 px-2">
                         <span
                           className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
@@ -119,27 +125,27 @@ export default function SellerOrders() {
                       </td>
                       <td className="py-2 px-2">${order.total}</td>
                       <td className="py-2 px-2 flex flex-wrap items-center gap-2">
-                        {order.status === "Pending" && (
+                        {order.status.toLowerCase() === "pending" && (
                           <button
                             onClick={() =>
-                              handleStatusUpdate(order.id, "Shipped")
+                              handleStatusUpdate(order._id, "shipped")
                             }
                             className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition text-sm"
                           >
                             <FaShippingFast /> Ship
                           </button>
                         )}
-                        {order.status === "Shipped" && (
+                        {order.status.toLowerCase() === "shipped" && (
                           <button
                             onClick={() =>
-                              handleStatusUpdate(order.id, "Delivered")
+                              handleStatusUpdate(order._id, "delivered")
                             }
                             className="flex items-center gap-1 text-green-600 hover:text-green-800 transition text-sm"
                           >
                             <FaCheckCircle /> Deliver
                           </button>
                         )}
-                        {order.status === "Delivered" && (
+                        {order.status.toLowerCase() === "delivered" && (
                           <span className="text-gray-400 flex items-center gap-1 text-sm">
                             <FaClock /> Completed
                           </span>

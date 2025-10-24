@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import StatCard from "../../components/seller/StatCard";
 import StatusDropdown from "../../components/StatusDropdown";
@@ -8,26 +8,71 @@ import {
   FaClipboardList,
   FaChartLine,
 } from "react-icons/fa";
+import {
+  getRecentOrder,
+  updateOrderStatus,
+  getSellerProducts,
+} from "../../service/sellerService";
 
 export default function SellerDashboard() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [status, setStatus] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [orders, setOrders] = useState([]);
+  const [products, setProducts] = useState([]);
 
-  const orders = [
-    {
-      id: "#4521",
-      product: "Nike Air Max",
-      status: "Delivered",
-      total: "$120",
-    },
-    {
-      id: "#4522",
-      product: "Adidas UltraBoost",
-      status: "Pending",
-      total: "$90",
-    },
-  ];
+  // Stats
+  const [totalSales, setTotalSales] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [growth, setGrowth] = useState(0);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch recent orders
+        const ordersData = await getRecentOrder();
+        const formattedOrders =
+          ordersData?.map((order) => ({
+            id: order._id,
+            product: order.products.map((p) => p.product.title).join(", "),
+            status: order.products.map((p) => p.status).join(", "),
+            totalAmount: order.products.reduce(
+              (sum, p) => sum + p.product.price,
+              0
+            ),
+            totalProducts: order.products.length,
+          })) || [];
+
+        setOrders(formattedOrders);
+
+        // Fetch products
+        const productsData = await getSellerProducts();
+        setProducts(productsData || []);
+
+        // Calculate stats
+        const sales = formattedOrders.reduce(
+          (sum, o) => sum + o.totalAmount,
+          0
+        );
+        const totalProductsCount = productsData?.length || 0;
+
+        setTotalSales(sales);
+        setTotalProducts(totalProductsCount);
+
+        // Calculate growth (compare with previous period or last month)
+        // For demo, let's assume previous sales is stored or fetched
+        const previousSales = 10000; // Replace with real previous sales from backend
+        const growthPercentage = previousSales
+          ? ((sales - previousSales) / previousSales) * 100
+          : 0;
+        setGrowth(growthPercentage.toFixed(1));
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleRowClick = (order) => {
     setSelectedOrder(order);
@@ -35,9 +80,16 @@ export default function SellerDashboard() {
     setShowModal(true);
   };
 
-  const handleSaveStatus = () => {
-    console.log(`Status of ${selectedOrder.id} changed to ${status}`);
-    setShowModal(false);
+  const handleSaveStatus = async () => {
+    try {
+      await updateOrderStatus(selectedOrder.id, status);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === selectedOrder.id ? { ...o, status } : o))
+      );
+      setShowModal(false);
+    } catch (err) {
+      console.error("Failed to update order status:", err);
+    }
   };
 
   return (
@@ -65,31 +117,31 @@ export default function SellerDashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             <StatCard
               title="Total Sales"
-              value="$12,300"
+              value={`$${totalSales}`}
               icon={<FaDollarSign />}
               delay={0.1}
             />
             <StatCard
               title="Orders"
-              value="142"
+              value={orders.length}
               icon={<FaClipboardList />}
               delay={0.2}
             />
             <StatCard
               title="Products"
-              value="56"
+              value={totalProducts}
               icon={<FaBox />}
               delay={0.3}
             />
             <StatCard
               title="Growth"
-              value="+12%"
+              value={`${growth}%`}
               icon={<FaChartLine />}
               delay={0.4}
             />
           </div>
 
-          {/* Recent Orders */}
+          {/* Recent Orders Table */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 overflow-x-auto">
             <h3 className="text-lg font-semibold text-gray-700 mb-4">
               Recent Orders
@@ -129,7 +181,7 @@ export default function SellerDashboard() {
                         </span>
                       </td>
                       <td className="py-2 px-2 sm:px-4 text-gray-700">
-                        {order.total}
+                        ${order.totalAmount}
                       </td>
                     </tr>
                   ))}
