@@ -104,7 +104,7 @@ export default function SellerDashboard() {
             className="bg-indigo-100/60 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 shadow-sm border border-indigo-100"
           >
             <div>
-              <h2 className="text-xl sm:text-2xl font-semibold text-indigo-800">
+              <h2 className="text-xl sm:text-2xl font-semibold text-[#000]">
                 Welcome back, John!
               </h2>
               <p className="text-gray-600 mt-1 text-sm sm:text-base">
