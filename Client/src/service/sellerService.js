@@ -68,9 +68,19 @@ export const updateOrderStatus = async (id, status) => {
 export const becomeSeller = async () => {
   try {
     const { data } = await API.post("/become-seller");
-    console.log("becomeSeller response:", data);  
+    console.log("becomeSeller response:", data);
     return data;
   } catch (error) {
     console.error("Error in becomeSeller:", error);
+  }
+};
+export const getRecentOrder = async () => {
+  try {
+    const { data } = await API.get(`/recent-orders`); // make sure endpoint matches backend
+    console.log(data)
+    return data.data; // backend sends { success, results, data }
+  } catch (error) {
+    console.error("Failed to fetch recent orders:", error);
+    return [];
   }
 };
