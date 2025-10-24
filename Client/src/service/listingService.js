@@ -98,3 +98,26 @@ export const getAllListings = async (page = 1, limit = 12) => {
     throw error;
   }
 };
+export const updateListing = async (id, formData) => {
+  try {
+    const { data } = await LISTING_API.patch(`/listings/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data;
+  } catch (error) {
+    console.error("Error in updateListing:", error);
+    throw error;
+  }
+};
+
+// Delete a listing by ID (seller only)
+export const deleteListing = async (id) => {
+  try {
+    if (!id) throw new Error("Listing ID is required");
+    const { data } = await LISTING_API.delete(`/listings/${id}`);
+    return data;
+  } catch (error) {
+    console.error("Error in deleteListing:", error);
+    throw error;
+  }
+};
