@@ -7,6 +7,8 @@ import path from "path";
 import sharp from "sharp";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
+import { promisify } from "util";
+const unlinkAsync = promisify(fs.unlink);
 
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
@@ -217,22 +219,35 @@ export const updateListing = catchAsync(async (req, res, next) => {
   const saved = await listing.save();
   res.json(saved);
 });
-
 export const deleteListing = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
+  // 1️⃣ Find the listing
   const listing = await Listing.findById(id);
   if (!listing) return next(new AppError("Listing not found", 404));
-  if (String(listing.owner) !== String(req.session.user._id))
-    return next(new AppError("Not allowed", 403));
 
-  listing.images.forEach((img) => {
-    const fullPath = path.join(process.cwd(), img.url);
-    fs.unlink(fullPath, (err) => err && console.error(err));
-  });
+  // 2️⃣ Check ownership
+  if (String(listing.owner) !== String(req.session.user._id)) {
+    return next(new AppError("Not allowed to delete this listing", 403));
+  }
 
+  // 3️⃣ Delete images from filesystem
+  for (const img of listing.images) {
+    try {
+      // adjust this based on how you save image paths
+      const fullPath = path.join(process.cwd(), img.url);
+      await unlinkAsync(fullPath);
+    } catch (err) {
+      console.error("Error deleting image:", err.message);
+      // don't throw here — allow listing deletion to continue
+    }
+  }
+
+  // 4️⃣ Delete the listing document
   await listing.deleteOne();
-  res.json({ message: "Listing deleted" });
+
+  // 5️⃣ Send success response
+  res.status(200).json({ message: "Listing deleted successfully" });
 });
 
 export const getAllListings = catchAsync(async (req, res, next) => {
