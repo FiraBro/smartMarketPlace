@@ -1,5 +1,5 @@
 import AppError from "../utils/AppError.js";
-import Seller from "../models/seller.js";
+import Seller from "../models/Seller.js";
 // ---------------------
 // General protection
 // ---------------------
@@ -24,7 +24,6 @@ export const protectSeller = (req, res, next) => {
 // Restrict to specific roles
 // ---------------------
 export const restrictTo = (...roles) => {
-  console.log("Restricting to roles:", roles);
   return (req, res, next) => {
     if (!req.session.user || !roles.includes(req.session.user.role)) {
       return res
