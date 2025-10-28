@@ -135,14 +135,13 @@ export const getNotificationById = catchAsync(async (req, res, next) => {
 // ========================== USER CONTROLLERS ================================
 
 export const getUserNotifications = catchAsync(async (req, res, next) => {
-  if (!req.user || !req.user._id) {
+  if (!req.session.user || !req.session.user._id) {
     return res.status(400).json({ status: "fail", message: "User not found" });
   }
 
   const notifications = await Notification.find({
-    $or: [{ recipients: req.user._id }, { recipientType: "all" }],
+    $or: [{ recipients: req.session.user._id }, { recipientType: "all" }],
   }).sort({ createdAt: -1 });
-
   res.status(200).json({
     status: "success",
     results: notifications.length,
@@ -151,7 +150,7 @@ export const getUserNotifications = catchAsync(async (req, res, next) => {
 });
 
 export const markAsRead = catchAsync(async (req, res, next) => {
-  const userId = req.user._id;
+  const userId = req.session.user._id;
   const { id } = req.params;
 
   const notification = await Notification.findById(id);
@@ -171,7 +170,7 @@ export const markAsRead = catchAsync(async (req, res, next) => {
 });
 
 export const markAllAsRead = catchAsync(async (req, res) => {
-  const userId = req.user._id;
+  const userId = req.session.user._id;
   await Notification.updateMany(
     { recipients: userId, readBy: { $ne: userId } },
     { $push: { readBy: userId } }
