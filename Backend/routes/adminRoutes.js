@@ -8,11 +8,9 @@ import {
   suspendSeller,
   getListingDetails,
 } from "../controllers/adminController.js";
-import {
-  protectAdmin,
-  restrictToAdmin,
-} from "../middlewares/adminMiddleware.js";
-import { getAllBuyer, getAllSellers } from "../controllers/authController.js";
+
+import { getAllBuyer, getAllSellers} from "../controllers/authController.js";
+import { restrictToAdmin,protectAdmin} from "../middlewares/adminMiddleware.js";
 
 const router = express.Router();
 
