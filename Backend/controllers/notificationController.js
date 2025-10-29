@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Notification from "../models/Notification.js";
 import { User } from "../models/User.js";
 import catchAsync from "../utils/catchAsync.js";
@@ -9,12 +10,11 @@ import AppError from "../utils/AppError.js";
 export const sendNotification = catchAsync(async (req, res, next) => {
   const { title, message, channel, type, recipientType } = req.body;
 
-  // ✅ Validate input fields
   if (!title || !message || !channel || !type || !recipientType) {
     return next(new AppError("Required field is missing", 400));
   }
 
-  // ✅ Determine recipients based on recipientType
+  // Determine recipients based on recipientType
   let recipients = [];
   if (recipientType === "all") {
     const users = await User.find({}, "_id");
@@ -29,7 +29,6 @@ export const sendNotification = catchAsync(async (req, res, next) => {
     return next(new AppError("Invalid recipient type", 400));
   }
 
-  // ✅ Create the notification document
   const notification = await Notification.create({
     title,
     message,
@@ -40,13 +39,12 @@ export const sendNotification = catchAsync(async (req, res, next) => {
     createdBy: req.user?._id || null,
   });
 
-  // ✅ Emit real-time notifications to all recipients
+  // Emit real-time notifications
   const io = req.app.get("io");
   recipients.forEach((userId) => {
     io.to(`notifications:${userId}`).emit("notification", notification);
   });
 
-  // ✅ Send success response
   res.status(201).json({
     status: "success",
     message: "Notification sent successfully",
@@ -57,6 +55,12 @@ export const sendNotification = catchAsync(async (req, res, next) => {
 // Delete notification
 export const deleteNotification = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new AppError("Invalid notification ID", 400));
+  }
+
   const notification = await Notification.findByIdAndDelete(id);
   if (!notification) {
     return next(new AppError("Notification not found", 404));
@@ -68,23 +72,14 @@ export const deleteNotification = catchAsync(async (req, res, next) => {
   });
 });
 
-// controllers/notificationController.js
+// Get notification history
 export const getNotificationHistory = catchAsync(async (req, res) => {
   const { channel, status, dateRange } = req.query;
-
   const query = {};
 
-  // Filter by channel
-  if (channel && channel !== "all") {
-    query.channel = channel;
-  }
+  if (channel && channel !== "all") query.channel = channel;
+  if (status && status !== "all") query.status = status;
 
-  // Filter by status
-  if (status && status !== "all") {
-    query.status = status;
-  }
-
-  // Filter by dateRange
   if (dateRange) {
     const now = new Date();
     let startDate;
@@ -99,14 +94,12 @@ export const getNotificationHistory = catchAsync(async (req, res) => {
         startDate = new Date(now.setDate(now.getDate() - 30));
         break;
       case "90days":
-        startDate = new Date(now.setDate(now.getDate() - 90));
+        startDate = new Date(now.getDate() - 90);
         break;
       default:
         startDate = null;
     }
-    if (startDate) {
-      query.createdAt = { $gte: startDate };
-    }
+    if (startDate) query.createdAt = { $gte: startDate };
   }
 
   const notifications = await Notification.find(query).sort({ createdAt: -1 });
@@ -121,6 +114,11 @@ export const getNotificationHistory = catchAsync(async (req, res) => {
 // Get single notification
 export const getNotificationById = catchAsync(async (req, res, next) => {
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new AppError("Invalid notification ID", 400));
+  }
+
   const notification = await Notification.findById(id);
   if (!notification) {
     return next(new AppError("Notification not found", 404));
@@ -132,30 +130,77 @@ export const getNotificationById = catchAsync(async (req, res, next) => {
   });
 });
 
+
 // ========================== USER CONTROLLERS ================================
 
+// -------------------------
+// Get paginated notifications for the logged-in user
+// -------------------------
 export const getUserNotifications = catchAsync(async (req, res, next) => {
-  if (!req.session.user || !req.session.user._id) {
-    return res.status(400).json({ status: "fail", message: "User not found" });
+  const user = req.session.user;
+  if (!user?._id) {
+    return res.status(401).json({ status: "fail", message: "User not authenticated" });
   }
 
+  const userId = user._id;
+  const page = parseInt(req.query.page, 10) || 1;
+  const limit = parseInt(req.query.limit, 10) || 10;
+  const skip = (page - 1) * limit;
+
   const notifications = await Notification.find({
-    $or: [{ recipients: req.session.user._id }, { recipientType: "all" }],
-  }).sort({ createdAt: -1 });
+    $or: [{ recipients: userId }, { recipientType: "all" }],
+  })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const transformedNotifications = notifications.map((notification) => ({
+    ...notification,
+    read: notification.readBy?.includes(userId.toString()) || false,
+  }));
+
+  const totalNotifications = await Notification.countDocuments({
+    $or: [{ recipients: userId }, { recipientType: "all" }],
+  });
+
   res.status(200).json({
     status: "success",
-    results: notifications.length,
-    notifications,
+    results: transformedNotifications.length,
+    notifications: transformedNotifications,
+    pagination: {
+      currentPage: page,
+      totalPages: Math.ceil(totalNotifications / limit),
+      totalNotifications,
+      hasMore: page < Math.ceil(totalNotifications / limit),
+    },
   });
 });
 
+// -------------------------
+// Mark a single notification as read
+// -------------------------
 export const markAsRead = catchAsync(async (req, res, next) => {
-  const userId = req.session.user._id;
+  const user = req.session.user;
+  if (!user?._id) {
+    return res.status(401).json({ status: "fail", message: "User not authenticated" });
+  }
+
+  const userId = user._id;
   const { id } = req.params;
+
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return next(new AppError("Invalid notification ID", 400));
+  }
 
   const notification = await Notification.findById(id);
   if (!notification) {
     return next(new AppError("Notification not found", 404));
+  }
+
+  const hasAccess = notification.recipients.includes(userId) || notification.recipientType === "all";
+  if (!hasAccess) {
+    return next(new AppError("Unauthorized to access this notification", 403));
   }
 
   if (!notification.readBy.includes(userId)) {
@@ -166,13 +211,26 @@ export const markAsRead = catchAsync(async (req, res, next) => {
   res.status(200).json({
     status: "success",
     message: "Notification marked as read",
+    notification: { ...notification.toObject(), read: true },
   });
 });
 
-export const markAllAsRead = catchAsync(async (req, res) => {
-  const userId = req.session.user._id;
+// -------------------------
+// Mark all notifications as read
+// -------------------------
+export const markAllAsRead = catchAsync(async (req, res, next) => {
+  const user = req.session.user;
+  if (!user?._id) {
+    return res.status(401).json({ status: "fail", message: "User not authenticated" });
+  }
+
+  const userId = user._id;
+
   await Notification.updateMany(
-    { recipients: userId, readBy: { $ne: userId } },
+    {
+      $or: [{ recipients: userId }, { recipientType: "all" }],
+      readBy: { $ne: userId },
+    },
     { $push: { readBy: userId } }
   );
 
