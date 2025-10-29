@@ -1,15 +1,11 @@
 import React, { useState, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 
-// ------------------------------
 // Layouts
-// ------------------------------
 import Layout from "./util/Layout";
 import SellerLayout from "./util/SellerLayout";
 
-// ------------------------------
 // Buyer Pages
-// ------------------------------
 import HomePage from "./pages/HomePage";
 import ProductDetail from "./pages/ProductDetail";
 import ProfilePage from "./pages/ProfilePage";
@@ -18,36 +14,29 @@ import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
 import OrderSuccessPage from "./pages/OrderSuccussPage";
 
-// ------------------------------
 // Seller Pages
-// ------------------------------
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerProducts from "./pages/seller/SellerProduct";
 import SellerOrders from "./pages/seller/SellerOrder";
 import AddProduct from "./pages/seller/SellerAddProduct";
 import UpdateProduct from "./pages/seller/UpdateProduct";
 import SellerProfile from "./pages/seller/SellerProfile";
-import SellerNotifications from "./pages/seller/SellerNotification";
+import EditProduct from "./pages/seller/EditProduct";
+import BuyerNotificationsPage from "./pages/buyer/BuyerNotificationsPage";
+import SellerNotificationsPage from "./pages/seller/SellerNotificationsPage";
 
-// ------------------------------
 // Shared / Auth
-// ------------------------------
 import AuthPage from "./pages/AuthPage";
-import Unauthorized from "./pages/Unauthorized"; // ✅ New unauthorized page
+import Unauthorized from "./pages/Unauthorized";
 
-// ------------------------------
 // Contexts
-// ------------------------------
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { FavoriteProvider } from "./context/FavoriteContext";
 
-// ------------------------------
 // Components
-// ------------------------------
 import Spinner from "./components/Spinner";
-import PrivateRoute from "./components/PrivateRoute"; // ✅ Auth + Role Guard
-import EditProduct from "./pages/seller/EditProduct";
+import PrivateRoute from "./components/PrivateRoute";
 
 export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -59,9 +48,7 @@ export default function App() {
   const closeFav = () => setIsFavOpen(false);
 
   const router = createBrowserRouter([
-    // ------------------------------
-    // 🛍️ BUYER ROUTES
-    // ------------------------------
+    // Buyer Routes
     {
       path: "/",
       element: (
@@ -72,7 +59,6 @@ export default function App() {
           isFavOpen={isFavOpen}
           closeCart={closeCart}
           closeFav={closeFav}
-          onCheckout={(order) => console.log("Order placed:", order)}
         />
       ),
       children: [
@@ -106,9 +92,7 @@ export default function App() {
       ],
     },
 
-    // ------------------------------
-    // 👤 PROFILE
-    // ------------------------------
+    // Profile
     {
       path: "/profile",
       element: (
@@ -118,25 +102,11 @@ export default function App() {
       ),
     },
 
-    // ------------------------------
-    // 🔐 AUTH PAGE
-    // ------------------------------
-    {
-      path: "/auth",
-      element: <AuthPage />,
-    },
+    // Auth / Unauthorized
+    { path: "/auth", element: <AuthPage /> },
+    { path: "/unauthorized", element: <Unauthorized /> },
 
-    // ------------------------------
-    // 🚫 UNAUTHORIZED PAGE
-    // ------------------------------
-    {
-      path: "/unauthorized",
-      element: <Unauthorized />,
-    },
-
-    // ------------------------------
-    // 🧑‍💼 SELLER ROUTES (Require seller role)
-    // ------------------------------
+    // Seller Routes
     {
       path: "/seller/dashboard",
       element: (
@@ -207,13 +177,21 @@ export default function App() {
         </PrivateRoute>
       ),
     },
+
+    // Notification Routes (fixed)
     {
-      path: "/seller/notifications",
+      path: "/buyer/notification",
+      element: (
+        <PrivateRoute>
+          <BuyerNotificationsPage />
+        </PrivateRoute>
+      ),
+    },
+    {
+      path: "/seller/notification",
       element: (
         <PrivateRoute requireRole="seller">
-          <SellerLayout>
-            <SellerNotifications />
-          </SellerLayout>
+          <SellerNotificationsPage />
         </PrivateRoute>
       ),
     },
