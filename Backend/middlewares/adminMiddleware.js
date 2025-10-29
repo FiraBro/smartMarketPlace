@@ -1,6 +1,10 @@
 export const protectAdmin = (req, res, next) => {
-  if (req.session.admin) return next();
-  res.status(401).json({ status: "fail", message: "Admin not authorized" });
+  if (!req.session.admin || req.session.admin.role !== "admin") {
+    return res
+      .status(403)
+      .json({ status: "fail", message: "Admin only route" });
+  }
+  next();
 };
 export const restrictToAdmin = (...roles) => {
   return (req, res, next) => {
