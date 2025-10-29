@@ -4,6 +4,7 @@ import Seller from "../models/Seller.js";
 // General protection
 // ---------------------
 export const protect = (req, res, next) => {
+  console.log(req.session)
   if (req.session.user) return next();
   res.status(401).json({ status: "fail", message: "Not authorized" });
 };
@@ -25,6 +26,9 @@ export const protectSeller = (req, res, next) => {
 // ---------------------
 export const restrictTo = (...roles) => {
   return (req, res, next) => {
+    // console.log(`wow:${roles}`)
+    // console.log(req.session)
+
     if (!req.session.user || !roles.includes(req.session.user.role)) {
       return res
         .status(403)
@@ -37,7 +41,7 @@ export const restrictTo = (...roles) => {
 // middlewares/checkSellerStatus.js
 
 export const checkSellerStatus = async (req, res, next) => {
-  const seller = await Seller.findOne({ user: req.user._id });
+  const seller = await Seller.findOne({ user: req.session.user._id });
 
   if (!seller) return next(new AppError("Seller account not found", 404));
 
