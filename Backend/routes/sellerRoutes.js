@@ -1,5 +1,5 @@
 import express from "express";
-import { protect, checkSellerStatus } from "../middlewares/authMiddleware.js";
+import {  checkSellerStatus,protectSeller } from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/upload.js";
 import {
   createSellerProfile,
@@ -14,7 +14,7 @@ import {
 const router = express.Router();
 
 // ✅ All routes are protected and seller-only
-router.use(protect);
+router.use(protectSeller);
 // Seller profile
 router.post(
   "/profile",
