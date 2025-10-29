@@ -7,7 +7,7 @@ import PopularProducts from "../components/PopularProducts";
 
 export default function HomePage() {
   return (
-    <div className="max-w-[85rem] mx-auto px-4 bg-[#fff]">
+    <div className="max-w-[95rem] mx-auto px-4 bg-[#fff]">
       <HeroSection />
 
       {/* ✅ Add wrapper with correct id */}
