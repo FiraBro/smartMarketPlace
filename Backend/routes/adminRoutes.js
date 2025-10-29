@@ -1,4 +1,8 @@
 import express from "express";
+
+// -------------------------
+// Controllers
+// -------------------------
 import {
   registerAdmin,
   loginAdmin,
@@ -9,28 +13,69 @@ import {
   getListingDetails,
 } from "../controllers/adminController.js";
 
-import { getAllBuyer, getAllSellers} from "../controllers/authController.js";
-import { restrictToAdmin,protectAdmin} from "../middlewares/adminMiddleware.js";
+import {
+  sendNotification,
+  deleteNotification,
+  getNotificationHistory,
+  getNotificationById,
+} from "../controllers/notificationController.js";
+
+import { getAllBuyer, getAllSellers } from "../controllers/authController.js";
+
+// -------------------------
+// Middlewares
+// -------------------------
+import { protectAdmin, restrictToAdmin } from "../middlewares/adminMiddleware.js";
 
 const router = express.Router();
 
-// Public routes
+// ==========================
+// Public Routes
+// ==========================
 router.post("/registerAdmin", registerAdmin);
 router.post("/loginAdmin", loginAdmin);
-// router.get("/check-auth", isAuthenticated);
 
-// Protected routes
-router.use(protectAdmin); // All routes after this middleware are protected
+// ==========================
+// Protected Routes (Admin)
+// ==========================
+router.use(protectAdmin); // All routes below require authentication
 
 router.post("/logoutAdmin", logoutAdmin);
 router.get("/meAdmin", getMeAdmin);
+
+// --------------------------
+// Users
+// --------------------------
 router.get("/buyers", restrictToAdmin("admin", "super-admin"), getAllBuyer);
 router.get("/sellers", restrictToAdmin("admin", "super-admin"), getAllSellers);
+
+// --------------------------
+// Listings
+// --------------------------
 router.get("/listings/details", restrictToAdmin("admin"), getListingDetails);
 
+// --------------------------
+// Seller Actions
+// --------------------------
 router.patch("/:sellerId/approve", restrictToAdmin("admin"), approveSeller);
 router.patch("/:sellerId/suspend", restrictToAdmin("admin"), suspendSeller);
-// Super admin only routes
+
+// --------------------------
+// Notifications
+// --------------------------
+router
+  .route("/notifications")
+  .post(restrictToAdmin("admin"), sendNotification)
+  .get(restrictToAdmin("admin"), getNotificationHistory);
+
+router
+  .route("/notifications/:id")
+  .get(restrictToAdmin("admin"), getNotificationById)
+  .delete(restrictToAdmin("admin"), deleteNotification);
+
+// ==========================
+// Super Admin Only
+// ==========================
 router.get("/admin-only", restrictToAdmin("super-admin"), (req, res) => {
   res.status(200).json({
     status: "success",
