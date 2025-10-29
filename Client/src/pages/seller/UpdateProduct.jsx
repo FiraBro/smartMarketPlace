@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import SellerSidebar from "../../components/seller/SellerSidebar";
+import SellerSidebar from "../../components/seller/SellerSideBar";
 import SellerNavbar from "../../components/seller/SellerNavbar";
 
 export default function UpdateProduct() {
