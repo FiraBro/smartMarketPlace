@@ -1,32 +1,49 @@
 // src/services/notificationUserApi.js
 import axios from "axios";
 
+// -------------------------
+// Axios instance for notification API
+// -------------------------
 const API = axios.create({
-  baseURL: import.meta.env.VITE_NOTIFICATION_URL,
-  withCredentials: true, // ✅ include cookies/session for auth
+  baseURL: import.meta.env.VITE_NOTIFICATION_URL || "http://localhost:5000/api/notifications",
+  withCredentials: true,
 });
 
-// ---------------------
-// Fetch all notifications for logged-in user
-// ---------------------
-export const fetchNotifications = async () => {
-  const { data } = await API.get("/");
-  console.log("Fetched notifications:", data);
-  return data.notifications; // returns array of notifications
+// -------------------------
+// Fetch paginated notifications for the logged-in user
+// -------------------------
+export const fetchNotifications = async (page = 1, limit = 10) => {
+  try {
+    const response = await API.get("/user", { params: { page, limit } });
+    return response.data;
+  } catch (error) {
+    console.error("Error fetching notifications:", error.response?.data || error.message);
+    throw error;
+  }
 };
 
-// ---------------------
-// Mark all notifications as read
-// ---------------------
-export const markAllAsRead = async () => {
-  const { data } = await API.patch("/read-all"); // endpoint in backend
-  return data.notifications; // returns updated notifications
-};
-
-// ---------------------
+// -------------------------
 // Mark a single notification as read
-// ---------------------
+// -------------------------
 export const markAsRead = async (id) => {
-  const { data } = await API.patch(`/read/${id}`);
-  return data.notification; // updated single notification
+  try {
+    const response = await API.patch(`/${id}/read`);
+    return response.data;
+  } catch (error) {
+    console.error("Error marking notification as read:", error.response?.data || error.message);
+    throw error;
+  }
+};
+
+// -------------------------
+// Mark all notifications as read
+// -------------------------
+export const markAllAsRead = async () => {
+  try {
+    const response = await API.patch("/read-all");
+    return response.data;
+  } catch (error) {
+    console.error("Error marking all notifications as read:", error.response?.data || error.message);
+    throw error;
+  }
 };
