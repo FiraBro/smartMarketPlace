@@ -1,8 +1,8 @@
-// src/components/NotificationPage.jsx
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { useSocket } from '../../context/SocketContext';
+import { useNotification } from '../../context/NotificationContext';
 import { 
   fetchNotifications, 
   markAsRead, 
@@ -20,10 +20,10 @@ const NotificationPage = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [activeTab, setActiveTab] = useState('all');
   
   const { socket, isConnected, notifications: realTimeNotifications } = useSocket();
+  const { updateUnreadCount, decrementUnreadCount, markAllAsRead: markAllAsReadGlobal } = useNotification();
 
   // Filter notifications based on active tab
   const filteredNotifications = notifications.filter(notification => {
@@ -57,7 +57,7 @@ const NotificationPage = () => {
 
   // Count unread by type
   const unreadCounts = {
-    all: unreadCount,
+    all: notifications.filter(n => !n.read).length,
     info: notifications.filter(n => n.type === 'info' && !n.read).length,
     alert: notifications.filter(n => n.type === 'alert' && !n.read).length,
     reminder: notifications.filter(n => n.type === 'reminder' && !n.read).length,
@@ -96,7 +96,8 @@ const NotificationPage = () => {
         setNotifications(data.notifications);
       }
       
-      setUnreadCount(data.unreadCount || 0);
+      // Update global unread count
+      updateUnreadCount(data.unreadCount || 0);
       setHasMore(data.notifications.length === 15);
     } catch (error) {
       toast.error('Failed to load notifications');
@@ -104,7 +105,7 @@ const NotificationPage = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [updateUnreadCount]);
 
   // Mark single notification as read
   const handleMarkAsRead = async (id) => {
@@ -119,7 +120,9 @@ const NotificationPage = () => {
             : notification
         )
       );
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      
+      // Update global unread count
+      decrementUnreadCount();
       
       // Emit socket event
       if (socket && isConnected) {
@@ -141,7 +144,9 @@ const NotificationPage = () => {
         setNotifications(prev =>
           prev.map(notification => ({ ...notification, read: true }))
         );
-        setUnreadCount(0);
+        
+        // Update global unread count
+        markAllAsReadGlobal();
         
         if (socket && isConnected) {
           socket.emit('mark_all_read');
@@ -153,7 +158,6 @@ const NotificationPage = () => {
           .map(n => n._id);
         
         if (notificationsToMark.length > 0) {
-          // You might need to create a new API endpoint for this
           await Promise.all(notificationsToMark.map(id => markAsRead(id)));
           
           setNotifications(prev =>
@@ -164,7 +168,10 @@ const NotificationPage = () => {
             )
           );
           
-          setUnreadCount(prev => Math.max(0, prev - notificationsToMark.length));
+          // Update global unread count for each notification marked as read
+          for (let i = 0; i < notificationsToMark.length; i++) {
+            decrementUnreadCount();
+          }
         }
       }
       
@@ -237,7 +244,7 @@ const NotificationPage = () => {
         
         {/* Header */}
         <NotificationHeader 
-          unreadCount={unreadCount}
+          unreadCount={unreadCounts.all}
           onMarkAllAsRead={handleMarkAllAsRead}
           onRefresh={refreshNotifications}
           onTestNotification={testRealTimeNotification}
