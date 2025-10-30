@@ -1,10 +1,13 @@
 import { motion } from "framer-motion";
 import { FaUserCircle, FaBars, FaBell } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import NotificationList from "../../components/NotificationList";
+import { useNotification } from "../../context/NotificationContext"; // Adjust path as needed
 
 export default function SellerNavbar({ toggleSidebar }) {
   const navigate = useNavigate();
+  const { unreadCount, loading } = useNotification();
+
+  console.log('Navbar rendering with REAL unreadCount:', unreadCount);
 
   return (
     <motion.header
@@ -48,29 +51,54 @@ export default function SellerNavbar({ toggleSidebar }) {
 
       {/* Right Section - Actions */}
       <div className="flex items-center gap-3">
-        {/* Enhanced Notification Area */}
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className="relative"
+        {/* Real Notification Bell with Actual Count from Context */}
+        <motion.button
+          whileHover={{ scale: 1.05, backgroundColor: "#fff7ed" }}
+          whileTap={{ scale: 0.95 }}
+          onClick={() => navigate("/seller/notifications")}
+          className="group relative p-2.5 rounded-xl transition-all duration-300 hover:shadow-md border border-transparent hover:border-orange-200"
+          title={`${unreadCount} unread notifications`}
+          disabled={loading}
         >
-          <NotificationList userType="seller" />
-          
-          {/* Notification Indicator Dot */}
-          <motion.div
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [1, 0.7, 1]
-            }}
-            transition={{ 
-              duration: 2, 
-              repeat: Infinity,
-              repeatType: "reverse"
-            }}
-            className="absolute -top-1 -right-1 w-3 h-3 bg-gradient-to-r from-orange-500 to-amber-500 rounded-full border-2 border-white shadow-sm"
+          <FaBell 
+            size={20} 
+            className={`transition-colors duration-300 ${
+              loading 
+                ? 'text-gray-300' 
+                : 'text-gray-500 group-hover:text-orange-500'
+            }`} 
           />
-        </motion.div>
+          
+          {/* Real Notification Count Badge from Context */}
+          {!loading && unreadCount > 0 && (
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              className="absolute -top-1 -right-1 min-w-5 h-5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm px-1"
+            >
+              <motion.span
+                key={unreadCount}
+                initial={{ scale: 1.2 }}
+                animate={{ scale: 1 }}
+                transition={{ duration: 0.2 }}
+              >
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </motion.span>
+            </motion.div>
+          )}
+
+          {/* Loading indicator */}
+          {loading && unreadCount === 0 && (
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+              className="absolute -top-1 -right-1 w-3 h-3 border-2 border-orange-200 border-t-orange-500 rounded-full"
+            />
+          )}
+          
+          {/* Hover effect */}
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-transparent to-orange-50/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        </motion.button>
 
         {/* Enhanced Profile Button */}
         <motion.button
