@@ -33,7 +33,8 @@ import Unauthorized from "./pages/Unauthorized";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { FavoriteProvider } from "./context/FavoriteContext";
-
+import { SocketProvider } from "./context/SocketContext";
+import { NotificationProvider } from "./context/NotificationContext";
 // Components
 import Spinner from "./components/Spinner";
 import PrivateRoute from "./components/PrivateRoute";
@@ -177,28 +178,35 @@ export default function App() {
         </PrivateRoute>
       ),
     },
+      {
+      path: "/seller/notifications",
+      element: (
+        <PrivateRoute requireRole="seller">
+           <SellerLayout>
+          <SellerNotificationsPage />
+           </SellerLayout>
+
+        </PrivateRoute>
+      ),
+    },
 
     // Notification Routes (fixed)
     {
-      path: "/buyer/notification",
+      path: "/buyer/notifications",
       element: (
         <PrivateRoute>
           <BuyerNotificationsPage />
         </PrivateRoute>
       ),
     },
-    {
-      path: "/seller/notification",
-      element: (
-        <PrivateRoute requireRole="seller">
-          <SellerNotificationsPage />
-        </PrivateRoute>
-      ),
-    },
+  
   ]);
 
   return (
     <AuthProvider>
+      <NotificationProvider>
+
+          <SocketProvider>
       <CartProvider>
         <FavoriteProvider>
           <Suspense fallback={<Spinner />}>
@@ -206,6 +214,8 @@ export default function App() {
           </Suspense>
         </FavoriteProvider>
       </CartProvider>
+          </SocketProvider>
+      </NotificationProvider>
     </AuthProvider>
   );
 }
