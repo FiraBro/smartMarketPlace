@@ -266,7 +266,7 @@ const NotificationPage = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+          className="rounded-2xl shadow-sm border-none overflow-hidden"
         >
           {loading && notifications.length === 0 ? (
             // Loading skeletons
@@ -301,7 +301,7 @@ const NotificationPage = () => {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={loadMore}
-                className="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg font-medium hover:from-blue-600 hover:to-blue-700 transition-all duration-200 shadow-sm"
+                className="px-6 py-3 bg-gradient-to-r bg-[#f9A03f] text-white rounded-lg font-medium hover:bg-[#faa64d] transition-all cursor-pointer duration-200 shadow-sm"
               >
                 Load More
               </motion.button>
