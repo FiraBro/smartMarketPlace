@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { FaCheck, FaEdit } from "react-icons/fa";
-import { updateProfile } from "../service/authService";
+import { updateProfile } from "../service/AuthService";
 import {
   sendVerificationCode,
   verifyCode,
