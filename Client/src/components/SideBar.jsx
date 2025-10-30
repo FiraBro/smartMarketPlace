@@ -26,7 +26,6 @@ const Sidebar = ({ userData, activeTab, setActiveTab }) => {
       { id: "addresses", name: "Addresses", icon: FaMapMarkerAlt },
       { id: "settings", name: "Settings", icon: FaCog },
       { id: "notifications", name: "Notifications", icon: FaBell },
-      { id: "admin", name: "CreateTab", icon: FaBell },
     ],
     []
   );
