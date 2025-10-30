@@ -20,8 +20,10 @@ const NotificationCard = ({ notification, onMarkAsRead, index }) => {
     info: FaInfoCircle,
   };
 
-  // 🔶 Use #f9A03f for all main accents
-  const mainColor = "#f9A03f";
+  // 🔶 Softer, more muted orange color
+  const mainColor = "#f59e0b"; // Softer amber instead of bright orange
+  const mutedColor = "#fed7aa"; // Softer background color
+  const borderColor = "#fdba74"; // Softer border color
 
   const IconComponent = iconMap[notification.type] || FaInfoCircle;
 
@@ -41,78 +43,79 @@ const NotificationCard = ({ notification, onMarkAsRead, index }) => {
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 20, scale: 0.95 }}
       transition={{ 
-        duration: 0.4, 
-        delay: index * 0.05,
+        duration: 0.5, 
+        delay: index * 0.07,
         ease: [0.25, 0.1, 0.25, 1]
       }}
       whileHover={{ 
-        y: -2,
-        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)"
+        y: -1,
+        boxShadow: "0 8px 20px -5px rgba(0, 0, 0, 0.08), 0 6px 8px -4px rgba(0, 0, 0, 0.03)"
       }}
-      className={`relative p-6 rounded-2xl transition-all duration-300 overflow-hidden group ${
+      className={`relative p-5 rounded-xl transition-all duration-300 overflow-hidden group ${
         !notification.read
-          ? "bg-gradient-to-r from-orange-50 to-amber-50 border-l-4"
+          ? "bg-gradient-to-r from-amber-50/80 to-orange-50/60 border-l-4"
           : "bg-white border border-gray-100"
       }`}
       style={{
-        borderLeftColor: !notification.read ? mainColor : "transparent",
+        borderLeftColor: !notification.read ? borderColor : "transparent",
       }}
     >
-      {/* Animated background accent */}
+      {/* Softer animated background accent */}
       {!notification.read && (
         <motion.div
-          className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-orange-400 to-amber-400"
+          className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-amber-300 to-orange-300"
           initial={{ scaleY: 0 }}
           animate={{ scaleY: 1 }}
-          transition={{ duration: 0.6, delay: index * 0.1 + 0.2 }}
+          transition={{ duration: 0.7, delay: index * 0.12 + 0.3 }}
         />
       )}
       
-      {/* Glow effect for unread notifications */}
+      {/* Softer glow effect for unread notifications */}
       {!notification.read && (
-        <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-orange-100/20 to-amber-100/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-amber-50/30 to-orange-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       )}
 
       <div className="flex items-start space-x-4 relative z-10">
-        {/* Enhanced Icon Container */}
+        {/* Softer Icon Container */}
         <motion.div
           initial={{ scale: 0, rotate: -180 }}
           animate={{ scale: 1, rotate: 0 }}
           transition={{ 
-            duration: 0.5, 
+            duration: 0.6, 
             delay: index * 0.1,
             type: "spring",
-            stiffness: 200
+            stiffness: 180,
+            damping: 12
           }}
           whileHover={{ 
-            scale: 1.1,
-            rotate: 5,
-            transition: { duration: 0.2 }
+            scale: 1.05,
+            rotate: 2,
+            transition: { duration: 0.3 }
           }}
           className="relative"
         >
           <div
-            className="p-3 rounded-xl text-white shadow-lg flex items-center justify-center relative overflow-hidden"
+            className="p-3 rounded-xl text-white shadow-md flex items-center justify-center relative overflow-hidden"
             style={{ backgroundColor: mainColor }}
           >
-            {/* Icon shine effect */}
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent" />
-            <IconComponent className="w-5 h-5 relative z-10" />
+            {/* Softer icon shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/15 to-transparent" />
+            <IconComponent className="w-4 h-4 relative z-10" />
           </div>
           
-          {/* Pulse dot for unread notifications */}
+          {/* Softer pulse dot for unread notifications */}
           {!notification.read && (
             <motion.div
               animate={{ 
-                scale: [1, 1.5, 1],
-                opacity: [0.7, 0, 0.7]
+                scale: [1, 1.3, 1],
+                opacity: [0.6, 0.2, 0.6]
               }}
               transition={{ 
-                duration: 2, 
+                duration: 3, 
                 repeat: Infinity,
-                delay: index * 0.2
+                delay: index * 0.3
               }}
-              className="absolute -top-1 -right-1 w-3 h-3 rounded-full border-2 border-white"
+              className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border border-white"
               style={{ backgroundColor: mainColor }}
             />
           )}
@@ -123,11 +126,11 @@ const NotificationCard = ({ notification, onMarkAsRead, index }) => {
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <motion.h3
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 + 0.2 }}
-                className={`font-bold text-sm sm:text-base tracking-tight ${
-                  !notification.read ? "text-gray-900" : "text-gray-700"
+                transition={{ duration: 0.5, delay: index * 0.1 + 0.3 }}
+                className={`font-semibold text-sm sm:text-base ${
+                  !notification.read ? "text-gray-800" : "text-gray-700"
                 }`}
               >
                 {notification.title}
@@ -136,8 +139,8 @@ const NotificationCard = ({ notification, onMarkAsRead, index }) => {
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: index * 0.1 + 0.3 }}
-                className="text-gray-600 mt-2 text-sm leading-relaxed"
+                transition={{ duration: 0.5, delay: index * 0.1 + 0.4 }}
+                className="text-gray-600 mt-1.5 text-sm leading-relaxed"
               >
                 {notification.message}
               </motion.p>
@@ -145,10 +148,10 @@ const NotificationCard = ({ notification, onMarkAsRead, index }) => {
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.4, delay: index * 0.1 + 0.4 }}
-                className="flex items-center space-x-4 mt-3 text-xs"
+                transition={{ duration: 0.5, delay: index * 0.1 + 0.5 }}
+                className="flex items-center space-x-3 mt-2 text-xs"
               >
-                <span className="text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded-full">
+                <span className="text-gray-500 font-medium bg-gray-100/80 px-2 py-1 rounded-full">
                   {new Date(notification.createdAt).toLocaleString("en-US", {
                     month: "short",
                     day: "numeric",
@@ -163,66 +166,64 @@ const NotificationCard = ({ notification, onMarkAsRead, index }) => {
                     animate={{ scale: 1 }}
                     transition={{ 
                       type: "spring",
-                      stiffness: 300,
-                      delay: index * 0.1 + 0.5
+                      stiffness: 250,
+                      damping: 15,
+                      delay: index * 0.1 + 0.6
                     }}
-                    className="inline-flex items-center space-x-1"
+                    className="inline-flex items-center space-x-1.5"
                   >
                     <span 
-                      className="inline-block w-2 h-2 rounded-full animate-pulse"
+                      className="inline-block w-1.5 h-1.5 rounded-full"
                       style={{ backgroundColor: mainColor }}
                     />
                     <span 
-                      className="text-xs font-semibold uppercase tracking-wide"
-                      style={{ color: mainColor }}
+                      className="text-xs font-medium tracking-wide text-gray-600"
                     >
-                      New
+                      Unread
                     </span>
                   </motion.span>
                 )}
               </motion.div>
             </div>
 
-            {/* Enhanced Actions */}
+            {/* Softer Actions */}
             <motion.div
-              initial={{ opacity: 0, x: 10 }}
+              initial={{ opacity: 0, x: 8 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 + 0.3 }}
+              transition={{ duration: 0.5, delay: index * 0.1 + 0.4 }}
               className="flex items-center space-x-1 ml-3"
             >
               {!notification.read && (
                 <motion.button
                   whileHover={{ 
-                    scale: 1.1,
-                    backgroundColor: mainColor,
-                    color: "white"
+                    scale: 1.05,
+                    backgroundColor: mutedColor,
                   }}
-                  whileTap={{ scale: 0.9 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleMarkAsRead}
-                  className="p-2 rounded-xl transition-all duration-200 border-2 shadow-sm"
+                  className="p-2 rounded-lg transition-all duration-300 border border-amber-200 shadow-sm"
                   style={{
                     color: mainColor,
-                    backgroundColor: "#fff5e6",
-                    borderColor: mainColor,
+                    backgroundColor: "#fffbeb",
                   }}
                   title="Mark as read"
                 >
-                  <FaCheck className="w-4 h-4" />
+                  <FaCheck className="w-3.5 h-3.5" />
                 </motion.button>
               )}
               
               <motion.button
                 whileHover={{ 
-                  scale: 1.1,
-                  backgroundColor: "#fee2e2",
-                  color: "#dc2626"
+                  scale: 1.05,
+                  backgroundColor: "#fef2f2",
+                  color: "#ef4444"
                 }}
-                whileTap={{ scale: 0.9 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={handleDismiss}
-                className="p-2 text-gray-400 rounded-xl border-2 border-transparent transition-all duration-200 shadow-sm"
+                className="p-2 text-gray-400 rounded-lg border border-gray-200 transition-all duration-300 shadow-sm"
                 title="Dismiss"
               >
-                <FaTimes className="w-4 h-4" />
+                <FaTimes className="w-3.5 h-3.5" />
               </motion.button>
             </motion.div>
           </div>
