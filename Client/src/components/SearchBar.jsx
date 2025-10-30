@@ -44,7 +44,7 @@ export default function SearchBar() {
 
   // Navigate to All Listings page
   const handleAllProducts = () => {
-    navigate("/listings"); // Adjust this route to your all products page
+    navigate("/all-listings"); // Adjust this route to your all products page
   };
 
   return (
