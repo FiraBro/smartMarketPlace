@@ -204,9 +204,9 @@ export default function App() {
 
   return (
     <AuthProvider>
+          <SocketProvider>
       <NotificationProvider>
 
-          <SocketProvider>
       <CartProvider>
         <FavoriteProvider>
           <Suspense fallback={<Spinner />}>
@@ -214,8 +214,8 @@ export default function App() {
           </Suspense>
         </FavoriteProvider>
       </CartProvider>
-          </SocketProvider>
       </NotificationProvider>
+          </SocketProvider>
     </AuthProvider>
   );
 }
