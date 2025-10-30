@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -12,10 +13,11 @@ import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
 import SearchBar from "./SearchBar";
 import { fetchProductsByCategory } from "../service/categoryService";
+import NotificationList from "../components/NotificationList"; // ✅ Import Notifications
 
 export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const navigate = useNavigate();
-  const { user, logout, updateUser } = useAuth(); // ✅ make sure setUser is available in your context
+  const { user, logout } = useAuth();
   const { cart } = useCart();
   const { favorites } = useFavorites();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,14 +35,12 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   return (
     <nav className="bg-white px-4 md:px-6 py-3 shadow-sm relative">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
-        {/* Logo + Become Seller */}
-        <div className="flex items-center gap-4">
-          <div
-            onClick={() => navigate("/")}
-            className="text-2xl font-bold text-blue-600 cursor-pointer flex-shrink-0"
-          >
-            Lo<span className="text-[#f9A03f]">go</span>
-          </div>
+        {/* Logo */}
+        <div
+          onClick={() => navigate("/")}
+          className="text-2xl font-bold text-blue-600 cursor-pointer flex-shrink-0"
+        >
+          Lo<span className="text-[#f9A03f]">go</span>
         </div>
 
         {/* SearchBar (desktop) */}
@@ -83,6 +83,9 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                   </span>
                 )}
               </button>
+
+              {/* 🔔 Notifications */}
+              <NotificationList userType="buyer" />
 
               {/* Profile Dropdown */}
               <div className="relative">
@@ -162,15 +165,6 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           <div className="flex flex-col gap-2">
             {user ? (
               <>
-                {user.role === "buyer" && (
-                  <button
-                    onClick={handleBecomeSeller}
-                    disabled={loading}
-                    className="w-full px-4 py-2 text-blue-600 bg-white border rounded-lg hover:bg-gray-100"
-                  >
-                    {loading ? "Processing..." : "Become a Seller"}
-                  </button>
-                )}
                 <button
                   onClick={openFav}
                   className="w-full px-4 py-2 bg-white border rounded-lg hover:bg-gray-100"
