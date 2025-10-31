@@ -107,7 +107,6 @@ export default function App() {
     { path: "/auth", element: <AuthPage /> },
     { path: "/unauthorized", element: <Unauthorized /> },
 
-    // Seller Routes
     {
       path: "/seller/dashboard",
       element: (
