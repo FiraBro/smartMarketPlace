@@ -137,32 +137,6 @@ const NotificationHeader = ({
           transition={{ duration: 0.4, delay: 0.3 }}
           className="flex items-center justify-end space-x-3 flex-wrap gap-3"
         >
-          {/* Test Real-time Notification Button */}
-          {isConnected && (
-            <motion.button
-              whileHover={{ 
-                scale: 1.05,
-                boxShadow: "0 10px 25px -5px rgba(249, 160, 63, 0.3)"
-              }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onTestNotification(activeTab)}
-              className="flex items-center space-x-2 px-5 py-3 text-white rounded-xl font-semibold transition-all duration-200 shadow-lg border-2 border-transparent"
-              style={{ 
-                backgroundColor: mainColor,
-                background: `linear-gradient(135deg, ${mainColor} 0%, #ea580c 100%)`
-              }}
-            >
-              <motion.div
-                whileHover={{ rotate: 180 }}
-                transition={{ duration: 0.4 }}
-              >
-                <FaBolt className="w-4 h-4" />
-              </motion.div>
-              <span>Test {activeTab}</span>
-            </motion.button>
-          )}
-
-          {/* Refresh Button */}
           <motion.button
             whileHover={{ 
               scale: 1.05,
