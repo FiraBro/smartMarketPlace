@@ -43,19 +43,19 @@ export const createListing = async (payload) => {
 };
 
 // Get all distinct categories
-export const getAllCategories = async () => {
-  try {
-    const { data } = await LISTING_API.get("/listings/categories");
-    return data;
-  } catch (error) {
-    console.error("Error in getAllCategories:", error);
-    if (error.response?.status === 500) {
-      console.warn("Server error fetching categories, returning fallback []");
-      return [];
-    }
-    throw error;
-  }
-};
+// export const getAllCategories = async () => {
+//   try {
+//     const { data } = await LISTING_API.get("/listings/categories");
+//     return data;
+//   } catch (error) {
+//     console.error("Error in getAllCategories:", error);
+//     if (error.response?.status === 500) {
+//       console.warn("Server error fetching categories, returning fallback []");
+//       return [];
+//     }
+//     throw error;
+//   }
+// };
 
 // Search listings
 export const searchListings = async (query, category) => {
@@ -86,18 +86,41 @@ export const getListingById = async (id) => {
   }
 };
 
-// Get all listings with pagination
-export const getAllListings = async (page = 1, limit = 12) => {
+// ✅ Get all listings with pagination, filters, search, and sort
+export const getAllListings = async ({
+  page = 1,
+  limit = 12,
+  sortBy = "newest",
+  q = "",
+  category = "",
+  minPrice,
+  maxPrice,
+} = {}) => {
   try {
-    const res = await LISTING_API.get(`/listings/all`, {
-      params: { page, limit },
+    const params = { page, limit, sortBy };
+    if (q) params.q = q;
+    if (category && category !== "All Products") params.category = category;
+    if (minPrice !== undefined) params.minPrice = minPrice;
+    if (maxPrice !== undefined) params.maxPrice = maxPrice;
+
+    const { data } = await LISTING_API.get(`/listings/all`, { params });
+
+    // Optional: Compute frontend-friendly flags
+    data.items.forEach((item) => {
+      item.isFreeShipping = true;
+      item.isOnSale = item.price < 50;
+      item.isNewArrival = (new Date() - new Date(item.createdAt)) < 30 * 24 * 60 * 60 * 1000; // 30 days
+      item.isBestSeller = (item.popularity || 0) > 100;
     });
-    return res.data;
+
+    return data;
   } catch (error) {
     console.error("Error in getAllListings:", error);
     throw error;
   }
 };
+
+// Update a listing (multipart/form-data)
 export const updateListing = async (id, formData) => {
   try {
     const { data } = await LISTING_API.patch(`/listings/${id}`, formData, {
