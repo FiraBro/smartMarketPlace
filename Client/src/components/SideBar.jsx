@@ -3,7 +3,6 @@ import {
   FaUser,
   FaShoppingBag,
   FaHeart,
-  FaBell,
   FaMapMarkerAlt,
   FaCog,
   FaBars,
@@ -25,7 +24,6 @@ const Sidebar = ({ userData, activeTab, setActiveTab }) => {
       { id: "orders", name: "Orders", icon: FaShoppingBag },
       { id: "addresses", name: "Addresses", icon: FaMapMarkerAlt },
       { id: "settings", name: "Settings", icon: FaCog },
-      { id: "notifications", name: "Notifications", icon: FaBell },
     ],
     []
   );
