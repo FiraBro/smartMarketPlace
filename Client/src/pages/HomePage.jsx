@@ -4,6 +4,7 @@ import MostSoldProductSection from "../components/MostSoldProductSection";
 import { CategorySection } from "../components/CategorySection";
 import { SubscriptionSection } from "../components/SubscriptionSection";
 import PopularProducts from "../components/PopularProducts";
+import HowItWorks from "../components/HowItWorks";
 
 export default function HomePage() {
   return (
@@ -17,6 +18,7 @@ export default function HomePage() {
 
       <PopularProducts />
       <MostSoldProductSection />
+      <HowItWorks />
       <SubscriptionSection />
     </div>
   );
