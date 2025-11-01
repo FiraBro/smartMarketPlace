@@ -65,7 +65,6 @@ export default function App() {
       children: [
         { index: true, element: <HomePage /> },
         { path: "listings/:id", element: <ProductDetail /> },
-        { path: "all-listings", element: <AllListingsPage /> },
         {
           path: "payment/:orderId",
           element: (
@@ -92,6 +91,7 @@ export default function App() {
         },
       ],
     },
+        { path: "all-listings", element: <AllListingsPage /> },
 
     // Profile
     {
