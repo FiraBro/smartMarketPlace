@@ -14,6 +14,7 @@ import Marketing from "./pages/Marketing";
 import Settings from "./pages/Settings";
 import Notifications from "./pages/Notifications";
 import AuthPage from "./pages/AuthPage";
+import BannerManager from "./pages/BannerManagement";
 
 const router = createBrowserRouter([
   {
@@ -32,6 +33,7 @@ const router = createBrowserRouter([
           { path: "admin/marketing", element: <Marketing /> },
           { path: "admin/settings", element: <Settings /> },
           { path: "admin/notifications", element: <Notifications /> },
+          {path:'admin/manage/banners',element:<BannerManager />}
         ],
       },
     ],
