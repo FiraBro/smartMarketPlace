@@ -1,11 +1,11 @@
 // service/newsletterService.js
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export const subscribeNewsletter = async (email) => {
   try {
-    const response = await axios.post(`${API_URL}/api/newsletter/subscribe`, {
+    const response = await axios.post(`${API_URL}/newsletter/subscribe`, {
       email,
     });
     return response.data;
