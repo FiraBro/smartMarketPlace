@@ -13,6 +13,10 @@ const unlinkAsync = promisify(fs.unlink);
 const uploadDir = path.join(process.cwd(), "uploads");
 if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
+// -----------------
+// Helper Functions
+// -----------------
+
 const processImage = async (file) => {
   const ext = path.extname(file.filename).toLowerCase();
   const inputPath = path.join(uploadDir, file.filename);
@@ -41,10 +45,11 @@ const processImage = async (file) => {
   return { url: `/uploads/${file.filename}`, placeholder: placeholderBase64 };
 };
 
+// Build MongoDB query for filters
 const buildQuery = ({ q, category, minPrice, maxPrice, owner, condition }) => {
   const query = {};
   if (q) query.$text = { $search: q };
-  if (category) query.category = new RegExp(`^${category}$`, "i");
+  if (category && category !== "All Products") query.category = new RegExp(`^${category}$`, "i");
   if (owner) query.owner = owner;
   if (condition) query.condition = condition;
   if (minPrice || maxPrice) {
@@ -72,14 +77,7 @@ export const listListings = catchAsync(async (req, res, next) => {
     condition,
   } = req.query;
 
-  const query = buildQuery({
-    q,
-    category,
-    minPrice,
-    maxPrice,
-    owner,
-    condition,
-  });
+  const query = buildQuery({ q, category, minPrice, maxPrice, owner, condition });
 
   const pageNum = Math.max(1, parseInt(page));
   const pageSize = Math.min(60, Math.max(1, parseInt(limit)));
@@ -89,6 +87,72 @@ export const listListings = catchAsync(async (req, res, next) => {
     Listing.find(query).sort(sort).skip(skip).limit(pageSize).lean(),
     Listing.countDocuments(query),
   ]);
+
+  // Optional: add computed flags for frontend special offers
+  items.forEach(item => {
+    item.isFreeShipping = true; // Example logic
+    item.isOnSale = item.price < 50; 
+    item.isNewArrival = (new Date() - new Date(item.createdAt)) < 30*24*60*60*1000; // 30 days
+    item.isBestSeller = (item.popularity || 0) > 100;
+  });
+
+  res.json({
+    page: pageNum,
+    limit: pageSize,
+    total,
+    totalPages: Math.ceil(total / pageSize) || 1,
+    hasNextPage: skip + items.length < total,
+    items,
+  });
+});
+
+export const getAllListings = catchAsync(async (req, res, next) => {
+  const {
+    page = 1,
+    limit = 12,
+    sortBy = "newest",
+    q,
+    category,
+    minPrice,
+    maxPrice,
+  } = req.query;
+
+  const pageNum = Math.max(1, parseInt(page));
+  const pageSize = Math.min(60, Math.max(1, parseInt(limit)));
+  const skip = (pageNum - 1) * pageSize;
+
+  const query = buildQuery({ q, category, minPrice, maxPrice });
+
+  // Determine sort
+  let mongoSort = "-createdAt";
+  switch (sortBy) {
+    case "price_low":
+      mongoSort = "price";
+      break;
+    case "price_high":
+      mongoSort = "-price";
+      break;
+    case "rating":
+      mongoSort = "-rating";
+      break;
+    case "popular":
+      mongoSort = "-popularity";
+      break;
+    default:
+      mongoSort = "-createdAt";
+  }
+
+  const [items, total] = await Promise.all([
+    Listing.find(query).sort(mongoSort).skip(skip).limit(pageSize).lean(),
+    Listing.countDocuments(query),
+  ]);
+
+  items.forEach(item => {
+    item.isFreeShipping = true;
+    item.isOnSale = item.price < 50;
+    item.isNewArrival = (new Date() - new Date(item.createdAt)) < 30*24*60*60*1000;
+    item.isBestSeller = (item.popularity || 0) > 100;
+  });
 
   res.json({
     page: pageNum,
@@ -112,9 +176,7 @@ export const getListingById = catchAsync(async (req, res, next) => {
   const related = await Listing.find({
     category: listing.category,
     _id: { $ne: listing._id },
-  })
-    .limit(4)
-    .lean();
+  }).limit(4).lean();
 
   res.json({ listing, related });
 });
@@ -126,9 +188,7 @@ export const getListingById = catchAsync(async (req, res, next) => {
 export const createListing = catchAsync(async (req, res, next) => {
   const { title, description, price, category, condition, location } = req.body;
   if (!title || !description || !price || !location)
-    return next(
-      new AppError("title, description, and price are required", 400)
-    );
+    return next(new AppError("title, description, price, and location are required", 400));
 
   const files = req.files || [];
   const images = [];
@@ -145,9 +205,10 @@ export const createListing = catchAsync(async (req, res, next) => {
     condition,
     location,
     images,
-    owner: req.session.user._id, // <-- session-based
+    owner: req.session.user._id,
   });
 
+  // Notify newsletter subscribers
   const subscribers = await Newsletter.find({});
   for (const subscriber of subscribers) {
     await sendEmail({
@@ -162,21 +223,13 @@ export const createListing = catchAsync(async (req, res, next) => {
       `,
     });
   }
-  console.log(listing);
+
   res.status(201).json(listing);
 });
 
 export const updateListing = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const {
-    title,
-    description,
-    price,
-    category,
-    condition,
-    location,
-    removeFiles,
-  } = req.body;
+  const { title, description, price, category, condition, location, removeFiles } = req.body;
 
   const listing = await Listing.findById(id);
   if (!listing) return next(new AppError("Listing not found", 404));
@@ -191,10 +244,10 @@ export const updateListing = catchAsync(async (req, res, next) => {
     : [];
 
   if (toRemove.length) {
-    images = images.filter((img) => {
+    images = images.filter(img => {
       if (toRemove.includes(img.url)) {
         const fullPath = path.join(process.cwd(), img.url);
-        fs.unlink(fullPath, (err) => err && console.error(err));
+        fs.unlink(fullPath, err => err && console.error(err));
         return false;
       }
       return true;
@@ -207,68 +260,29 @@ export const updateListing = catchAsync(async (req, res, next) => {
     images.push({ url: processed.url, placeholder: processed.placeholder });
   }
 
-  Object.assign(listing, {
-    title,
-    description,
-    price,
-    category,
-    condition,
-    location,
-    images,
-  });
+  Object.assign(listing, { title, description, price, category, condition, location, images });
   const saved = await listing.save();
   res.json(saved);
 });
+
 export const deleteListing = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-
-  // 1️⃣ Find the listing
   const listing = await Listing.findById(id);
   if (!listing) return next(new AppError("Listing not found", 404));
+  if (String(listing.owner) !== String(req.session.user._id))
+    return next(new AppError("Not allowed", 403));
 
-  // 2️⃣ Check ownership
-  if (String(listing.owner) !== String(req.session.user._id)) {
-    return next(new AppError("Not allowed to delete this listing", 403));
-  }
-
-  // 3️⃣ Delete images from filesystem
   for (const img of listing.images) {
     try {
-      // adjust this based on how you save image paths
       const fullPath = path.join(process.cwd(), img.url);
       await unlinkAsync(fullPath);
     } catch (err) {
       console.error("Error deleting image:", err.message);
-      // don't throw here — allow listing deletion to continue
     }
   }
 
-  // 4️⃣ Delete the listing document
   await listing.deleteOne();
-
-  // 5️⃣ Send success response
   res.status(200).json({ message: "Listing deleted successfully" });
-});
-
-export const getAllListings = catchAsync(async (req, res, next) => {
-  const { page = 1, limit = 12, sort = "-createdAt" } = req.query;
-  const pageNum = Math.max(1, parseInt(page));
-  const pageSize = Math.min(60, Math.max(1, parseInt(limit)));
-  const skip = (pageNum - 1) * pageSize;
-
-  const [items, total] = await Promise.all([
-    Listing.find().sort(sort).skip(skip).limit(pageSize).lean(),
-    Listing.countDocuments(),
-  ]);
-
-  res.json({
-    page: pageNum,
-    limit: pageSize,
-    total,
-    totalPages: Math.ceil(total / pageSize) || 1,
-    hasNextPage: skip + items.length < total,
-    items,
-  });
 });
 
 export const getCategories = catchAsync(async (req, res, next) => {
