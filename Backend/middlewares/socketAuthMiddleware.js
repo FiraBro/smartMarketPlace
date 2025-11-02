@@ -1,20 +1,18 @@
-// Dev version: expects { userId } in socket.handshake.auth
+// middlewares/socketAuthMiddleware.js
 export const protectSocket = (socket, next) => {
-  const { userId, token } = socket.handshake.auth || {};
-
-  if (!userId && !token) {
-    return next(new Error("Authentication required"));
+  console.log('🔐 Socket handshake session:', socket.request.session);
+  
+  // Get user from session (same as your HTTP routes)
+  const user = socket.request.session?.user;
+  
+  if (!user || !user._id) {
+    console.log('❌ Socket authentication failed: No user in session');
+    return next(new Error("Authentication required: Please log in"));
   }
 
-  // Simple dev auth: attach userId
-  socket.user = { _id: userId };
-
-  // Optional: JWT verification examples
-  // import jwt from 'jsonwebtoken';
-  // try {
-  //   const decoded = jwt.verify(token, process.env.JWT_SECRET);
-  //   socket.user = decoded;
-  // } catch(err) { return next(new Error("Invalid token")); }
+  // Attach user to socket
+  socket.user = user;
+  console.log(`✅ Socket authenticated for user: ${user.name} (${user._id})`);
 
   next();
 };
