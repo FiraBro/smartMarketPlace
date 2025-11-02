@@ -1,5 +1,5 @@
 // services/sellerService.js
-import Seller from "../models/seller.js";
+import Seller from "../models/Seller.js";
 import Listing from "../models/Listing.js";
 import Order from "../models/Order.js";
 
