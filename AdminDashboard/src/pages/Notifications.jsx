@@ -1,22 +1,69 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { io } from "socket.io-client";
 import NotificationManager from "../components/notification/NotificationManager";
 import NotificationHistory from "../components/notification/NotificationHistory";
 import NotificationTemplates from "../components/notification/NotificationTemplate";
 import { useAdminNotifications } from "../hooks/useAdminNotification";
+import { useNotifications } from "../hooks/useNotification";
 
 export default function Notifications() {
   const [activeTab, setActiveTab] = useState("send");
 
-  // ⚡ Keep all state here
+  // ⚡ Use your custom hook
   const notificationsHook = useAdminNotifications();
-  const { notifications, fetchHistory } = notificationsHook;
+  const { notifications, setNotifications, fetchHistory } = notificationsHook;
+  const {fetchNotifications} = useNotifications()
 
-  // Fetch notifications on mount
+  // ---------------------------- Socket.IO Setup ---------------------------- //
   useEffect(() => {
+    // Connect to Socket.IO with session cookies
+    const socket = io("http://localhost:5000", {
+      withCredentials: true, // important for session-based auth
+    });
+
+    socket.on("connect", () => {
+      console.log("✅ Connected to Socket.IO server:", socket.id);
+    });
+
+    // Listen for real-time notifications
+    socket.on("notification", (notification) => {
+      console.log("🔔 New notification received:", notification);
+      // Prepend to current notifications
+      setNotifications((prev) => [notification, ...prev]);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("❌ Socket disconnected");
+    });
+
+    // Cleanup on unmount
+    return () => {
+      socket.disconnect();
+    };
+  }, [setNotifications]);
+
+  // ---------------------------- Fetch initial notifications ---------------------------- //
+  useEffect(() => {
+  
     fetchHistory();
   }, [fetchHistory]);
+ 
+// ---------------------------- Fetch user notifications for debugging ---------------------------- //
+useEffect(() => {
+  const fetchAndLogNotifications = async () => {
+    try {
+      const data = await fetchNotifications(); // call your API function
+      console.log("📨 Fetched notifications:", data);
+    } catch (err) {
+      console.error("❌ Error fetching notifications:", err);
+    }
+  };
 
+  fetchAndLogNotifications();
+}, [fetchNotifications]);
+
+  // ---------------------------- Render ---------------------------- //
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -29,11 +76,7 @@ export default function Notifications() {
         <nav className="-mb-px flex space-x-8">
           {[
             { id: "send", name: "Send Notification", count: null },
-            {
-              id: "history",
-              name: "Notification History",
-              count: notifications.length,
-            },
+            { id: "history", name: "Notification History", count: notifications.length },
             { id: "templates", name: "Templates", count: 0 },
           ].map((tab) => (
             <button
@@ -65,8 +108,8 @@ export default function Notifications() {
       >
         {activeTab === "send" && (
           <NotificationManager
-            notificationsHook={notificationsHook} // pass hook to update state
-            onSend={fetchHistory} // automatically refresh after sending
+            notificationsHook={notificationsHook}
+            onSend={fetchHistory} // refresh after sending
           />
         )}
         {activeTab === "history" && (
