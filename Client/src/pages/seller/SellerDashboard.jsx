@@ -101,7 +101,7 @@ export default function SellerDashboard() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="bg-indigo-100/60 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 shadow-sm border border-indigo-100"
+            className="bg-[#fff] rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 sm:p-6 shadow-sm border border-indigo-100"
           >
             <div>
               <h2 className="text-xl sm:text-2xl font-semibold text-[#000]">
