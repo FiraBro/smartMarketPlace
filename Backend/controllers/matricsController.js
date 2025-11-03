@@ -39,6 +39,7 @@ export const getPopularProducts = catchAsync(async (req, res, next) => {
 
   // map only the listing object
   const products = popular.map((p) => p.product);
+  console.log(products)
 
   res.json({
     page: 1,
