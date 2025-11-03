@@ -42,8 +42,8 @@ export const Footer = () => {
                   support@smartmarketplace.com
                 </li>
                 <li className="flex items-center gap-2">
-                  <FaMapMarkerAlt className="text-amber-300" /> 123 Market
-                  Street, New York, USA
+                  <FaMapMarkerAlt className="text-amber-300" /> Konel
+                  Street, Dire Dawa, Ethiopia
                 </li>
               </ul>
             </div>
@@ -129,31 +129,45 @@ export const Footer = () => {
         </div>
       </footer>
 
-      {/* Popup Modal with Animation */}
-      <AnimatePresence>
-        {activePage && (
-          <motion.div
-            className="fixed inset-0  bg-black/40  bg-opacity-70 flex justify-center items-start z-50"
-            initial={{ y: "-100%", opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: "-100%", opacity: 0 }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-          >
-            <div className="bg-white rounded-2xl shadow-lg w-11/12 md:w-3/4 lg:w-1/2 p-6 mt-10 relative">
-              {/* Close button */}
-              <button
-                onClick={() => setActivePage(null)}
-                className="absolute top-4 right-4 text-gray-600 hover:text-red-500 text-xl"
-              >
-                ✕
-              </button>
+     {/* Popup Modal with Animation */}
+<AnimatePresence>
+  {activePage && (
+    <motion.div
+      className="fixed inset-0 backdrop-blur-sm bg-black/60 flex justify-center items-center z-50"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+    >
+      <motion.div
+        className="relative bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl rounded-3xl w-11/12 md:w-3/4 lg:w-1/2 p-8 overflow-y-auto max-h-[90vh]"
+        initial={{ scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.8, opacity: 0 }}
+        transition={{ duration: 0.4, ease: 'easeInOut' }}
+      >
+        {/* Close Button */}
+        <button
+          onClick={() => setActivePage(null)}
+          className="absolute top-4 right-4 text-white bg-red-500 hover:bg-red-600 transition p-2 rounded-full shadow-md"
+        >
+          ✕
+        </button>
 
-              {/* Render Component */}
-              {pageComponents[activePage]}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        {/* Header */}
+        <h2 className="text-2xl font-semibold text-white mb-6 text-center drop-shadow-md">
+          {activePage}
+        </h2>
+
+        {/* Render Dynamic Page Component */}
+        <div className="text-gray-200">
+          {pageComponents[activePage]}
+        </div>
+      </motion.div>
+    </motion.div>
+  )}
+</AnimatePresence>
+
     </>
   );
 };
