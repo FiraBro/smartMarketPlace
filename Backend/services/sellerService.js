@@ -33,17 +33,30 @@ export const getSeller = async (userId) => {
 };
 
 export const updateSeller = async ({ userId, data, files }) => {
+  console.log(`user ID:${userId}`);
+
   const updates = { ...data };
 
   if (files?.logo) updates.logo = `/uploads/${files.logo[0].filename}`;
   if (files?.banner) updates.banner = `/uploads/${files.banner[0].filename}`;
 
-  const seller = await Seller.findOneAndUpdate({ user: userId }, updates, {
-    new: true,
-  });
-  if (!seller) throw new Error("Seller profile not found");
+  let seller = await Seller.findOne({ user: userId });
+
+  if (!seller) {
+    // Create new seller if doesn't exist
+    seller = await Seller.create({
+      user: userId,
+      ...updates,
+    });
+    return seller;
+  }
+
+  // If exists, update it
+  Object.assign(seller, updates);
+  await seller.save();
   return seller;
 };
+
 
 // ---------------------
 // Seller Products Services
