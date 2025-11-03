@@ -4,21 +4,23 @@ import axios from "axios";
 // Base API
 const PRODUCT_API = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  withCredentials:true
 });
 
 // Attach token if available
-PRODUCT_API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
+PRODUCT_API.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API Error:", error.response?.data || error.message);
+    return Promise.reject(error);
+  }
+);
 // Track product view
 export const trackProductView = async (productId) => {
   if (!productId) throw new Error("Product ID is required");
   const { data } = await PRODUCT_API.post(`/metrics/view/${productId}`);
+  console.log(data)
   return data; // { product, views }
 };
 
