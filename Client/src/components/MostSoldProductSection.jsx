@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaChevronLeft, FaChevronRight, FaExclamationTriangle, FaShoppingBag } from "react-icons/fa";
 import ProductCard from "./ProductCard";
 import { getTopSellingProducts } from "../service/productService";
 import { addToCart } from "../service/cartService";
@@ -10,10 +10,12 @@ const MostSoldProductSection = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
   useEffect(() => {
     const fetchTopSelling = async () => {
       try {
         setLoading(true);
+        setError(null);
         const res = await getTopSellingProducts();
 
         // Handle both array or { items: [] } API responses
@@ -21,7 +23,7 @@ const MostSoldProductSection = () => {
         setProducts(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch top selling products", err);
-        setError("Failed to load top selling products ❌");
+        setError("Unable to load trending products. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -34,10 +36,7 @@ const MostSoldProductSection = () => {
     if (!carouselRef.current) return;
 
     const container = carouselRef.current;
-    const firstCard = container.querySelector(".flex-shrink-0");
-    if (!firstCard) return;
-
-    const scrollAmount = container.offsetWidth; // Scroll by viewport width
+    const scrollAmount = container.offsetWidth;
     let nextScroll =
       direction === "next"
         ? container.scrollLeft + scrollAmount
@@ -62,65 +61,123 @@ const MostSoldProductSection = () => {
     }
   };
 
+  const handleRetry = () => {
+    window.location.reload();
+  };
+
   if (loading) {
-    return <Spinner />;
+    return (
+      <section className="py-12 bg-gray-50">
+        <div className="max-w-[85rem] mx-auto px-4">
+          <div className="flex justify-center items-center min-h-[400px]">
+            <Spinner />
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
-    <section className="py-6 bg-white">
+    <section className="py-12 bg-gray-50">
       <div className="max-w-[85rem] mx-auto relative px-4">
-        <h2 className="text-3xl font-bold mb-6">Most Sold Products</h2>
+        <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+          Most Sold Products
+        </h2>
 
-        {error && <p className="text-center text-red-500 mb-4">{error}</p>}
+        {/* Error State */}
+        {error && (
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+            <div className="bg-red-50 rounded-full p-4 mb-4">
+              <FaExclamationTriangle className="h-12 w-12 text-red-500" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              Something went wrong
+            </h3>
+            <p className="text-gray-600 mb-6 max-w-md">{error}</p>
+            <button
+              onClick={handleRetry}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors duration-300 font-medium"
+            >
+              Try Again
+            </button>
+          </div>
+        )}
 
-        {/* Navigation buttons - only show if there are products */}
-        {products.length > 0 && (
+        {/* Empty State */}
+        {!error && products.length === 0 && (
+          <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+            <div className="bg-gray-100 rounded-full p-4 mb-4">
+              <FaShoppingBag className="h-12 w-12 text-gray-400" />
+            </div>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">
+              No Trending Products
+            </h3>
+            <p className="text-gray-600 mb-2">
+              There are no top-selling products at the moment.
+            </p>
+            <p className="text-gray-500 text-sm">
+              Check back later for popular items.
+            </p>
+          </div>
+        )}
+
+        {/* Products Carousel */}
+        {!error && products.length > 0 && (
           <>
+            {/* Navigation buttons */}
             <button
               onClick={() => scroll("prev")}
               className="absolute left-0 top-1/2 transform -translate-y-1/2 
-                         bg-gray-200 p-3 rounded-full hover:bg-gray-300 
-                         transition-colors duration-300 z-10"
+                         bg-white p-3 rounded-full hover:bg-gray-100 
+                         transition-all duration-300 z-10 shadow-lg hover:shadow-xl
+                         border border-gray-200 hover:scale-105"
+              aria-label="Previous products"
             >
-              <FaChevronLeft className="h-5 w-5" />
+              <FaChevronLeft className="h-5 w-5 text-gray-700" />
             </button>
 
             <button
               onClick={() => scroll("next")}
               className="absolute right-0 top-1/2 transform -translate-y-1/2 
-                         bg-gray-200 p-3 rounded-full hover:bg-gray-300 
-                         transition-colors duration-300 z-10"
+                         bg-white p-3 rounded-full hover:bg-gray-100 
+                         transition-all duration-300 z-10 shadow-lg hover:shadow-xl
+                         border border-gray-200 hover:scale-105"
+              aria-label="Next products"
             >
-              <FaChevronRight className="h-5 w-5" />
+              <FaChevronRight className="h-5 w-5 text-gray-700" />
             </button>
+
+            {/* Carousel Container */}
+            <div
+              ref={carouselRef}
+              className="flex overflow-x-auto scrollbar-hide scroll-smooth p-4 gap-6"
+              style={{ minHeight: "420px" }}
+            >
+              {products.map((product) => (
+                <div
+                  key={product._id || product.id}
+                  className="flex-shrink-0 transform transition-transform duration-300 hover:scale-105"
+                  style={{ width: "280px" }} // Fixed width for consistent cards
+                >
+                  <ProductCard
+                    product={product.product}
+                    onAddToCart={handleAddToCart}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Scroll indicator */}
+            <div className="flex justify-center mt-6 space-x-2">
+              {products.map((_, index) => (
+                <div
+                  key={index}
+                  className="w-2 h-2 rounded-full bg-gray-300 opacity-50"
+                />
+              ))}
+            </div>
           </>
         )}
-
-        {/* Carousel */}
-        <div
-          ref={carouselRef}
-          className="flex overflow-hidden scroll-smooth p-2"
-          style={{ minHeight: "380px" }}
-        >
-          {error ? (
-            <p className="text-center w-full text-red-500">{error}</p>
-          ) : products.length > 0 ? (
-            products.map((product) => (
-              <div
-                key={product._id || product.id}
-                className="flex-shrink-0 px-3 flex
-                           w-1/2 sm:w-1/3 md:w-1/4 lg:w-1/5"
-              >
-                <ProductCard
-                  product={product.product}
-                  onAddToCart={handleAddToCart}
-                />
-              </div>
-            ))
-          ) : (
-            <p className="text-center w-full">No top selling products found</p>
-          )}
-        </div>
       </div>
     </section>
   );
