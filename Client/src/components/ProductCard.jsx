@@ -86,7 +86,7 @@ export default function ProductCard({ product }) {
 
         <div className="mt-2 flex items-center justify-between">
           <p className="text-[#000] font-bold text-2xl">
-            Br {normalized.price}
+            $ {normalized.price}
           </p>
           <button
             onClick={handleAddToCart}
