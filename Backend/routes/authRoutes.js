@@ -2,6 +2,7 @@ import express from "express";
 import { protect } from "../middlewares/authMiddleware.js";
 import * as authController from "../controllers/authController.js";
 import * as oauthController from "../controllers/oauthController.js";
+import { upload } from "../middlewares/upload.js"; // your multer setup
 
 const router = express.Router();
 
@@ -10,7 +11,7 @@ const router = express.Router();
 // ---------------------
 router.post("/register", authController.registerUser);
 router.post("/login", authController.loginUser);
-router.get("/me", protect, authController.getMe);
+router.get("/me", protect, upload.single("avatar"),authController.getMe);
 router.put("/me", protect, authController.updateMe);
 router.post("/logout", protect, authController.logoutUser);
 router.get("/check", authController.checkAuth);
