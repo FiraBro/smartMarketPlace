@@ -1,6 +1,7 @@
-import React, { useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { useLocation } from "react-router-dom";
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaClock } from "react-icons/fa";
+import { sendSupportMessage } from "../service/supportService";
 
 const ContactPage = () => {
   const location = useLocation();
@@ -12,17 +13,27 @@ const ContactPage = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
-      alert("Thank you for your message! We'll get back to you within 24 hours.");
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setIsSubmitting(true);
+
+  try {
+    const data = await sendSupportMessage(formData);
+    if (data.success) {
+      alert("Message sent successfully!");
       setFormData({ name: "", email: "", subject: "", message: "" });
-    }, 2000);
-  };
+    } else {
+      alert(data.message);
+    }
+  } catch (err) {
+    alert(err.message);
+    console.log(err)
+  }
+
+  setIsSubmitting(false);
+};
+
 
   const handleChange = (e) => {
     setFormData({
@@ -60,7 +71,7 @@ const ContactPage = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Header - Removed back button */}
+      {/* Header */}
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center py-8">
@@ -80,22 +91,18 @@ const ContactPage = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+
           {/* Contact Information */}
           <div>
-            <h2 className="text-4xl font-bold text-gray-900 mb-6">
-              Get in Touch
-            </h2>
+            <h2 className="text-4xl font-bold text-gray-900 mb-6">Get in Touch</h2>
             <p className="text-gray-600 text-lg mb-8">
-              Have questions about our products or services? We're here to help. 
-              Reach out to us through any of the channels below.
+              Have questions about our products or services? We're here to help. Reach out to us through any of the channels below.
             </p>
 
             <div className="space-y-6">
               {contactInfo.map((item, index) => (
                 <div key={index} className="flex items-start space-x-4 p-6 bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100">
-                  <div className="bg-amber-100 p-3 rounded-xl text-amber-600">
-                    {item.icon}
-                  </div>
+                  <div className="bg-amber-100 p-3 rounded-xl text-amber-600">{item.icon}</div>
                   <div>
                     <h3 className="font-semibold text-gray-900 text-lg">{item.title}</h3>
                     <p className="text-gray-900 font-medium">{item.details}</p>
@@ -123,9 +130,7 @@ const ContactPage = () => {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Full Name *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
                   <input
                     type="text"
                     name="name"
@@ -137,9 +142,7 @@ const ContactPage = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Email Address *
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
                   <input
                     type="email"
                     name="email"
@@ -151,11 +154,9 @@ const ContactPage = () => {
                   />
                 </div>
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Subject *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subject *</label>
                 <input
                   type="text"
                   name="subject"
@@ -166,11 +167,9 @@ const ContactPage = () => {
                   placeholder="What is this regarding?"
                 />
               </div>
-              
+
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Message *
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Message *</label>
                 <textarea
                   name="message"
                   value={formData.message}
@@ -179,9 +178,9 @@ const ContactPage = () => {
                   rows="6"
                   className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent transition-all duration-200 resize-none"
                   placeholder="Please describe your inquiry in detail..."
-                ></textarea>
+                />
               </div>
-              
+
               <button
                 type="submit"
                 disabled={isSubmitting}
@@ -196,7 +195,7 @@ const ContactPage = () => {
                   "Send Message"
                 )}
               </button>
-              
+
               <p className="text-gray-500 text-sm text-center">
                 We typically respond within 24 hours during business days.
               </p>
