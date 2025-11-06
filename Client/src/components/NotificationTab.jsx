@@ -1,5 +1,3 @@
-// src/components/NotificationTabs.jsx
-import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   FaInfoCircle, 
@@ -10,8 +8,15 @@ import {
   FaThList 
 } from 'react-icons/fa';
 
-const NotificationTabs = ({ activeTab, setActiveTab, counts, unreadCounts }) => {
-  const tabs = [
+const NotificationTabs = ({
+  activeTab,
+  setActiveTab,
+  counts = {},       // default empty object
+  unreadCounts = {}, // default empty object
+  role = 'buyer'     // default to buyer
+}) => {
+  // All possible tabs
+  const allTabs = [
     { id: 'all', label: 'All', icon: FaThList, color: 'text-gray-600' },
     { id: 'info', label: 'Information', icon: FaInfoCircle, color: 'text-blue-600' },
     { id: 'alert', label: 'Alerts', icon: FaExclamationTriangle, color: 'text-red-600' },
@@ -20,13 +25,17 @@ const NotificationTabs = ({ activeTab, setActiveTab, counts, unreadCounts }) => 
     { id: 'payment', label: 'Payments', icon: FaDollarSign, color: 'text-purple-600' },
   ];
 
+  // Filter tabs based on role
+  const tabs = allTabs.filter(tab => {
+    if (role === 'buyer') {
+      return ['all', 'info', 'reminder', 'order'].includes(tab.id);
+    }
+    // Seller sees all tabs
+    return true;
+  });
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="mb-6"
-    >
+    <motion.div className="mb-6">
       <div className="flex space-x-1 overflow-x-auto pb-2 scrollbar-hide">
         {tabs.map((tab) => {
           const IconComponent = tab.icon;
@@ -37,39 +46,15 @@ const NotificationTabs = ({ activeTab, setActiveTab, counts, unreadCounts }) => 
           return (
             <motion.button
               key={tab.id}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium transition-all duration-200 whitespace-nowrap ${
-                isActive
-                  ? 'bg-white text-gray-900 shadow-md border border-gray-200'
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+              className={`flex items-center space-x-2 px-4 py-2 rounded-md transition ${
+                isActive ? 'bg-gray-200' : 'bg-white hover:bg-gray-100'
               }`}
             >
-              <IconComponent className={`w-4 h-4 ${isActive ? tab.color : ''}`} />
+              <IconComponent className={tab.color} />
               <span>{tab.label}</span>
-              
-              {/* Count Badge */}
-              {count > 0 && (
-                <span className={`px-2 py-1 text-xs rounded-full font-semibold ${
-                  isActive 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'bg-gray-200 text-gray-700'
-                }`}>
-                  {count}
-                </span>
-              )}
-              
-              {/* Unread Indicator */}
-              {unreadCount > 0 && (
-                <motion.span
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className={`w-2 h-2 rounded-full ${
-                    isActive ? 'bg-blue-500' : 'bg-red-500'
-                  }`}
-                />
-              )}
+              {count > 0 && <span className="text-sm text-gray-500">({count})</span>}
+              {unreadCount > 0 && <span className="text-sm text-red-500">•</span>}
             </motion.button>
           );
         })}
