@@ -86,18 +86,23 @@ export const updateMe = catchAsync(async (req, res, next) => {
   if (phone) updates.phone = phone;
   if (password) updates.password = await bcrypt.hash(password, 10);
 
+  // Handle uploaded avatar
+  if (req.file) {
+    updates.avatar = `/uploads/${req.file.filename}`;
+  }
+
   const updatedUser = await User.findByIdAndUpdate(
     req.session.user._id,
     updates,
     { new: true, runValidators: true }
   );
 
-  // Update session user
   req.session.user = {
     _id: updatedUser._id,
     name: updatedUser.name,
     email: updatedUser.email,
     role: updatedUser.role,
+    avatar: updatedUser.avatar,
   };
 
   res.json({
@@ -105,6 +110,7 @@ export const updateMe = catchAsync(async (req, res, next) => {
     user: req.session.user,
   });
 });
+
 
 // ---------------------
 // ✅ Logout

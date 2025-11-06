@@ -1,4 +1,4 @@
-import { createSupportMessage } from "../services/supportService.js";
+import { createSupportMessage } from "../service/supportService.js";
 import catchAsync from "../utils/catchAsync.js";
 
 export const sendSupportMessage = catchAsync(async (req, res) => {
