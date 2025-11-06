@@ -1,72 +1,38 @@
-import React, { useState, useEffect } from "react";
+import React, { useRef, useState} from "react";
 import { FaCheck, FaEdit } from "react-icons/fa";
 import { updateProfile } from "../service/AuthService";
-import {
-  sendVerificationCode,
-  verifyCode,
-} from "../service/verificationService";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const ProfileTab = ({ userData, setUserData, updateUser }) => {
-  const [verified, setVerified] = useState({ email: false, phone: false });
-  const [loading, setLoading] = useState({ email: false, phone: false });
-  const [code, setCode] = useState({ email: "", phone: "" });
+  const fileInputRef = useRef(null);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
 
-  useEffect(() => {
-    setVerified({
-      email: userData?.emailVerified || false,
-      phone: userData?.phoneVerified || false,
-    });
-  }, [userData]);
+  // Handle image selection
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
 
-  // Profile update
+    setSelectedImageFile(file);
+    const imageURL = URL.createObjectURL(file);
+    setUserData({ ...userData, avatar: imageURL });
+  };
+
+  // Save profile (with image)
   const handleProfileUpdate = async () => {
     try {
-      const updatedUser = await updateProfile(userData);
+      const formData = new FormData();
+      formData.append("name", userData.name);
+      formData.append("email", userData.email);
+      formData.append("phone", userData.phone);
+      if (selectedImageFile) formData.append("avatar", selectedImageFile);
+
+      const updatedUser = await updateProfile(formData); // FormData is detected
       updateUser(updatedUser);
       toast.success("Profile updated successfully!");
     } catch (err) {
       console.error(err);
       toast.error("Failed to update profile.");
-    }
-  };
-
-  // Send verification code
-  const handleSendCode = async (field) => {
-    try {
-      setLoading({ ...loading, [field]: true });
-      await sendVerificationCode(field);
-      toast.info(`Verification code sent to your ${field}.`);
-    } catch (err) {
-      console.error(err);
-      toast.error(`Failed to send code to ${field}.`);
-    } finally {
-      setLoading({ ...loading, [field]: false });
-    }
-  };
-
-  // Verify code
-  const handleVerify = async (field) => {
-    try {
-      setLoading({ ...loading, [field]: true });
-      const updatedUser = await verifyCode(field, code[field].toString());
-
-      setVerified({ ...verified, [field]: true });
-      setUserData(updatedUser);
-      updateUser(updatedUser);
-
-      toast.success(
-        `${
-          field.charAt(0).toUpperCase() + field.slice(1)
-        } verified successfully!`
-      );
-      setCode({ ...code, [field]: "" });
-    } catch (err) {
-      console.error(err);
-      toast.error(`Invalid code for ${field}.`);
-    } finally {
-      setLoading({ ...loading, [field]: false });
     }
   };
 
@@ -82,90 +48,54 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
         {/* Profile Photo */}
         <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 mb-6">
           <img
-            className="h-20 w-20 rounded-full object-cover border-2 border-primary-500"
+            className="h-20 w-20 rounded-full object-cover border border-gray-200"
             src={userData.avatar}
             alt="Profile"
           />
-          <div className="w-full sm:w-auto">
-            <button className="flex items-center justify-center sm:justify-start space-x-2 px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors text-sm font-medium w-full sm:w-auto">
-              <FaEdit className="w-4 h-4" />
-              <span>Change Photo</span>
-            </button>
-          </div>
-        </div>
+
+          {/* Hidden file input */}
+          <input
+            type="file"
+            accept="image/*"
+            ref={fileInputRef}
+            onChange={handleImageChange}
+            className="hidden"
+          />
+
+        <button
+  type="button"
+  onClick={() => fileInputRef.current.click()}
+  className="flex items-center justify-center space-x-2 px-4 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+>
+  <FaEdit className="w-4 h-4" />
+</button>
+
+      </div>
 
         {/* Input Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {["name", "email", "phone"].map((field) => (
-            <div key={field} className="relative">
+            <div key={field}>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 {field.charAt(0).toUpperCase() + field.slice(1)}
               </label>
               <input
                 type={field === "email" ? "email" : "text"}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 ${
-                  field === "email" || field === "phone" ? "pr-28" : ""
-                }`}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
                 value={userData[field]}
                 onChange={(e) =>
                   setUserData({ ...userData, [field]: e.target.value })
                 }
               />
-
-              {/* Verification Inputs */}
-              {(field === "email" || field === "phone") && !verified[field] && (
-                <div className="absolute top-1/2 right-2 -translate-y-1/2 flex items-center space-x-1">
-                  <input
-                    type="text"
-                    placeholder="Code"
-                    value={code[field]}
-                    onChange={(e) =>
-                      setCode({ ...code, [field]: e.target.value })
-                    }
-                    className="px-2 py-1 border border-gray-300 rounded-lg w-16 text-sm"
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      code[field] ? handleVerify(field) : handleSendCode(field)
-                    }
-                    className="px-3 py-1 rounded-lg text-sm font-medium bg-black text-white hover:bg-gray-800 transition-colors"
-                    disabled={loading[field]}
-                  >
-                    {loading[field] ? "..." : code[field] ? "Verify" : "Send"}
-                  </button>
-                </div>
-              )}
-
-              {/* Verified Indicator */}
-              {verified[field] && (
-                <FaCheck className="absolute right-2 top-1/2 -translate-y-1/2 text-green-600 w-5 h-5" />
-              )}
             </div>
           ))}
-
-          {/* Join Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Member Since
-            </label>
-            <input
-              type="text"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-600"
-              value={userData.joinDate}
-              disabled
-            />
-          </div>
         </div>
 
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row justify-end sm:space-x-3 mt-6 space-y-2 sm:space-y-0">
-          <button className="px-6 py-2 border border-gray-300 text-gray-700 cursor-pointer rounded-lg hover:bg-gray-50 transition-colors font-medium w-full sm:w-auto">
-            Cancel
-          </button>
+        {/* Save Button */}
+        <div className="flex justify-end mt-6">
           <button
             onClick={handleProfileUpdate}
-            className="flex items-center justify-center sm:justify-start space-x-2 px-6 py-2 bg-[#f9A03f] border border-gray-300 text-white rounded-lg hover:bg-[#faa64d] transition-colors font-medium w-full sm:w-auto"
+            className="flex items-center space-x-2 px-6 py-2 bg-[#f9A03f] text-white rounded-lg hover:bg-[#faa64d] transition-colors font-medium"
           >
             <FaCheck className="w-4 h-4" />
             <span>Save Changes</span>
