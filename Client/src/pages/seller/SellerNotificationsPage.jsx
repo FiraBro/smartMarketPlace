@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { useSocket } from '../../context/SocketContext';
 import { useNotification } from '../../context/NotificationContext';
+import { useAuth } from '../../context/AuthContext';
 import { 
   fetchNotifications, 
   markAsRead, 
@@ -21,6 +22,8 @@ const NotificationPage = () => {
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
+
+  const {user} = useAuth()
   
   const { socket, isConnected, notifications: realTimeNotifications } = useSocket();
   const { updateUnreadCount, decrementUnreadCount, markAllAsRead: markAllAsReadGlobal } = useNotification();
@@ -254,12 +257,14 @@ const NotificationPage = () => {
         />
 
         {/* Tabs */}
-        <NotificationTabs
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          counts={notificationCounts}
-          unreadCounts={unreadCounts}
-        />
+       <NotificationTabs
+  activeTab={activeTab}
+  setActiveTab={setActiveTab}
+  counts={notificationCounts}
+  unreadCounts={unreadCounts || {}}
+  role={user.role}
+/>
+
 
         {/* Notifications List */}
         <motion.div
