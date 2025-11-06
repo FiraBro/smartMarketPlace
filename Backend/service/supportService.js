@@ -1,4 +1,4 @@
-import SupportMessage from "../models/SupportMessage.js";
+import supportMessage from "../models/SupportMessage.js";
 import AppError from "../utils/AppError.js";
 
 export const createSupportMessage = async (data) => {
@@ -8,7 +8,7 @@ export const createSupportMessage = async (data) => {
     throw new AppError("All fields are required", 400);
   }
 
-  const newMessage = await SupportMessage.create({
+  const newMessage = await supportMessage.create({
     name,
     email,
     subject,
