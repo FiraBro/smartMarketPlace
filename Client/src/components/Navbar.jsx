@@ -16,6 +16,7 @@ import { useFavorites } from "../context/FavoriteContext";
 import SearchBar from "./SearchBar";
 import { fetchProductsByCategory } from "../service/categoryService";
 import NotificationList from "../components/NotificationList";
+import { useNotification } from "../context/NotificationContext";
 
 export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const navigate = useNavigate();
@@ -25,6 +26,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+    const { unreadCount } = useNotification();
 
   const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalFavItems = favorites?.length || 0;
@@ -44,10 +46,10 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           className="flex items-center gap-2 cursor-pointer group flex-shrink-0"
         >
           <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-2 rounded-xl shadow-md transform group-hover:scale-105 transition-transform duration-300">
-            <span className="text-2xl font-black text-white">S</span>
+            <span className="text-2xl font-black text-white">Wait</span>
           </div>
           <div className="text-2xl font-black text-gray-900 tracking-tight">
-            Shop<span className="text-amber-500">Hub</span>
+            Until<span className="text-amber-500">Finish</span>
           </div>
         </div>
 
@@ -107,9 +109,11 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
               </button>
 
               {/* Notifications */}
-              <div className="relative">
-                <NotificationList userType="buyer" />
-              </div>
+              {unreadCount > 0 && (   // <-- only show bell if there are notifications
+                <div className="relative">
+                  <NotificationList userType={user.role} />
+                </div>
+              )}
 
               {/* Profile Dropdown */}
               <div className="relative">
@@ -137,7 +141,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                       }}
                       className="block w-full text-left px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors duration-200"
                     >
-                      👤 My Profile
+                       My Profile
                     </button>
                     <button
                       onClick={() => {
@@ -146,13 +150,13 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                       }}
                       className="block w-full text-left px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors duration-200"
                     >
-                      📦 My Orders
+                       My Orders
                     </button>
                     <button
                       onClick={handleLogout}
                       className="block w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors duration-200 border-t border-gray-100 mt-2"
                     >
-                      🚪 Logout
+                       Logout
                     </button>
                   </div>
                 )}
@@ -282,14 +286,14 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                   }}
                   className="w-full text-left p-4 bg-amber-50 border border-amber-200 rounded-xl hover:shadow-md transition-all duration-300 text-amber-900 font-semibold"
                 >
-                  👤 My Profile
+                   My Profile
                 </button>
 
                 <button
                   onClick={handleLogout}
                   className="w-full text-left p-4 bg-red-50 border border-red-200 rounded-xl hover:shadow-md transition-all duration-300 text-red-600 font-semibold"
                 >
-                  🚪 Logout
+                   Logout
                 </button>
               </>
             ) : (
@@ -301,7 +305,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                   }}
                   className="w-full p-4 bg-gray-50 border border-gray-200 rounded-xl hover:shadow-md transition-all duration-300 font-semibold text-gray-700"
                 >
-                  🔐 Login
+                   Login
                 </button>
                 <button
                   onClick={() => {
@@ -310,7 +314,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                   }}
                   className="w-full p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 shadow-md transition-all duration-300 font-semibold"
                 >
-                  🚀 Get Started
+                  Get Started
                 </button>
               </>
             )}
