@@ -121,20 +121,19 @@ export const Footer = () => {
               </li>
               <li className="flex items-center gap-2 text-gray-400">
                 <FaPhone className="text-amber-300" /> 
-                <span>+1 234 567 890</span>
+                <span>+251932302873</span>
               </li>
               <li className="flex items-center gap-2 text-gray-400">
                 <FaEnvelope className="text-amber-300" /> 
-                <span>support@shophub.com</span>
+                <span>jemalfiragos@gmail.com</span>
               </li>
               <li className="flex items-center gap-2 text-gray-400">
                 <FaMapMarkerAlt className="text-amber-300" /> 
-                <span>123 Market Street, New York, USA</span>
+                <span>KOnel, Dire Dawa, Ethiopia</span>
               </li>
             </ul>
           </div>
 
-          {/* Newsletter Signup */}
         </div>
 
         {/* Bottom Section */}
