@@ -35,19 +35,19 @@ const ContactPage = () => {
     {
       icon: <FaPhone className="w-6 h-6" />,
       title: "Phone",
-      details: "+1 (555) 123-4567",
+      details: "+251932302873",
       description: "Mon-Fri from 8am to 6pm"
     },
     {
       icon: <FaEnvelope className="w-6 h-6" />,
       title: "Email",
-      details: "support@shophub.com",
+      details: "jemalfiragos@gmail.com",
       description: "Online support"
     },
     {
       icon: <FaMapMarkerAlt className="w-6 h-6" />,
       title: "Address",
-      details: "123 Commerce St, City, State 12345",
+      details: "Konel, Dire Dawa, Ethiopia",
       description: "Visit our headquarters"
     },
     {
@@ -214,11 +214,11 @@ const ContactPage = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <div className="flex items-center gap-3 bg-white/20 px-6 py-3 rounded-xl backdrop-blur-sm">
                 <FaPhone className="w-5 h-5" />
-                <span className="font-semibold">+1 (555) 123-4567</span>
+                <span className="font-semibold">+25932302873</span>
               </div>
               <div className="flex items-center gap-3 bg-white/20 px-6 py-3 rounded-xl backdrop-blur-sm">
                 <FaEnvelope className="w-5 h-5" />
-                <span className="font-semibold">support@shophub.com</span>
+                <span className="font-semibold">jemalfiragos@gmail.com</span>
               </div>
             </div>
           </div>
