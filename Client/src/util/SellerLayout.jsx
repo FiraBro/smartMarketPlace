@@ -1,8 +1,9 @@
 import React, { useState } from "react";
+import { Outlet } from "react-router-dom"; // ✅ import Outlet
 import SellerSidebar from "../components/seller/SellerSideBar";
 import SellerNavbar from "../components/seller/SellerNavbar";
 
-export default function SellerLayout({ children }) {
+export default function SellerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const toggleSidebar = () => setSidebarOpen((prev) => !prev);
@@ -15,7 +16,9 @@ export default function SellerLayout({ children }) {
       {/* Main content */}
       <div className="flex-1 flex flex-col overflow-y-auto lg:ml-auto">
         <SellerNavbar toggleSidebar={toggleSidebar} />
-        <div className="sm:p-6 md:p-8 flex-1">{children}</div>
+        <div className="sm:p-6 md:p-8 flex-1">
+          <Outlet /> {/* ✅ This renders nested seller routes */}
+        </div>
       </div>
     </div>
   );
