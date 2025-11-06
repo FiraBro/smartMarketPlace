@@ -21,6 +21,7 @@ import addressRoutes from "./routes/addressRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import supportRoutes from './routes/supportRoutes.js'
 
 const app = express();
 
@@ -60,6 +61,7 @@ app.use("/api/addresses", addressRoutes);
 app.use("/api/verify", verificationRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/admin", adminRoutes);
+app.use('/api/support',supportRoutes)
 
 // Seller routes (banner & logo upload handled with multer inside the route)
 app.use("/api/seller", sellerRoutes);
