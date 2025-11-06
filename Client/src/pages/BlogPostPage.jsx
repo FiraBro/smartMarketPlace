@@ -71,42 +71,6 @@ const BlogPostPage = () => {
   
       {/* Article Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Article Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center space-x-2 bg-amber-100 text-amber-800 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <FaShoppingBag className="w-4 h-4" />
-            <span>{blogPost.category}</span>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6 leading-tight">
-            {blogPost.title}
-          </h1>
-          
-          {/* Author and Meta Info */}
-          <div className="flex items-center justify-center space-x-8 text-gray-600 mb-8">
-            <div className="flex items-center space-x-3">
-              <img 
-                src={blogPost.authorImage} 
-                alt={blogPost.author}
-                className="w-12 h-12 rounded-full border-2 border-white shadow-sm"
-              />
-              <div>
-                <div className="font-semibold text-gray-900">{blogPost.author}</div>
-                <div className="text-sm text-gray-500">Shopping Expert</div>
-              </div>
-            </div>
-            <div className="flex items-center space-x-6">
-              <div className="flex items-center space-x-2">
-                <FaCalendar className="w-4 h-4 text-amber-500" />
-                <span>{blogPost.date}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <FaClock className="w-4 h-4 text-amber-500" />
-                <span>{blogPost.readTime}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* Featured Image */}
         <div className="rounded-2xl overflow-hidden mb-12 shadow-xl">
           <img 
@@ -120,50 +84,6 @@ const BlogPostPage = () => {
         <article className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-12">
           <div dangerouslySetInnerHTML={{ __html: blogPost.content }} />
         </article>
-
-        {/* Tags and Social Sharing */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-12">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-6 lg:space-y-0">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Article Tags</h3>
-              <div className="flex flex-wrap gap-3">
-                {blogPost.tags.map((tag, index) => (
-                  <span 
-                    key={index}
-                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-full text-sm font-medium flex items-center space-x-2 hover:bg-amber-100 hover:text-amber-700 transition-all duration-200 cursor-pointer"
-                  >
-                    <FaTag className="w-3 h-3" />
-                    <span>{tag}</span>
-                  </span>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Author Bio */}
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-2xl p-8 mb-12 border border-amber-100">
-          <div className="flex items-start space-x-6">
-            <img 
-              src={blogPost.authorImage} 
-              alt={blogPost.author}
-              className="w-20 h-20 rounded-full border-4 border-white shadow-lg"
-            />
-            <div className="flex-1">
-              <h3 className="text-2xl font-bold text-gray-900 mb-3">About the Author</h3>
-              <h4 className="text-lg font-semibold text-amber-600 mb-2">{blogPost.author}</h4>
-              <p className="text-gray-700 leading-relaxed mb-4">
-                Shopping expert and consumer advocate with over 10 years of experience helping people make smart purchasing decisions. 
-                Sarah specializes in budget optimization, product quality assessment, and sustainable shopping practices.
-              </p>
-              <div className="flex space-x-4 text-sm text-gray-600">
-                <span>📚 150+ Articles</span>
-                <span>⭐ 4.9 Rating</span>
-                <span>👥 50K+ Readers</span>
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Related Posts */}
         <div className="mb-12">
