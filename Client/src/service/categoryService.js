@@ -3,7 +3,8 @@ import axios from "axios";
 // ✅ Base API instance for category/listing endpoints (session-based)
 const CATEGORY_API = axios.create({
   baseURL:
-    import.meta.env.VITE_CATEGORY_URL || "http://localhost:5000/api/listings",
+    import.meta.env.VITE_CATEGORY_URL ||
+    "http://localhost:5000/api/v1/listings",
   withCredentials: true, // ✅ send session cookies automatically
 });
 
