@@ -2,7 +2,9 @@ import axios from "axios";
 
 // ✅ Base API for listings (session-based)
 const LISTING_API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL:
+    import.meta.env.VITE_LISTING_API_URL ||
+    "http://localhost:5000/api/v1/listings",
   withCredentials: true, // ✅ send session cookies
 });
 
@@ -21,7 +23,7 @@ export const getListingsByCategory = async (category, page = 1, limit = 12) => {
     const params = { page, limit };
     if (category && category !== "All") params.category = category;
 
-    const { data } = await LISTING_API.get("/listings", { params });
+    const { data } = await LISTING_API.get("/", { params });
     return data;
   } catch (error) {
     console.error("Error in getListingsByCategory:", error);
@@ -32,7 +34,7 @@ export const getListingsByCategory = async (category, page = 1, limit = 12) => {
 // Create a new listing (multipart/form-data)
 export const createListing = async (payload) => {
   try {
-    const { data } = await LISTING_API.post("/listings/create", payload, {
+    const { data } = await LISTING_API.post("/create", payload, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return data;
@@ -61,7 +63,7 @@ export const createListing = async (payload) => {
 export const searchListings = async (query, category) => {
   try {
     if (!query) return { items: [] };
-    const { data } = await LISTING_API.get(`/listings`, {
+    const { data } = await LISTING_API.get(`/`, {
       params: {
         q: query,
         category: category !== "All Categories" ? category : undefined,
@@ -78,7 +80,7 @@ export const searchListings = async (query, category) => {
 export const getListingById = async (id) => {
   try {
     if (!id) throw new Error("Listing ID is required");
-    const { data } = await LISTING_API.get(`/listings/${id}`);
+    const { data } = await LISTING_API.get(`/${id}`);
     return data;
   } catch (error) {
     console.error("Error in getListingById:", error);
@@ -103,13 +105,14 @@ export const getAllListings = async ({
     if (minPrice !== undefined) params.minPrice = minPrice;
     if (maxPrice !== undefined) params.maxPrice = maxPrice;
 
-    const { data } = await LISTING_API.get(`/listings/all`, { params });
+    const { data } = await LISTING_API.get(`/all`, { params });
 
     // Optional: Compute frontend-friendly flags
     data.items.forEach((item) => {
       item.isFreeShipping = true;
       item.isOnSale = item.price < 50;
-      item.isNewArrival = (new Date() - new Date(item.createdAt)) < 30 * 24 * 60 * 60 * 1000; // 30 days
+      item.isNewArrival =
+        new Date() - new Date(item.createdAt) < 30 * 24 * 60 * 60 * 1000; // 30 days
       item.isBestSeller = (item.popularity || 0) > 100;
     });
 
@@ -123,7 +126,7 @@ export const getAllListings = async ({
 // Update a listing (multipart/form-data)
 export const updateListing = async (id, formData) => {
   try {
-    const { data } = await LISTING_API.patch(`/listings/${id}`, formData, {
+    const { data } = await LISTING_API.patch(`/${id}`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
     return data;
@@ -137,7 +140,7 @@ export const updateListing = async (id, formData) => {
 export const deleteListing = async (id) => {
   try {
     if (!id) throw new Error("Listing ID is required");
-    const { data } = await LISTING_API.delete(`/listings/${id}`);
+    const { data } = await LISTING_API.delete(`/${id}`);
     return data;
   } catch (error) {
     console.error("Error in deleteListing:", error);
