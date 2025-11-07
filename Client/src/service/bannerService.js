@@ -3,7 +3,9 @@ import axios from "axios";
 
 // Base API instance
 const BANNER_API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
+  baseURL:
+    import.meta.env.VITE_BANNER_API_URL ||
+    "http://localhost:5000/api/v1/banners",
 });
 
 // Attach token if available
@@ -17,7 +19,7 @@ BANNER_API.interceptors.request.use((config) => {
 
 // 🔹 Fetch all banners
 export const getBanners = async () => {
-  const { data } = await BANNER_API.get("/banners");
+  const { data } = await BANNER_API.get("/");
   return data.data.banners; // expecting { status, data: { banners: [...] } }
 };
 
@@ -28,7 +30,7 @@ export const uploadBanner = async (file) => {
   const formData = new FormData();
   formData.append("image", file);
 
-  const { data } = await BANNER_API.post("/banners", formData, {
+  const { data } = await BANNER_API.post("/", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -41,6 +43,6 @@ export const uploadBanner = async (file) => {
 export const deleteBanner = async (bannerId) => {
   if (!bannerId) throw new Error("Banner ID required");
 
-  const { data } = await BANNER_API.delete(`/banners/${bannerId}`);
+  const { data } = await BANNER_API.delete(`/${bannerId}`);
   return data; // { status: "success", message: "Banner deleted" }
 };
