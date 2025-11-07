@@ -74,7 +74,7 @@ export default function App() {
       path: "/unauthorized",
       element: <Unauthorized />,
     },
-     { path: "all-listings", element: <AllListingsPage /> },
+    { path: "all-listings", element: <AllListingsPage /> },
 
     // ========================
     // BUYER ROUTES
@@ -95,13 +95,13 @@ export default function App() {
         // Home & Product Routes
         { index: true, element: <HomePage /> },
         { path: "listings/:id", element: <ProductDetail /> },
-        
+
         // Content Routes
         { path: "blog", element: <BlogPage /> },
         { path: "blog/:id", element: <BlogPostPage /> },
         { path: "contact", element: <ContactPage /> },
         { path: "faq", element: <FAQPage /> },
-        
+
         // Protected Buyer Routes
         {
           path: "payment/:orderId",
@@ -161,21 +161,20 @@ export default function App() {
         { index: true, element: <SellerDashboard /> },
         { path: "dashboard", element: <SellerDashboard /> },
         { path: "profile", element: <SellerProfile /> },
-        
+
         // Product Management
         { path: "products", element: <SellerProducts /> },
         { path: "add-product", element: <AddProduct /> },
         { path: "edit-product/:id", element: <EditProduct /> },
         { path: "update-product/:id", element: <UpdateProduct /> },
-        
+
         // Order Management
         { path: "orders", element: <SellerOrders /> },
-        
+
         // Notifications
         { path: "notifications", element: <SellerNotificationsPage /> },
       ],
     },
-
 
     // ========================
     // FALLBACK ROUTE (404)
@@ -187,8 +186,8 @@ export default function App() {
           <div className="text-center">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
             <p className="text-gray-600 mb-8">Page not found</p>
-            <a 
-              href="/" 
+            <a
+              href="/"
               className="bg-amber-500 text-white px-6 py-3 rounded-lg hover:bg-amber-600 transition-colors"
             >
               Return Home
@@ -205,7 +204,7 @@ export default function App() {
         <NotificationProvider>
           <CartProvider>
             <FavoriteProvider>
-              <Suspense 
+              <Suspense
                 fallback={
                   <div className="min-h-screen flex items-center justify-center">
                     <Spinner />
