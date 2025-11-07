@@ -3,7 +3,7 @@ import axios from "axios";
 
 const API = axios.create({
   baseURL:
-    import.meta.env.VITE_SELLER_URL || "http://localhost:5000/api/seller",
+    import.meta.env.VITE_SELLER_URL || "http://localhost:5000/api/v1/seller",
   withCredentials: true, // ✅ include cookies/session
 });
 
@@ -77,7 +77,7 @@ export const becomeSeller = async () => {
 export const getRecentOrder = async () => {
   try {
     const { data } = await API.get(`/recent-orders`); // make sure endpoint matches backend
-    console.log(data)
+    console.log(data);
     return data.data; // backend sends { success, results, data }
   } catch (error) {
     console.error("Failed to fetch recent orders:", error);
