@@ -3,8 +3,10 @@ import axios from "axios";
 
 // Base API
 const PRODUCT_API = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
-  withCredentials:true
+  baseURL:
+    import.meta.env.VITE_MATRICS_API_URL ||
+    "http://localhost:5000/api/v1/metrics",
+  withCredentials: true,
 });
 
 // Attach token if available
@@ -19,14 +21,14 @@ PRODUCT_API.interceptors.response.use(
 // Track product view
 export const trackProductView = async (productId) => {
   if (!productId) throw new Error("Product ID is required");
-  const { data } = await PRODUCT_API.post(`/metrics/view/${productId}`);
-  console.log(data)
+  const { data } = await PRODUCT_API.post(`/view/${productId}`);
+  console.log(data);
   return data; // { product, views }
 };
 
 // Get popular products
 export const getPopularProducts = async (limit = 12) => {
-  const { data } = await PRODUCT_API.get(`/metrics/popular`, {
+  const { data } = await PRODUCT_API.get(`/popular`, {
     params: { limit },
   });
   return data; // ✅ always an array
@@ -34,13 +36,13 @@ export const getPopularProducts = async (limit = 12) => {
 
 // Get top selling products
 export const getTopSellingProducts = async () => {
-  const { data } = await PRODUCT_API.get(`/metrics/most-sold`);
+  const { data } = await PRODUCT_API.get(`/most-sold`);
   return data; // [{ product, totalSold }, ...]
 };
 
 // Get newly added products
 export const getNewProducts = async (limit = 10) => {
-  const { data } = await PRODUCT_API.get(`/metrics/new`, {
+  const { data } = await PRODUCT_API.get(`/new`, {
     params: { limit },
   });
   return data; // [product1, product2, ...]
