@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_URL =
-  import.meta.env.VITE_ORDER_URL || "http://localhost:5000/api/orders";
+  import.meta.env.VITE_ORDER_URL || "http://localhost:5000/api/v1//orders";
 
 // ✅ Axios instance (session-based)
 const orderAPI = axios.create({
