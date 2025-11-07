@@ -21,7 +21,7 @@ import addressRoutes from "./routes/addressRoutes.js";
 import sellerRoutes from "./routes/sellerRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
-import supportRoutes from './routes/supportRoutes.js'
+import supportRoutes from "./routes/supportRoutes.js";
 
 const app = express();
 
@@ -47,21 +47,21 @@ app.use(passport.session());
 // ----------------------------
 // Routes
 // ----------------------------
-app.use("/api/auth", authRoutes);
-app.use("/api/listings", listingRoutes);
-app.use("/api/chats", chatRoutes);
-app.use("/api/messages", messageRoutes);
-app.use("/api/metrics", matricsRoutes);
-app.use("/api/cart", cartRoutes);
-app.use("/api/orders", orderRoutes);
-app.use("/api/banners", bannerRoutes);
-app.use("/api/favorites", favoriteRouter);
-app.use("/api/newsletter", newsLetter);
-app.use("/api/addresses", addressRoutes);
-app.use("/api/verify", verificationRoutes);
-app.use("/api/notifications", notificationRoutes);
-app.use("/api/admin", adminRoutes);
-app.use('/api/support',supportRoutes)
+app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/listings", listingRoutes);
+app.use("/api/v1/chats", chatRoutes);
+app.use("/api/v1/messages", messageRoutes);
+app.use("/api/v1/metrics", matricsRoutes);
+app.use("/api/v1/cart", cartRoutes);
+app.use("/api/v1/orders", orderRoutes);
+app.use("/api/v1/banners", bannerRoutes);
+app.use("/api/v1/favorites", favoriteRouter);
+app.use("/api/v1/newsletter", newsLetter);
+app.use("/api/v1/addresses", addressRoutes);
+app.use("/api/v1/verify", verificationRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
+app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/support", supportRoutes);
 
 // Seller routes (banner & logo upload handled with multer inside the route)
 app.use("/api/seller", sellerRoutes);
