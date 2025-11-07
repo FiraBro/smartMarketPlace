@@ -2,7 +2,7 @@ import axios from "axios";
 
 // API base
 const API = axios.create({
-  baseURL: import.meta.env.VITE_AUTH_URL || "http://localhost:5000/api/auth",
+  baseURL: import.meta.env.VITE_AUTH_URL || "http://localhost:5000/api/v1/auth",
   withCredentials: true, // ✅ important for sending session cookies
 });
 
