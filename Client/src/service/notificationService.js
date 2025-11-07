@@ -5,7 +5,9 @@ import axios from "axios";
 // Axios instance for notification API
 // -------------------------
 const API = axios.create({
-  baseURL: import.meta.env.VITE_NOTIFICATION_URL || "http://localhost:5000/api/notifications",
+  baseURL:
+    import.meta.env.VITE_NOTIFICATION_URL ||
+    "http://localhost:5000/api/v1/notifications",
   withCredentials: true,
 });
 
@@ -15,10 +17,13 @@ const API = axios.create({
 export const fetchNotifications = async (page = 1, limit = 10) => {
   try {
     const response = await API.get("/user", { params: { page, limit } });
-    console.log(response)
+    console.log(response);
     return response.data;
   } catch (error) {
-    console.error("Error fetching notifications:", error.response?.data || error.message);
+    console.error(
+      "Error fetching notifications:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
@@ -31,7 +36,10 @@ export const markAsRead = async (id) => {
     const response = await API.patch(`/${id}/read`);
     return response.data;
   } catch (error) {
-    console.error("Error marking notification as read:", error.response?.data || error.message);
+    console.error(
+      "Error marking notification as read:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
@@ -44,7 +52,10 @@ export const markAllAsRead = async () => {
     const response = await API.patch("/read-all");
     return response.data;
   } catch (error) {
-    console.error("Error marking all notifications as read:", error.response?.data || error.message);
+    console.error(
+      "Error marking all notifications as read:",
+      error.response?.data || error.message
+    );
     throw error;
   }
 };
