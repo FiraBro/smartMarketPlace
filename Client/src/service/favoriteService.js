@@ -3,7 +3,7 @@ import axios from "axios";
 // ✅ Base API instance for favorites endpoints (session-based)
 const FAVORITE_API = axios.create({
   baseURL:
-    import.meta.env.VITE_FAV_URL || "http://localhost:5000/api/favorites",
+    import.meta.env.VITE_FAV_URL || "http://localhost:5000/api/v1/favorites",
   withCredentials: true, // ✅ send session cookies automatically
 });
 
