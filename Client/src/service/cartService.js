@@ -2,7 +2,7 @@ import axios from "axios";
 
 // ✅ Base API instance for cart endpoints (session-based)
 const CART_API = axios.create({
-  baseURL: import.meta.env.VITE_CART_URL || "http://localhost:5000/api/cart",
+  baseURL: import.meta.env.VITE_CART_URL || "http://localhost:5000/api/v1/cart",
   withCredentials: true, // ✅ send cookies automatically
 });
 
