@@ -3,7 +3,8 @@ import axios from "axios";
 // Base API instance for addresses (session-based)
 const ADDRESS_API = axios.create({
   baseURL:
-    import.meta.env.VITE_ADDRESS_URL || "http://localhost:5000/api/addresses",
+    import.meta.env.VITE_ADDRESS_URL ||
+    "http://localhost:5000/api/v1/addresses",
   withCredentials: true, // ✅ send cookies for session auth
 });
 
