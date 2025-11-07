@@ -1,4 +1,3 @@
-import React from "react";
 import { Outlet } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import CartPopup from "../components/CartPopup";
@@ -15,11 +14,13 @@ export default function Layout({
   onCheckout,
 }) {
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
       <Navbar openCart={openCart} openFav={openFav} />
 
       {/* Main page content */}
-      <Outlet />
+      <main className="flex-grow">
+        <Outlet />
+      </main>
 
       {/* Modals */}
       <CartPopup
@@ -28,7 +29,8 @@ export default function Layout({
         onCheckout={onCheckout}
       />
       <FavoritePopup isOpen={isFavOpen} onClose={closeFav} />
+
       <Footer />
-    </>
+    </div>
   );
 }
