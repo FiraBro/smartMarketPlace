@@ -30,7 +30,7 @@ export const getFavorites = async () => {
         price: listing.price,
         image: imageUrl
           ? `${
-              import.meta.env.VITE_API_URL || "http://localhost:5000"
+              import.meta.env.VITE_STATIC_URL || "http://localhost:5000"
             }${imageUrl}`
           : "https://via.placeholder.com/200",
       };
