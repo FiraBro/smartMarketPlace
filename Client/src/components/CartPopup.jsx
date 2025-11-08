@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FiMinus, FiPlus, FiTrash2, FiShoppingBag, FiX } from "react-icons/fi";
+import {
+  FiMinus,
+  FiTruck,
+  FiPlus,
+  FiLock,
+  FiTrash2,
+  FiShoppingBag,
+  FiX,
+} from "react-icons/fi";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { createOrder } from "../service/orderService";
