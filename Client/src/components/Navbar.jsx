@@ -97,7 +97,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
               {/* Favorites */}
               <button
                 onClick={openFav}
-                className="relative p-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all duration-300 group"
+                className="relative p-3 text-[#f9A03f] hover:bg-gray-100 rounded-2xl transition-all duration-300 group"
               >
                 <MdFavorite className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 group-hover:text-rose-500" />
                 {totalFavItems > 0 && (
@@ -110,7 +110,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
               {/* Cart */}
               <button
                 onClick={openCart}
-                className="relative p-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all duration-300 group"
+                className="relative p-3 text-[#f9A03f] hover:bg-gray-100 rounded-2xl transition-all duration-300 group"
               >
                 <MdShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 group-hover:text-emerald-600" />
                 {totalCartItems > 0 && (
