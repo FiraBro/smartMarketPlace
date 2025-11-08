@@ -1,9 +1,8 @@
-// src/pages/OrdersPage.jsx
 import React, { useEffect, useState } from "react";
 import { getOrders } from "../service/orderService";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { FaBox, FaClock, FaCheckCircle } from "react-icons/fa";
+import { FaBox, FaShoppingBag } from "react-icons/fa";
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
@@ -33,9 +32,27 @@ const OrdersPage = () => {
 
   if (orders.length === 0)
     return (
-      <div className="flex flex-col items-center justify-center h-64 text-gray-500">
-        <FaBox size={40} className="mb-2 text-gray-400" />
-        <p className="text-lg">No orders found</p>
+      <div className="flex flex-col items-center justify-center h-[70vh] text-gray-500">
+        <motion.div
+          animate={{ scale: [1, 1.1, 1] }}
+          transition={{ repeat: Infinity, duration: 1.5 }}
+          className="text-[#faa64d] mb-4"
+        >
+          <FaShoppingBag size={60} />
+        </motion.div>
+        <h2 className="text-2xl font-semibold mb-2 text-gray-700">
+          You haven’t placed any orders yet
+        </h2>
+        <p className="text-center text-gray-500 mb-4 max-w-xs">
+          Browse our products and add items to your cart. Your orders will
+          appear here once you make a purchase.
+        </p>
+        <Link
+          to="/all-listings"
+          className="px-6 py-3 bg-[#f9A03f] text-white rounded-xl font-medium hover:bg-[#faa64d] shadow-md transition-all"
+        >
+          Start Shopping
+        </Link>
       </div>
     );
 
@@ -67,11 +84,11 @@ const OrdersPage = () => {
                   <span className="font-semibold mr-1">Status:</span>
                   {order.status === "Delivered" ? (
                     <span className="flex items-center text-green-600">
-                      <FaCheckCircle className="mr-1" /> Delivered
+                      <FaBox className="mr-1" /> Delivered
                     </span>
                   ) : (
                     <span className="flex items-center text-yellow-500">
-                      <FaClock className="mr-1" /> {order.status || "Pending"}
+                      <FaBox className="mr-1" /> {order.status || "Pending"}
                     </span>
                   )}
                 </p>
