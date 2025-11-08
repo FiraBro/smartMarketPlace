@@ -1,14 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  FaShoppingCart,
-  FaHeart,
   FaBars,
   FaTimes,
   FaUserCircle,
   FaSearch,
   FaChevronDown,
 } from "react-icons/fa";
+import { MdShoppingCart, MdFavorite } from "react-icons/md";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
@@ -100,7 +99,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                 onClick={openFav}
                 className="relative p-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all duration-300 group"
               >
-                <FaHeart className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 group-hover:text-rose-500" />
+                <MdFavorite className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 group-hover:text-rose-500" />
                 {totalFavItems > 0 && (
                   <span className="absolute -top-1 -right-1 text-xs bg-rose-500 text-white rounded-full px-1.5 py-0.5 min-w-[20px] text-center shadow-lg">
                     {totalFavItems}
@@ -113,7 +112,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                 onClick={openCart}
                 className="relative p-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all duration-300 group"
               >
-                <FaShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 group-hover:text-emerald-600" />
+                <MdShoppingCart className="w-6 h-6 group-hover:scale-110 transition-transform duration-300 group-hover:text-emerald-600" />
                 {totalCartItems > 0 && (
                   <span className="absolute -top-1 -right-1 text-xs bg-emerald-500 text-white rounded-full px-1.5 py-0.5 min-w-[20px] text-center shadow-lg">
                     {totalCartItems}
