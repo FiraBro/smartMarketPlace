@@ -1,17 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  FiMinus,
-  FiPlus,
-  FiTrash2,
-  FiTruck,
-  FiMapPin,
-  FiCalendar,
-  FiLock,
-  FiCreditCard,
-  FiShoppingBag,
-  FiX,
-} from "react-icons/fi";
+import { FiMinus, FiPlus, FiTrash2, FiShoppingBag, FiX } from "react-icons/fi";
 import { useCart } from "../context/CartContext";
 import { useNavigate } from "react-router-dom";
 import { createOrder } from "../service/orderService";
@@ -32,10 +21,27 @@ const CartPopup = ({ isOpen, onClose }) => {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addingAddress, setAddingAddress] = useState(false);
-  const [deliveryOption, setDeliveryOption] = useState("standard"); // standard, express, pickup
+  const [deliveryOption, setDeliveryOption] = useState("standard");
+
+  const popupRef = useRef(null); // Ref for the popup panel
 
   const SHIPPING_COST = 10;
   const TAX_RATE = 0.07;
+
+  // Close popup when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (popupRef.current && !popupRef.current.contains(event.target)) {
+        onClose();
+      }
+    };
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen, onClose]);
 
   useEffect(() => {
     const fetchAddresses = async () => {
@@ -134,11 +140,11 @@ const CartPopup = ({ isOpen, onClose }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
           />
 
           {/* Cart Panel */}
           <motion.div
+            ref={popupRef} // attach ref here
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
