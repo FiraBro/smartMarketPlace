@@ -60,9 +60,8 @@ const OrdersPage = () => {
     <div className="max-w-5xl mx-auto p-6">
       <h1 className="text-3xl font-bold text-gray-800 mb-3">My Orders</h1>
       <p className="text-gray-600 mb-8">
-        💡 Keep your{" "}
-        <span className="font-semibold text-blue-600">Order ID</span> safe —
-        you’ll need it to track your order.
+        Keep your <span className="font-semibold text-blue-600">Order ID</span>{" "}
+        safe — you’ll need it to track your order.
       </p>
 
       <div className="space-y-6">
@@ -101,7 +100,7 @@ const OrdersPage = () => {
               <div className="mt-4 sm:mt-0">
                 <Link
                   to={`/payment/${order._id}`}
-                  className="inline-block px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl font-medium hover:from-blue-500 hover:to-blue-400 transition-all"
+                  className="inline-block px-6 py-2 bg-[#f9A03f] text-white rounded-xl font-medium hover:bg-[#faa64d] transition-all"
                 >
                   View / Pay
                 </Link>
