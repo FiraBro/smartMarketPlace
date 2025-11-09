@@ -4,7 +4,7 @@ import { FaPlus, FaTrash, FaEdit } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { getSellerProducts } from "../../service/sellerService";
 import { deleteListing } from "../../service/listingService";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast"; // use toast from App.jsx
 
 export default function SellerProducts() {
   const navigate = useNavigate();
@@ -19,11 +19,10 @@ export default function SellerProducts() {
       setLoading(true);
       try {
         const data = await getSellerProducts();
-        console.log(data);
         setProducts(data);
       } catch (err) {
         console.error(err);
-        toast.error(err.message);
+        toast.error("Failed to load products");
       } finally {
         setLoading(false);
       }
@@ -31,18 +30,40 @@ export default function SellerProducts() {
     fetchProducts();
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?"))
-      return;
-
-    try {
-      await deleteListing(id);
-      setProducts(products.filter((p) => p._id !== id));
-      toast.success("Product deleted successfully");
-    } catch (err) {
-      console.error(err);
-      toast.error(err.message);
-    }
+  const handleDelete = (id) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p>Are you sure you want to delete this product?</p>
+          <div className="flex gap-2 justify-end">
+            <button
+              className="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+              onClick={async () => {
+                try {
+                  await deleteListing(id);
+                  setProducts((prev) => prev.filter((p) => p._id !== id));
+                  toast.success("Product deleted successfully");
+                } catch (err) {
+                  console.error(err);
+                  toast.error("Failed to delete product");
+                } finally {
+                  toast.dismiss(t.id);
+                }
+              }}
+            >
+              Yes, Delete
+            </button>
+          </div>
+        </div>
+      ),
+      { duration: 5000 }
+    );
   };
 
   const handleEdit = (id) => {
