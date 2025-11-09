@@ -1,47 +1,42 @@
-import Cart from "../models/Cart.js";
 import Order from "../models/Order.js";
 import Listing from "../models/Listing.js";
+import Cart from "../models/Cart.js";
+import { Wallet } from "../models/Wallet.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
 
-// ✅ Create an order (session-based)
+// ✅ Create Order (Multi-seller compatible)
 export const createOrder = catchAsync(async (req, res, next) => {
   const sessionUser = req.session.user;
-  if (!sessionUser) {
-    return next(new AppError("Not authorized. Please login.", 401));
-  }
+  if (!sessionUser) return next(new AppError("Not authorized", 401));
 
-  const { products, address, paymentMethod, totalPrice, deliveryMethod } =
-    req.body;
+  const { products, address, deliveryMethod } = req.body;
 
-  if (!["delivery", "pickup"].includes(deliveryMethod)) {
+  // Allow standard, express, or pickup
+  if (!["standard", "express", "delivery", "pickup"].includes(deliveryMethod))
     return next(new AppError("Invalid delivery method", 400));
-  }
 
-  if (deliveryMethod === "delivery" && !address) {
+  // Require address only if not pickup
+  if (deliveryMethod !== "pickup" && !address)
     return next(new AppError("Delivery address is required", 400));
-  }
-
-  if (!totalPrice) return next(new AppError("Total price is required", 400));
 
   let orderProducts = [];
 
   if (products?.length) {
-    // Map products and add seller reference
     orderProducts = await Promise.all(
       products.map(async (p) => {
-        const listing = await Listing.findById(p.product);
+        const listing = await Listing.findById(p.productId);
         if (!listing) throw new AppError("Invalid product ID", 400);
         return {
-          product: listing._id,
-          seller: listing.owner,
+          productId: listing._id,
+          sellerId: listing.owner,
           quantity: p.quantity,
+          price: listing.price,
           status: "pending",
         };
       })
     );
   } else {
-    // Get items from session-based cart
     const cart = await Cart.findOne({ user: sessionUser._id });
     if (!cart || cart.items.length === 0)
       return next(new AppError("Cart is empty", 400));
@@ -49,11 +44,12 @@ export const createOrder = catchAsync(async (req, res, next) => {
     orderProducts = await Promise.all(
       cart.items.map(async (item) => {
         const listing = await Listing.findById(item.listing);
-        if (!listing) throw new AppError("Invalid product ID in cart", 400);
+        if (!listing) throw new AppError("Invalid product in cart", 400);
         return {
-          product: listing._id,
-          seller: listing.owner,
+          productId: listing._id,
+          sellerId: listing.owner,
           quantity: item.quantity,
+          price: listing.price,
           status: "pending",
         };
       })
@@ -63,14 +59,18 @@ export const createOrder = catchAsync(async (req, res, next) => {
     await cart.save();
   }
 
+  const totalPrice = orderProducts.reduce(
+    (sum, p) => sum + p.price * p.quantity,
+    0
+  );
+
   const order = new Order({
-    user: sessionUser._id, // ✅ use session user
+    buyerId: sessionUser._id,
     products: orderProducts,
-    address: deliveryMethod === "delivery" ? address : null,
-    totalPrice,
-    paymentMethod,
+    address: deliveryMethod !== "pickup" ? address : null,
     deliveryMethod,
-    status: "pending",
+    totalPrice,
+    paymentStatus: "Pending",
     isPaid: false,
   });
 
@@ -78,43 +78,206 @@ export const createOrder = catchAsync(async (req, res, next) => {
   res.status(201).json(order);
 });
 
-// ✅ Get all orders (admin only)
-export const getOrders = catchAsync(async (req, res, next) => {
-  const sessionUser = req.session.user;
-  if (!sessionUser || sessionUser.role !== "admin")
-    return next(new AppError("Not authorized, admin only", 403));
-
-  const orders = await Order.find()
-    .populate("products.product")
-    .populate("user", "name email");
-
-  res.json(orders);
-});
-
-// ✅ Get my orders (buyer)
-export const getMyOrders = catchAsync(async (req, res) => {
+// ✅ Buyer uploads payment proof for a specific product
+export const uploadPaymentProof = catchAsync(async (req, res, next) => {
   const sessionUser = req.session.user;
   if (!sessionUser) return next(new AppError("Not authorized", 401));
 
-  const orders = await Order.find({ user: sessionUser._id }).populate(
-    "products.product"
-  );
-  res.json(orders);
+  const { orderId, productId } = req.params;
+  const { transactionId } = req.body;
+  const proofUrl = `/uploads/${req.file.filename}`;
+
+  const order = await Order.findById(orderId);
+  if (!order) return next(new AppError("Order not found", 404));
+
+  const product = order.products.find((p) => String(p.productId) === productId);
+  if (!product) return next(new AppError("Product not found in order", 404));
+
+  if (String(order.buyerId) !== String(sessionUser._id))
+    return next(new AppError("Not authorized to pay for this product", 403));
+
+  product.paymentProof = {
+    imageUrl: proofUrl,
+    transactionId,
+    uploadedAt: new Date(),
+  };
+  product.status = "payment_submitted";
+
+  await order.save();
+  res.json({ message: "Payment proof uploaded", product });
 });
 
-// ✅ Get single order
+// ✅ Admin: verify payment for a product and hold funds in escrow
+export const verifyPayment = catchAsync(async (req, res, next) => {
+  const { orderId, productId } = req.params;
+
+  const order = await Order.findById(orderId);
+  if (!order) return next(new AppError("Order not found", 404));
+
+  const product = order.products.find((p) => String(p.productId) === productId);
+  if (!product) return next(new AppError("Product not found", 404));
+
+  product.status = "funds_held";
+
+  // Add funds to seller's escrow wallet
+  await Wallet.findOneAndUpdate(
+    { userId: product.sellerId },
+    { $inc: { escrowHeld: product.price * product.quantity } },
+    { upsert: true }
+  );
+
+  await order.save();
+  res.json({ message: "Payment verified and funds held", product });
+});
+
+// ✅ Admin: release funds after delivery
+export const releaseFunds = catchAsync(async (req, res, next) => {
+  const { orderId, productId } = req.params;
+
+  const order = await Order.findById(orderId);
+  if (!order) return next(new AppError("Order not found", 404));
+
+  const product = order.products.find((p) => String(p.productId) === productId);
+  if (!product) return next(new AppError("Product not found", 404));
+
+  if (product.status !== "completed")
+    return next(new AppError("Product not delivered yet", 400));
+
+  await Wallet.findOneAndUpdate(
+    { userId: product.sellerId },
+    {
+      $inc: {
+        balance: product.price * product.quantity,
+        escrowHeld: -(product.price * product.quantity),
+      },
+    },
+    { upsert: true }
+  );
+
+  product.status = "completed";
+  await order.save();
+  res.json({ message: "Funds released to seller", product });
+});
+
+// ✅ Seller: mark product as shipped
+export const markAsShipped = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  const { orderId, productId } = req.params;
+  if (!sessionUser || sessionUser.role !== "seller")
+    return next(new AppError("Not authorized", 403));
+
+  const order = await Order.findById(orderId);
+  if (!order) return next(new AppError("Order not found", 404));
+
+  const product = order.products.find((p) => String(p.productId) === productId);
+  if (!product || String(product.sellerId) !== String(sessionUser._id))
+    return next(new AppError("Product not found or unauthorized", 404));
+
+  product.status = "shipped";
+  await order.save();
+  res.json({ message: "Product marked as shipped", product });
+});
+
+// ✅ Buyer: confirm delivery for a product
+export const confirmDelivery = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  const { orderId, productId } = req.params;
+  if (!sessionUser) return next(new AppError("Not authorized", 401));
+
+  const order = await Order.findById(orderId);
+  if (!order) return next(new AppError("Order not found", 404));
+
+  const product = order.products.find((p) => String(p.productId) === productId);
+  if (!product) return next(new AppError("Product not found", 404));
+  if (String(order.buyerId) !== String(sessionUser._id))
+    return next(new AppError("Not authorized", 403));
+
+  product.status = "completed";
+  await order.save();
+  res.json({ message: "Delivery confirmed", product });
+});
+
+// ✅ Dispute a product
+export const disputeProduct = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  const { orderId, productId } = req.params;
+  const { reason, message } = req.body;
+
+  const order = await Order.findById(orderId);
+  if (!order) return next(new AppError("Order not found", 404));
+
+  const product = order.products.find((p) => String(p.productId) === productId);
+  if (!product) return next(new AppError("Product not found", 404));
+
+  if (!product.dispute) product.dispute = { messages: [] };
+  product.status = "disputed";
+  product.dispute.reason = reason;
+  product.dispute.messages.push({
+    sender: sessionUser.role,
+    message,
+    date: new Date(),
+  });
+
+  await order.save();
+  res.json({ message: "Dispute created", product });
+});
+
+export const cancelOrder = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+
+  if (!sessionUser) {
+    return next(new AppError("Not authorized", 401));
+  }
+
+  const order = await Order.findById(req.params.id);
+
+  if (!order) {
+    return next(new AppError("Order not found", 404));
+  }
+
+  // ✅ Ensure only the buyer or admin can cancel
+  if (
+    sessionUser.role !== "admin" &&
+    String(order.buyerId) !== String(sessionUser._id)
+  ) {
+    return next(new AppError("Not authorized to cancel this order", 403));
+  }
+
+  // ✅ Optional: Check product-level statuses if needed
+  const hasShippedItem = order.products.some(
+    (p) => p.status === "shipped" || p.status === "completed"
+  );
+  if (hasShippedItem) {
+    return next(
+      new AppError("Cannot cancel an order that has shipped items", 400)
+    );
+  }
+
+  // ✅ Perform cancellation — you can delete or mark as cancelled
+  await order.deleteOne();
+
+  res.status(200).json({
+    success: true,
+    message: "Order cancelled successfully",
+  });
+});
+
 export const getOrderById = catchAsync(async (req, res, next) => {
   const sessionUser = req.session.user;
   if (!sessionUser) return next(new AppError("Not authorized", 401));
 
-  const order = await Order.findById(req.params.id).populate(
-    "products.product"
-  );
+  // Fetch order without wrong populate
+  const order = await Order.findById(req.params.id).populate({
+    path: "products.productId", // match your schema
+    select: "_id title price category description", // optional
+  });
+
   if (!order) return next(new AppError("Order not found", 404));
 
+  // Check if current user is allowed to see this order
   if (
     sessionUser.role !== "admin" &&
-    String(order.user) !== String(sessionUser._id)
+    String(order.buyerId) !== String(sessionUser._id)
   ) {
     return next(new AppError("Not authorized to view this order", 403));
   }
@@ -122,125 +285,50 @@ export const getOrderById = catchAsync(async (req, res, next) => {
   res.json(order);
 });
 
-// ✅ Update order status (admin only)
-export const updateOrderStatus = catchAsync(async (req, res, next) => {
-  const sessionUser = req.session.user;
-  if (!sessionUser || sessionUser.role !== "admin")
-    return next(new AppError("Not authorized, admin only", 403));
-
-  const { status } = req.body;
-  const order = await Order.findById(req.params.id);
-  if (!order) return next(new AppError("Order not found", 404));
-
-  order.status = status || order.status;
-  await order.save();
-  res.json(order);
-});
-
-// ✅ Pay order
-export const payOrder = catchAsync(async (req, res, next) => {
+export const getMyOrders = catchAsync(async (req, res, next) => {
   const sessionUser = req.session.user;
   if (!sessionUser) return next(new AppError("Not authorized", 401));
 
-  const order = await Order.findById(req.params.id);
-  if (!order) return next(new AppError("Order not found", 404));
-
-  if (
-    sessionUser.role !== "admin" &&
-    String(order.user) !== String(sessionUser._id)
-  ) {
-    return next(new AppError("Not authorized to pay this order", 403));
-  }
-
-  const { paymentMethod, phone } = req.body;
-  if (!["COD", "TeleBirr", "Chapa"].includes(paymentMethod)) {
-    return next(new AppError("Invalid payment method", 400));
-  }
-
-  if (paymentMethod === "COD") {
-    order.paymentMethod = "COD";
-    order.isPaid = false;
-    order.status = "paid";
-    await order.save();
-    return res.json({ message: "Cash on Delivery selected", order });
-  }
-
-  if (paymentMethod === "TeleBirr" || paymentMethod === "Chapa") {
-    if (!phone) return next(new AppError("Phone number required", 400));
-    order.paymentMethod = paymentMethod;
-    order.isPaid = true;
-    order.paidAt = Date.now();
-    order.status = "paid";
-    await order.save();
-
-    const paymentUrl =
-      paymentMethod === "TeleBirr"
-        ? `https://telebirr.et/pay/${order._id}`
-        : `https://chapa.com/pay/${order._id}`;
-
-    return res.json({
-      message: `${paymentMethod} payment initiated`,
-      paymentUrl,
-      order,
-    });
-  }
-});
-
-// ✅ Cancel order
-export const cancelOrder = catchAsync(async (req, res, next) => {
-  const sessionUser = req.session.user;
-  if (!sessionUser) return next(new AppError("Not authorized", 401));
-
-  const order = await Order.findById(req.params.id);
-  if (!order) return next(new AppError("Order not found", 404));
-
-  if (
-    sessionUser.role !== "admin" &&
-    String(order.user) !== String(sessionUser._id)
-  ) {
-    return next(new AppError("Not authorized to cancel this order", 403));
-  }
-
-  if (order.status === "shipped" || order.status === "delivered") {
-    return next(new AppError("Cannot cancel after shipping", 400));
-  }
-
-  await order.deleteOne();
-  res.json({ message: "Order cancelled" });
-});
-
-// ✅ Seller: Get orders for this seller
-export const getSellerOrders = catchAsync(async (req, res, next) => {
-  const sessionUser = req.session.user;
-  if (!sessionUser || sessionUser.role !== "seller")
-    return next(new AppError("Not authorized, sellers only", 403));
-
-  const orders = await Order.find({ "products.seller": sessionUser._id })
-    .populate("user", "name email")
-    .populate("products.product", "title price images")
-    .lean();
+  const orders = await Order.find({ buyerId: sessionUser._id }).populate(
+    "products.productId"
+  );
 
   res.json(orders);
 });
 
-// ✅ Seller: Update status of seller products
+export const getOrders = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  if (!sessionUser || sessionUser.role !== "admin")
+    return next(new AppError("Not authorized, admin only", 403));
+  const orders = await Order.find()
+    .populate("products.product")
+    .populate("user", "name email");
+  res.json(orders);
+});
+export const getSellerOrders = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  if (!sessionUser || sessionUser.role !== "seller")
+    return next(new AppError("Not authorized, sellers only", 403));
+  const orders = await Order.find({ "products.seller": sessionUser._id })
+    .populate("user", "name email")
+    .populate("products.product", "title price images")
+    .lean();
+  res.json(orders);
+});
 export const updateSellerOrderStatus = catchAsync(async (req, res, next) => {
   const sessionUser = req.session.user;
   if (!sessionUser || sessionUser.role !== "seller")
     return next(new AppError("Not authorized, sellers only", 403));
-
   const { orderId, status } = req.body;
   const order = await Order.findOne({
     _id: orderId,
     "products.seller": sessionUser._id,
   });
   if (!order) return next(new AppError("Order not found", 404));
-
   order.products = order.products.map((p) => {
     if (String(p.seller) === String(sessionUser._id)) p.status = status;
     return p;
   });
-
   await order.save();
   res.json(order);
 });
