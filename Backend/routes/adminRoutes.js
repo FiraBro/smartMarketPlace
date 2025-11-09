@@ -11,6 +11,8 @@ import {
   approveSeller,
   suspendSeller,
   getListingDetails,
+  verifyPayment,
+  releaseFunds,
 } from "../controllers/adminController.js";
 
 import {
@@ -25,7 +27,10 @@ import { getAllBuyer, getAllSellers } from "../controllers/authController.js";
 // -------------------------
 // Middlewares
 // -------------------------
-import { protectAdmin, restrictToAdmin } from "../middlewares/adminMiddleware.js";
+import {
+  protectAdmin,
+  restrictToAdmin,
+} from "../middlewares/adminMiddleware.js";
 
 const router = express.Router();
 
@@ -72,6 +77,9 @@ router
   .route("/notifications/:id")
   .get(restrictToAdmin("admin"), getNotificationById)
   .delete(restrictToAdmin("admin"), deleteNotification);
+
+router.patch("/verify/:id", verifyPayment);
+router.patch("/release/:id", releaseFunds);
 
 // ==========================
 // Super Admin Only
