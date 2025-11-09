@@ -2,29 +2,68 @@ import mongoose from "mongoose";
 
 const orderSchema = new mongoose.Schema(
   {
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    buyerId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
     products: [
       {
-        product: {
+        productId: {
           type: mongoose.Schema.Types.ObjectId,
           ref: "Listing",
           required: true,
         },
-        seller: {
+        sellerId: {
           type: mongoose.Schema.Types.ObjectId,
-          ref: "User", // owner of the listing
+          ref: "User",
           required: true,
         },
         quantity: { type: Number, required: true },
+        price: { type: Number, required: true },
+
+        // Escrow + Payment proof per product
         status: {
           type: String,
-          enum: ["pending", "processing", "shipped", "delivered", "cancelled"],
+          enum: [
+            "pending",
+            "payment_submitted",
+            "funds_held",
+            "shipped",
+            "completed",
+            "disputed",
+            "cancelled",
+          ],
           default: "pending",
+        },
+        paymentProof: {
+          imageUrl: String,
+          transactionId: String,
+          uploadedAt: Date,
+        },
+        dispute: {
+          reason: String,
+          messages: [
+            {
+              sender: String,
+              message: String,
+              date: Date,
+            },
+          ],
+          resolved: { type: Boolean, default: false },
         },
       },
     ],
 
-    // Link to saved Address (required only if delivery)
+    totalPrice: { type: Number, required: true },
+
+    // Address & delivery info
+    deliveryMethod: {
+      type: String,
+      enum: ["delivery", "pickup", "standard", "express"],
+      default: "delivery",
+    },
     address: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Address",
@@ -33,41 +72,15 @@ const orderSchema = new mongoose.Schema(
       },
     },
 
-    deliveryMethod: {
-      type: String,
-      enum: ["delivery", "pickup"],
-      required: true,
-      default: "delivery",
-    },
-
-    totalPrice: { type: Number, required: true },
-
-    status: {
-      type: String,
-      enum: [
-        "pending",
-        "processing",
-        "shipped",
-        "delivered",
-        "cancelled",
-        "paid",
-      ],
-      default: "pending",
-    },
-
-    isPaid: { type: Boolean, default: false },
-    paidAt: Date,
-
-    paymentMethod: {
-      type: String,
-      enum: ["COD", "TeleBirr", "Chapa"],
-      default: "COD",
-    },
+    // Overall payment tracking (optional)
     paymentStatus: {
       type: String,
-      enum: ["Pending", "Paid", "Failed"],
+      enum: ["Pending", "Partial", "Completed", "Failed"],
       default: "Pending",
     },
+
+    isPaid: { type: Boolean, default: false }, // for future total payment flag
+    paidAt: Date,
   },
   { timestamps: true }
 );
