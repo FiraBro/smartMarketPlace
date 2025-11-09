@@ -1,21 +1,22 @@
-import React, { useEffect, useState } from "react";
-import { getOrders } from "../service/orderService";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
-import { FaBox, FaShoppingBag } from "react-icons/fa";
+import { getMyOrders, cancelOrder } from "../service/orderService";
+import ProductStatusBadge from "../components/ProductStatusBadge";
+import toast from "react-hot-toast";
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [cancelling, setCancelling] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const data = await getOrders();
-        setOrders(data);
+        const data = await getMyOrders();
+        setOrders(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error(err);
-        alert("Failed to load orders");
+        toast.error("Failed to fetch orders. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -23,90 +24,167 @@ const OrdersPage = () => {
     fetchOrders();
   }, []);
 
+  const handleCancelOrder = async (orderId) => {
+    // ✅ Show toast confirmation instead of window.confirm
+    const confirm = await new Promise((resolve) => {
+      toast(
+        (t) => (
+          <div className="flex flex-col gap-2">
+            <p>Are you sure you want to cancel this order?</p>
+            <div className="flex gap-2 justify-end">
+              <button
+                className="bg-red-500 text-white px-3 py-1 rounded"
+                onClick={() => {
+                  resolve(true);
+                  toast.dismiss(t.id);
+                }}
+              >
+                Yes
+              </button>
+              <button
+                className="bg-gray-300 px-3 py-1 rounded"
+                onClick={() => {
+                  resolve(false);
+                  toast.dismiss(t.id);
+                }}
+              >
+                No
+              </button>
+            </div>
+          </div>
+        ),
+        { duration: Infinity }
+      );
+    });
+
+    if (!confirm) return;
+
+    setCancelling(orderId);
+    try {
+      await cancelOrder(orderId);
+
+      // Instantly remove the cancelled order from state
+      setOrders((prev) => prev.filter((order) => order._id !== orderId));
+
+      toast.success("Order cancelled successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to cancel the order. Please try again.");
+    } finally {
+      setCancelling(null);
+    }
+  };
+
   if (loading)
     return (
-      <div className="flex justify-center items-center h-64 text-lg text-gray-600">
+      <p className="text-center mt-10 text-gray-500 text-lg">
         Loading your orders...
-      </div>
+      </p>
     );
 
-  if (orders.length === 0)
+  if (!orders || orders.length === 0)
     return (
-      <div className="flex flex-col items-center justify-center h-[70vh] text-gray-500">
-        <motion.div
-          animate={{ scale: [1, 1.1, 1] }}
-          transition={{ repeat: Infinity, duration: 1.5 }}
-          className="text-[#faa64d] mb-4"
-        >
-          <FaShoppingBag size={60} />
-        </motion.div>
-        <h2 className="text-2xl font-semibold mb-2 text-gray-700">
-          You haven’t placed any orders yet
-        </h2>
-        <p className="text-center text-gray-500 mb-4 max-w-xs">
-          Browse our products and add items to your cart. Your orders will
-          appear here once you make a purchase.
-        </p>
-        <Link
-          to="/all-listings"
-          className="px-6 py-3 bg-[#f9A03f] text-white rounded-xl font-medium hover:bg-[#faa64d] shadow-md transition-all"
-        >
-          Start Shopping
-        </Link>
+      <div className="p-6 max-w-4xl mx-auto text-center">
+        <div className="text-[#000] p-6 rounded-lg shadow-lg mb-6">
+          <h1 className="text-3xl font-bold">My Orders</h1>
+        </div>
+        <div className="flex flex-col items-center justify-center mt-10">
+          <img
+            src="https://cdn-icons-png.flaticon.com/512/4076/4076549.png"
+            alt="No orders"
+            className="w-40 mb-4 opacity-70"
+          />
+          <p className="text-gray-500 text-lg">
+            You haven't placed any orders yet.
+          </p>
+          <Link
+            to="/"
+            className="mt-4 bg-[#f9A03f] text-white px-6 py-2 rounded-lg hover:bg-orange-500 transition duration-300"
+          >
+            Browse Products
+          </Link>
+        </div>
       </div>
     );
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-3xl font-bold text-gray-800 mb-3">My Orders</h1>
-      <p className="text-gray-600 mb-8">
-        Keep your <span className="font-semibold text-blue-600">Order ID</span>{" "}
-        safe — you’ll need it to track your order.
-      </p>
+    <div className="p-6 max-w-5xl mx-auto">
+      <div className="bg-[#f9A03f] text-white p-6 rounded-lg shadow-lg mb-8">
+        <h1 className="text-3xl font-bold">My Orders</h1>
+      </div>
 
       <div className="space-y-6">
-        {orders.map((order, index) => (
-          <motion.div
+        {orders.map((order) => (
+          <div
             key={order._id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="bg-white shadow-md hover:shadow-lg transition-shadow rounded-2xl p-6 border border-gray-100"
+            className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow hover:shadow-xl transition-shadow duration-300"
           >
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-2">
-                <p className="text-gray-700">
-                  <span className="font-semibold">Order ID:</span>{" "}
-                  <span className="font-mono text-blue-600">{order._id}</span>
-                </p>
-                <p className="flex items-center text-gray-700">
-                  <span className="font-semibold mr-1">Status:</span>
-                  {order.status === "Delivered" ? (
-                    <span className="flex items-center text-green-600">
-                      <FaBox className="mr-1" /> Delivered
-                    </span>
-                  ) : (
-                    <span className="flex items-center text-yellow-500">
-                      <FaBox className="mr-1" /> {order.status || "Pending"}
-                    </span>
-                  )}
-                </p>
-                <p className="text-gray-700">
-                  <span className="font-semibold">Total Items:</span>{" "}
-                  {order.products.length}
-                </p>
-              </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-semibold text-gray-800 mb-2">
+                Order #{order._id}
+              </h2>
+              <p className="text-gray-600">
+                Total Price:{" "}
+                <span className="font-medium">${order.totalPrice}</span>
+              </p>
+              <p className="text-gray-600">
+                Delivery Method:{" "}
+                <span className="font-medium">
+                  {order.deliveryMethod || "N/A"}
+                </span>
+              </p>
 
-              <div className="mt-4 sm:mt-0">
-                <Link
-                  to={`/payment/${order._id}`}
-                  className="inline-block px-6 py-2 bg-[#f9A03f] text-white rounded-xl font-medium hover:bg-[#faa64d] transition-all"
-                >
-                  View / Pay
-                </Link>
+              {/* Products */}
+              <div className="mt-3 space-y-2">
+                {order.products?.length > 0 ? (
+                  order.products.map((p) => (
+                    <div
+                      key={p._id}
+                      className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <p className="text-gray-900 font-medium">
+                          {p.productId?.title || "Unknown Product"}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Qty: {p.quantity} • Price: ${p.price * p.quantity}
+                        </p>
+                      </div>
+                      <ProductStatusBadge status={p.status} />
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-sm text-gray-500 italic">
+                    No products found
+                  </p>
+                )}
               </div>
             </div>
-          </motion.div>
+
+            <div className="flex flex-col md:items-end gap-3">
+              <Link
+                to={`/orders/${order._id}`}
+                className="bg-[#f9A03f] text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-orange-500 transition duration-300"
+              >
+                View Details
+              </Link>
+
+              {/* Cancel button only if not already cancelled or delivered */}
+              {order.status !== "Cancelled" && order.status !== "Delivered" && (
+                <button
+                  onClick={() => handleCancelOrder(order._id)}
+                  disabled={cancelling === order._id}
+                  className={`${
+                    cancelling === order._id
+                      ? "bg-gray-400"
+                      : "bg-red-500 hover:bg-red-600"
+                  } text-white px-4 py-2 rounded-lg font-medium shadow transition duration-300`}
+                >
+                  {cancelling === order._id ? "Cancelling..." : "Cancel Order"}
+                </button>
+              )}
+            </div>
+          </div>
         ))}
       </div>
     </div>
