@@ -5,6 +5,7 @@ import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
+import { toast } from "react-hot-toast";
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
@@ -34,15 +35,17 @@ export default function ProductCard({ product }) {
     e.stopPropagation();
     if (isFavorite) {
       removeFromFavorites(normalized.id);
+      toast.success("Removed from favorites!");
     } else {
-      addToFavorites({ ...normalized, _id: normalized.id }); // keep _id for favorites
-      alert("Added to favorites!");
+      addToFavorites({ ...normalized, _id: normalized.id });
+      toast.success("Added to favorites!");
     }
   };
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
     addItem(normalized, 1); // quantity = 1
+    toast.success("Added to cart!");
   };
 
   return (
