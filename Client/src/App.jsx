@@ -1,121 +1,122 @@
-import React, { useState, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
 
-// Context Providers
+// ========================
+// CONTEXT PROVIDERS
+// ========================
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { FavoriteProvider } from "./context/FavoriteContext";
 import { SocketProvider } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
 
-// Layout Components
+// ========================
+// LAYOUT COMPONENTS
+// ========================
 import Layout from "./util/Layout";
 import SellerLayout from "./util/SellerLayout";
 
-// Authentication & Authorization
+// ========================
+// AUTH & PROTECTED ROUTES
+// ========================
 import PrivateRoute from "./components/PrivateRoute";
 import AuthPage from "./pages/AuthPage";
 import Unauthorized from "./pages/Unauthorized";
 
-// Buyer Pages
+// ========================
+// BUYER PAGES
+// ========================
 import HomePage from "./pages/HomePage";
 import ProductDetail from "./pages/ProductDetail";
 import ProfilePage from "./pages/ProfilePage";
 import AllListingsPage from "./pages/AllListingPage";
-import PaymentPage from "./pages/PaymentPage";
 import OrdersPage from "./pages/OrderPage";
+import OrderDetailPage from "./pages/OrderDetailPage";
 import OrderSuccessPage from "./pages/OrderSuccussPage";
 import BuyerNotificationsPage from "./pages/buyer/BuyerNotificationsPage";
 
-// Seller Pages
+// ========================
+// SELLER PAGES
+// ========================
 import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerProducts from "./pages/seller/SellerProduct";
 import SellerOrders from "./pages/seller/SellerOrder";
 import AddProduct from "./pages/seller/SellerAddProduct";
 import UpdateProduct from "./pages/seller/UpdateProduct";
-import SellerProfile from "./pages/seller/SellerProfile";
 import EditProduct from "./pages/seller/EditProduct";
+import SellerProfile from "./pages/seller/SellerProfile";
 import SellerNotificationsPage from "./pages/seller/SellerNotificationsPage";
 
-// Content Pages
+// ========================
+// CONTENT PAGES
+// ========================
 import BlogPage from "./pages/BlogPage";
 import BlogPostPage from "./pages/BlogPostPage";
 import ContactPage from "./pages/ContactPage";
 import FAQPage from "./pages/FaqPage";
 
-// UI Components
+// ========================
+// UI COMPONENTS
+// ========================
 import Spinner from "./components/Spinner";
 
-/**
- * Main Application Component
- * Handles routing, state management, and provider setup
- */
 export default function App() {
-  // Modal state management
+  // ========================
+  // MODAL STATES
+  // ========================
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavOpen, setIsFavOpen] = useState(false);
 
-  // Modal handlers
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
   const openFav = () => setIsFavOpen(true);
   const closeFav = () => setIsFavOpen(false);
 
-  // Router configuration
+  // ========================
+  // ROUTER CONFIGURATION
+  // ========================
   const router = createBrowserRouter([
-    // ========================
     // PUBLIC ROUTES
-    // ========================
-    {
-      path: "/auth",
-      element: <AuthPage />,
-    },
-    {
-      path: "/unauthorized",
-      element: <Unauthorized />,
-    },
+    { path: "/auth", element: <AuthPage /> },
+    { path: "/unauthorized", element: <Unauthorized /> },
     { path: "all-listings", element: <AllListingsPage /> },
 
-    // ========================
     // BUYER ROUTES
-    // ========================
     {
       path: "/",
       element: (
         <Layout
           openCart={openCart}
+          closeCart={closeCart}
           openFav={openFav}
+          closeFav={closeFav}
           isCartOpen={isCartOpen}
           isFavOpen={isFavOpen}
-          closeCart={closeCart}
-          closeFav={closeFav}
         />
       ),
       children: [
-        // Home & Product Routes
         { index: true, element: <HomePage /> },
         { path: "listings/:id", element: <ProductDetail /> },
-
-        // Content Routes
         { path: "blog", element: <BlogPage /> },
         { path: "blog/:id", element: <BlogPostPage /> },
         { path: "contact", element: <ContactPage /> },
         { path: "faq", element: <FAQPage /> },
 
-        // Protected Buyer Routes
-        {
-          path: "payment/:orderId",
-          element: (
-            <PrivateRoute>
-              <PaymentPage />
-            </PrivateRoute>
-          ),
-        },
+        // Protected Buyer Pages
         {
           path: "orders",
           element: (
             <PrivateRoute>
               <OrdersPage />
+            </PrivateRoute>
+          ),
+        },
+        {
+          path: "orders/:id",
+          element: (
+            <PrivateRoute>
+              <OrderDetailPage />
             </PrivateRoute>
           ),
         },
@@ -146,9 +147,7 @@ export default function App() {
       ],
     },
 
-    // ========================
     // SELLER ROUTES
-    // ========================
     {
       path: "/seller",
       element: (
@@ -157,28 +156,19 @@ export default function App() {
         </PrivateRoute>
       ),
       children: [
-        // Dashboard & Profile
         { index: true, element: <SellerDashboard /> },
         { path: "dashboard", element: <SellerDashboard /> },
         { path: "profile", element: <SellerProfile /> },
-
-        // Product Management
         { path: "products", element: <SellerProducts /> },
         { path: "add-product", element: <AddProduct /> },
         { path: "edit-product/:id", element: <EditProduct /> },
         { path: "update-product/:id", element: <UpdateProduct /> },
-
-        // Order Management
         { path: "orders", element: <SellerOrders /> },
-
-        // Notifications
         { path: "notifications", element: <SellerNotificationsPage /> },
       ],
     },
 
-    // ========================
     // FALLBACK ROUTE (404)
-    // ========================
     {
       path: "*",
       element: (
@@ -204,6 +194,9 @@ export default function App() {
         <NotificationProvider>
           <CartProvider>
             <FavoriteProvider>
+              {/* ✅ Toaster for toast notifications */}
+              <Toaster position="top-right" reverseOrder={false} />
+
               <Suspense
                 fallback={
                   <div className="min-h-screen flex items-center justify-center">
