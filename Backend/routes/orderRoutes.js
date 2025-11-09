@@ -14,20 +14,9 @@ import {
   confirmDelivery,
   disputeProduct,
 } from "../controllers/orderController.js";
-import multer from "multer";
+import { upload } from "../middlewares/uploadMiddleware.js"; // ✅ use your shared multer config
 
 const router = express.Router();
-
-// Use multer for payment proof uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + "-" + file.originalname);
-  },
-});
-const upload = multer({ storage });
 
 // ================== ORDER ROUTES ==================
 
