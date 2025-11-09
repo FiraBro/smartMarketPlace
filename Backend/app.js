@@ -64,7 +64,7 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/support", supportRoutes);
 
 // Seller routes (banner & logo upload handled with multer inside the route)
-app.use("/api/seller", sellerRoutes);
+app.use("/api/v1/seller", sellerRoutes);
 
 // ----------------------------
 // Global Error Handler
