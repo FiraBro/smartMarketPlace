@@ -6,10 +6,12 @@ import AppError from "../utils/AppError.js";
 // ✅ Get current user's favorites
 export const getFavorites = catchAsync(async (req, res, next) => {
   const favorites = await Favorite.findOne({
-    user: req.session.user._id,
+    user: req.session.user?._id,
   }).populate("items.listing");
 
-  if (!favorites) return res.json({ items: [] });
+  if (!favorites) {
+    return res.json({ items: [] });
+  }
 
   res.json(favorites);
 });
