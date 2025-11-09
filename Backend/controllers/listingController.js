@@ -8,6 +8,7 @@ import sharp from "sharp";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
 import { promisify } from "util";
+
 const unlinkAsync = promisify(fs.unlink);
 
 const uploadDir = path.join(process.cwd(), "uploads");
@@ -49,7 +50,8 @@ const processImage = async (file) => {
 const buildQuery = ({ q, category, minPrice, maxPrice, owner, condition }) => {
   const query = {};
   if (q) query.$text = { $search: q };
-  if (category && category !== "All Products") query.category = new RegExp(`^${category}$`, "i");
+  if (category && category !== "All Products")
+    query.category = new RegExp(`^${category}$`, "i");
   if (owner) query.owner = owner;
   if (condition) query.condition = condition;
   if (minPrice || maxPrice) {
@@ -77,7 +79,14 @@ export const listListings = catchAsync(async (req, res, next) => {
     condition,
   } = req.query;
 
-  const query = buildQuery({ q, category, minPrice, maxPrice, owner, condition });
+  const query = buildQuery({
+    q,
+    category,
+    minPrice,
+    maxPrice,
+    owner,
+    condition,
+  });
 
   const pageNum = Math.max(1, parseInt(page));
   const pageSize = Math.min(60, Math.max(1, parseInt(limit)));
@@ -89,10 +98,11 @@ export const listListings = catchAsync(async (req, res, next) => {
   ]);
 
   // Optional: add computed flags for frontend special offers
-  items.forEach(item => {
+  items.forEach((item) => {
     item.isFreeShipping = true; // Example logic
-    item.isOnSale = item.price < 50; 
-    item.isNewArrival = (new Date() - new Date(item.createdAt)) < 30*24*60*60*1000; // 30 days
+    item.isOnSale = item.price < 50;
+    item.isNewArrival =
+      new Date() - new Date(item.createdAt) < 30 * 24 * 60 * 60 * 1000; // 30 days
     item.isBestSeller = (item.popularity || 0) > 100;
   });
 
@@ -147,10 +157,11 @@ export const getAllListings = catchAsync(async (req, res, next) => {
     Listing.countDocuments(query),
   ]);
 
-  items.forEach(item => {
+  items.forEach((item) => {
     item.isFreeShipping = true;
     item.isOnSale = item.price < 50;
-    item.isNewArrival = (new Date() - new Date(item.createdAt)) < 30*24*60*60*1000;
+    item.isNewArrival =
+      new Date() - new Date(item.createdAt) < 30 * 24 * 60 * 60 * 1000;
     item.isBestSeller = (item.popularity || 0) > 100;
   });
 
@@ -176,7 +187,9 @@ export const getListingById = catchAsync(async (req, res, next) => {
   const related = await Listing.find({
     category: listing.category,
     _id: { $ne: listing._id },
-  }).limit(4).lean();
+  })
+    .limit(4)
+    .lean();
 
   res.json({ listing, related });
 });
@@ -188,7 +201,9 @@ export const getListingById = catchAsync(async (req, res, next) => {
 export const createListing = catchAsync(async (req, res, next) => {
   const { title, description, price, category, condition, location } = req.body;
   if (!title || !description || !price || !location)
-    return next(new AppError("title, description, price, and location are required", 400));
+    return next(
+      new AppError("title, description, price, and location are required", 400)
+    );
 
   const files = req.files || [];
   const images = [];
@@ -229,39 +244,52 @@ export const createListing = catchAsync(async (req, res, next) => {
 
 export const updateListing = catchAsync(async (req, res, next) => {
   const { id } = req.params;
-  const { title, description, price, category, condition, location, removeFiles } = req.body;
+  const { title, description, price, category, condition, location } = req.body;
 
   const listing = await Listing.findById(id);
   if (!listing) return next(new AppError("Listing not found", 404));
+
   if (String(listing.owner) !== String(req.session.user._id))
     return next(new AppError("Not allowed", 403));
 
-  let images = listing.images;
-  const toRemove = Array.isArray(removeFiles)
-    ? removeFiles
-    : removeFiles
-    ? String(removeFiles).split(",")
-    : [];
-
-  if (toRemove.length) {
-    images = images.filter(img => {
-      if (toRemove.includes(img.url)) {
-        const fullPath = path.join(process.cwd(), img.url);
-        fs.unlink(fullPath, err => err && console.error(err));
-        return false;
-      }
-      return true;
+  // -----------------------------
+  // 1. Delete all existing images
+  // -----------------------------
+  if (listing.images && listing.images.length) {
+    listing.images.forEach((img) => {
+      const fullPath = path.join(process.cwd(), img.url);
+      fs.unlink(
+        fullPath,
+        (err) => err && console.error("Failed to delete:", fullPath, err)
+      );
     });
   }
 
+  // -----------------------------
+  // 2. Process new uploaded images
+  // -----------------------------
   const files = req.files || [];
+  const newImages = [];
   for (const f of files) {
     const processed = await processImage(f);
-    images.push({ url: processed.url, placeholder: processed.placeholder });
+    newImages.push({ url: processed.url, placeholder: processed.placeholder });
   }
 
-  Object.assign(listing, { title, description, price, category, condition, location, images });
+  // -----------------------------
+  // 3. Update listing
+  // -----------------------------
+  Object.assign(listing, {
+    title,
+    description,
+    price,
+    category,
+    condition,
+    location,
+    images: newImages, // completely replace old images
+  });
+
   const saved = await listing.save();
+
   res.json(saved);
 });
 
