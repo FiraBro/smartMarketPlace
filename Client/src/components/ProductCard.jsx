@@ -1,4 +1,3 @@
-import React from "react";
 import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
@@ -14,15 +13,19 @@ export default function ProductCard({ product }) {
 
   if (!product) return null;
 
+  const baseUrl = import.meta.env.VITE_STATIC_URL || "http://localhost:5000";
+
+  // 🧩 Normalize image path
+  const imagePath = product.images?.[0]?.url || product.image || "";
+  const imageUrl = imagePath.startsWith("http")
+    ? imagePath
+    : `${baseUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
+
   const normalized = {
-    id: product._id || product.id, // use "id" to match CartContext
+    id: product._id || product.id,
     name: product.title || product.name || "Unnamed Product",
     price: product.price || 0,
-    image: product.images?.[0]?.url
-      ? `${import.meta.env.VITE_STATIC_URL || "http://localhost:5000"}${
-          product.images[0].url
-        }`
-      : "https://via.placeholder.com/200",
+    image: imageUrl,
     placeholder:
       product.images?.[0]?.placeholder || "https://via.placeholder.com/20",
     rating: product.rating || 0,
@@ -44,8 +47,8 @@ export default function ProductCard({ product }) {
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
-    addItem(normalized, 1); // quantity = 1
-    toast.success("Added to cart!");
+    addItem(normalized, 1);
+    toast.success(`${normalized.name} added to cart!`);
   };
 
   return (
@@ -53,7 +56,7 @@ export default function ProductCard({ product }) {
       className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-shadow duration-300 cursor-pointer w-full flex flex-col"
       onClick={() => navigate(`/listings/${normalized.id}`)}
     >
-      {/* Image container */}
+      {/* Image */}
       <div className="w-full aspect-[4/3.5] relative overflow-hidden rounded-t-2xl">
         <LazyLoadImage
           src={normalized.image}
@@ -61,8 +64,10 @@ export default function ProductCard({ product }) {
           effect="blur"
           alt={normalized.name}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.src = "https://via.placeholder.com/200";
+          }}
         />
-
         {/* ❤️ Favorite Button */}
         <button
           onClick={toggleFavorite}
@@ -86,7 +91,9 @@ export default function ProductCard({ product }) {
         </div>
 
         <div className="mt-2 flex items-center justify-between">
-          <p className="text-[#000] font-bold text-2xl">$ {normalized.price}</p>
+          <p className="text-[#000] font-bold text-2xl">
+            Br {normalized.price}
+          </p>
           <button
             onClick={handleAddToCart}
             className="text-yellow-500 hover:text-yellow-700 transition cursor-pointer"
