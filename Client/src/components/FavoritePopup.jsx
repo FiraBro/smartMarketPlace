@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { FiX, FiHeart, FiTrash2, FiShoppingCart } from "react-icons/fi";
 import { useFavorites } from "../context/FavoriteContext";
 import { useCart } from "../context/CartContext";
