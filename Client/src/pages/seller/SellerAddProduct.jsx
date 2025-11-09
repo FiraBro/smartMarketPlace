@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { createListing } from "../../service/listingService";
+import { toast } from "react-hot-toast";
 
 export default function AddProduct() {
   const [step, setStep] = useState(1);
@@ -16,7 +17,6 @@ export default function AddProduct() {
   });
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const categories = [
     "Cosmetic",
@@ -45,7 +45,6 @@ export default function AddProduct() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
 
     try {
       const formData = new FormData();
@@ -60,7 +59,7 @@ export default function AddProduct() {
 
       const data = await createListing(formData);
 
-      alert(`✅ Product "${data.title}" added successfully!`);
+      toast.success(`Product ${data.title} added successfully!`);
 
       // Reset form
       setForm({
@@ -75,8 +74,7 @@ export default function AddProduct() {
       setPreview([]);
       setStep(1);
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Failed to add product");
+      toast.error(err.response?.data?.message || "Failed to add product");
     } finally {
       setLoading(false);
     }
@@ -92,8 +90,6 @@ export default function AddProduct() {
         Add New Product
       </h2>
 
-      {error && <p className="text-red-500 mb-3">{error}</p>}
-
       <form onSubmit={handleSubmit} className="flex flex-col gap-6">
         {/* Step 1: Product Info */}
         {step === 1 && (
@@ -103,7 +99,6 @@ export default function AddProduct() {
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col gap-4"
           >
-            {/* Product Title */}
             <div className="flex flex-col">
               <label className="text-gray-600 text-sm mb-1">
                 Product Title
@@ -118,7 +113,6 @@ export default function AddProduct() {
               />
             </div>
 
-            {/* Product Description */}
             <div className="flex flex-col">
               <label className="text-gray-600 text-sm mb-1">
                 Product Description
@@ -135,7 +129,6 @@ export default function AddProduct() {
               />
             </div>
 
-            {/* Category */}
             <div className="flex flex-col">
               <label className="text-gray-600 text-sm mb-1">Category</label>
               <select
@@ -155,7 +148,6 @@ export default function AddProduct() {
               </select>
             </div>
 
-            {/* Condition */}
             <div className="flex flex-col">
               <label className="text-gray-600 text-sm mb-1">Condition</label>
               <select
@@ -173,7 +165,6 @@ export default function AddProduct() {
               </select>
             </div>
 
-            {/* Location */}
             <div className="flex flex-col">
               <label className="text-gray-600 text-sm mb-1">Location</label>
               <input
@@ -227,7 +218,6 @@ export default function AddProduct() {
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
               required
             />
-
             {preview.length > 0 && (
               <div className="flex gap-2 flex-wrap mt-2">
                 {preview.map((src, index) => (
