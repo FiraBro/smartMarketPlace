@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getListingById, updateListing } from "../../service/listingService";
 import { FaTrash, FaUpload, FaArrowLeft } from "react-icons/fa";
+import { toast } from "react-hot-toast";
 
 export default function EditProduct() {
   const { id } = useParams();
@@ -28,6 +29,7 @@ export default function EditProduct() {
     "Clothing",
     "Electronics",
   ];
+
   // ✅ Fetch existing listing
   useEffect(() => {
     (async () => {
@@ -44,7 +46,7 @@ export default function EditProduct() {
         });
       } catch (err) {
         console.error(err);
-        alert("Failed to load product");
+        toast.error("Failed to load product");
       } finally {
         setLoading(false);
       }
@@ -79,11 +81,11 @@ export default function EditProduct() {
       newImages.forEach((img) => form.append("images", img));
 
       await updateListing(id, form);
-      alert("Product updated successfully!");
+      toast.success("Product updated successfully!");
       navigate("/seller/dashboard");
     } catch (error) {
       console.error("Update failed:", error);
-      alert("Failed to update product");
+      toast.error("Failed to update product");
     } finally {
       setSaving(false);
     }
