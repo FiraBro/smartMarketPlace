@@ -4,7 +4,7 @@ import catchAsync from "../utils/catchAsync.js";
 import Seller from "../models/Seller.js";
 import Listing from "../models/Listing.js";
 import Order from "../models/Order.js"; // import Order model
-
+import { Wallet } from "../models/Wallet.js";
 // Register admin
 export const registerAdmin = catchAsync(async (req, res, next) => {
   const { email, password, passwordConfirm, role } = req.body;
@@ -151,8 +151,6 @@ export const suspendSeller = catchAsync(async (req, res, next) => {
   });
 });
 
-// GET /listings/details
-
 export const getListingDetails = catchAsync(async (req, res) => {
   // fetch listings with owner → seller populated
   const listings = await Listing.find()
@@ -192,3 +190,34 @@ export const getListingDetails = catchAsync(async (req, res) => {
 
   res.status(200).json({ success: true, data: result });
 });
+
+// Admin verifies buyer payment
+export const verifyPayment = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order) return res.status(404).json({ message: "Order not found" });
+
+  order.status = "funds_held";
+  await order.save();
+
+  await Wallet.findOneAndUpdate(
+    { userId: order.sellerId },
+    { $inc: { escrowHeld: order.totalAmount } },
+    { upsert: true }
+  );
+
+  res.json({ message: "Funds held in escrow", order });
+};
+
+// Admin releases funds
+export const releaseFunds = async (req, res) => {
+  const order = await Order.findById(req.params.id);
+  if (!order || order.status !== "completed")
+    return res.status(400).json({ message: "Order not ready for release" });
+
+  await Wallet.findOneAndUpdate(
+    { userId: order.sellerId },
+    { $inc: { balance: order.totalAmount, escrowHeld: -order.totalAmount } }
+  );
+
+  res.json({ message: "Funds released to seller", order });
+};
