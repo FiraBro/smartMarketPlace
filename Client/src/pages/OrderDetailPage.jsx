@@ -81,25 +81,45 @@ const OrderDetailPage = () => {
   return (
     <div className="p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="bg-[#f9A03f] text-white p-6 rounded-lg shadow-lg mb-8">
-        <h1 className="text-lg font-medium">
-          CBE Account Number: 1000434384277
-        </h1>
-        <h2 className="text-3xl font-bold mt-2">Order #{order._id}</h2>
-        <div className="mt-4 space-y-1">
-          <p>
-            Total Price:{" "}
-            <span className="font-semibold">${order.totalPrice}</span>
-          </p>
-          <p>
-            Delivery Method:{" "}
-            <span className="font-semibold">{order.deliveryMethod}</span>
-          </p>
-          {order.address && (
+      {/* Header */}
+      {/* Header */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50 via-white to-orange-100 text-gray-800 p-8 rounded-2xl shadow-lg mb-10 border border-orange-200">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/white-wall-3.png')] opacity-10"></div>
+
+        <div className="relative z-10">
+          <h1 className="text-sm font-medium text-orange-600 tracking-wide">
+            CBE Account Number:{" "}
+            <span className="font-semibold">1000434384277</span>
+          </h1>
+
+          <h2 className="text-3xl md:text-4xl font-extrabold mt-3 bg-gradient-to-r from-orange-500 to-yellow-500 bg-clip-text text-transparent">
+            Order #{order._id}
+          </h2>
+
+          <div className="mt-5 space-y-2 text-gray-700">
             <p>
-              Address: <span className="font-semibold">{order.address}</span>
+              <span className="font-semibold text-gray-900">Total Price:</span>{" "}
+              <span className="text-orange-600 font-bold">
+                ${order.totalPrice}
+              </span>
             </p>
-          )}
+            <p>
+              <span className="font-semibold text-gray-900">
+                Delivery Method:
+              </span>{" "}
+              <span className="text-orange-600 font-semibold">
+                {order.deliveryMethod}
+              </span>
+            </p>
+            {order.address && (
+              <p>
+                <span className="font-semibold text-gray-900">Address:</span>{" "}
+                <span className="text-orange-600 font-medium">
+                  {order.address}
+                </span>
+              </p>
+            )}
+          </div>
         </div>
       </div>
 
