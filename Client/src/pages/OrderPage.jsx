@@ -99,7 +99,7 @@ const OrdersPage = () => {
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
-      <div className="bg-[#f9A03f] text-white p-6 rounded-lg shadow-lg mb-8">
+      <div className="from-orange-50 bg-gradient-to-r via-white to-orange-100 text-gray-800 p-12 rounded-lg shadow-lg mb-8">
         <h1 className="text-3xl font-bold">My Orders</h1>
       </div>
 
