@@ -24,55 +24,45 @@ const OrdersPage = () => {
     fetchOrders();
   }, []);
 
-  const handleCancelOrder = async (orderId) => {
-    // ✅ Show toast confirmation instead of window.confirm
-    const confirm = await new Promise((resolve) => {
-      toast(
-        (t) => (
-          <div className="flex flex-col gap-2">
-            <p>Are you sure you want to cancel this order?</p>
-            <div className="flex gap-2 justify-end">
-              <button
-                className="bg-red-500 text-white px-3 py-1 rounded"
-                onClick={() => {
-                  resolve(true);
-                  toast.dismiss(t.id);
-                }}
-              >
-                Yes
-              </button>
-              <button
-                className="bg-gray-300 px-3 py-1 rounded"
-                onClick={() => {
-                  resolve(false);
-                  toast.dismiss(t.id);
-                }}
-              >
-                No
-              </button>
-            </div>
+  const handleCancelOrder = (orderId) => {
+    toast(
+      (t) => (
+        <div className="flex flex-col gap-2">
+          <p>Are you sure you want to cancel this order?</p>
+          <div className="flex gap-2 justify-end mt-1">
+            <button
+              className="bg-gray-300 px-3 py-1 rounded hover:bg-gray-400"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+            <button
+              className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+              onClick={async () => {
+                toast.dismiss(t.id);
+                setCancelling(orderId);
+
+                try {
+                  await cancelOrder(orderId);
+                  setOrders((prev) =>
+                    prev.filter((order) => order._id !== orderId)
+                  );
+                  toast.success("Order cancelled successfully!");
+                } catch (error) {
+                  console.error(error);
+                  toast.error("Failed to cancel the order. Please try again.");
+                } finally {
+                  setCancelling(null);
+                }
+              }}
+            >
+              Yes, Delete
+            </button>
           </div>
-        ),
-        { duration: Infinity }
-      );
-    });
-
-    if (!confirm) return;
-
-    setCancelling(orderId);
-    try {
-      await cancelOrder(orderId);
-
-      // Instantly remove the cancelled order from state
-      setOrders((prev) => prev.filter((order) => order._id !== orderId));
-
-      toast.success("Order cancelled successfully!");
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to cancel the order. Please try again.");
-    } finally {
-      setCancelling(null);
-    }
+        </div>
+      ),
+      { duration: Infinity }
+    );
   };
 
   if (loading)
