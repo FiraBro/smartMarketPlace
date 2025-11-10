@@ -4,6 +4,7 @@ import Cart from "../models/Cart.js";
 import { Wallet } from "../models/Wallet.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
+import mongoose from "mongoose";
 
 // ✅ Create Order (Multi-seller compatible)
 export const createOrder = catchAsync(async (req, res, next) => {
@@ -167,22 +168,35 @@ export const releaseFunds = catchAsync(async (req, res, next) => {
 });
 
 // ✅ Seller: mark product as shipped
+
 export const markAsShipped = catchAsync(async (req, res, next) => {
   const sessionUser = req.session.user;
   const { orderId, productId } = req.params;
+
   if (!sessionUser || sessionUser.role !== "seller")
     return next(new AppError("Not authorized", 403));
 
   const order = await Order.findById(orderId);
   if (!order) return next(new AppError("Order not found", 404));
 
-  const product = order.products.find((p) => String(p.productId) === productId);
-  if (!product || String(product.sellerId) !== String(sessionUser._id))
+  // Convert params to string for safe comparison
+  const product = order.products.find(
+    (p) =>
+      p.productId._id.toString() === productId &&
+      p.sellerId.toString() === sessionUser._id.toString()
+  );
+
+  if (!product)
     return next(new AppError("Product not found or unauthorized", 404));
 
   product.status = "shipped";
   await order.save();
-  res.json({ message: "Product marked as shipped", product });
+
+  res.status(200).json({
+    status: "success",
+    message: "Product marked as shipped",
+    product,
+  });
 });
 
 // ✅ Buyer: confirm delivery for a product
