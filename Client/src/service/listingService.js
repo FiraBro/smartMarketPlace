@@ -44,21 +44,6 @@ export const createListing = async (payload) => {
   }
 };
 
-// Get all distinct categories
-// export const getAllCategories = async () => {
-//   try {
-//     const { data } = await LISTING_API.get("/listings/categories");
-//     return data;
-//   } catch (error) {
-//     console.error("Error in getAllCategories:", error);
-//     if (error.response?.status === 500) {
-//       console.warn("Server error fetching categories, returning fallback []");
-//       return [];
-//     }
-//     throw error;
-//   }
-// };
-
 // Search listings
 export const searchListings = async (query, category) => {
   try {
