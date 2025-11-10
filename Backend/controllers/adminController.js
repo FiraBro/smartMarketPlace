@@ -3,95 +3,81 @@ import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
 import Seller from "../models/Seller.js";
 import Listing from "../models/Listing.js";
-import Order from "../models/Order.js"; // import Order model
+import Order from "../models/Order.js";
 import { Wallet } from "../models/Wallet.js";
-// Register admin
+
+/**
+ * ============================
+ * ADMIN AUTH CONTROLLERS
+ * ============================
+ */
+
+// ✅ Register admin
 export const registerAdmin = catchAsync(async (req, res, next) => {
   const { email, password, passwordConfirm, role } = req.body;
 
-  // Check if password matches confirmation
   if (password !== passwordConfirm) {
     return next(new AppError("Passwords do not match", 400));
   }
 
-  // Check if admin already exists
-  const existingAdmin = await Admin.findOne({
-    $or: [{ email }],
-  });
-
+  const existingAdmin = await Admin.findOne({ email });
   if (existingAdmin) {
-    return next(
-      new AppError("Admin with this email or username already exists", 400)
-    );
+    return next(new AppError("Admin with this email already exists", 400));
   }
 
-  // Create new admin
   const newAdmin = await Admin.create({
     email,
     password,
     role: role || "admin",
   });
 
-  // Remove password from output
   newAdmin.password = undefined;
 
   res.status(201).json({
     status: "success",
     message: "Admin registered successfully",
-    data: {
-      admin: newAdmin,
-    },
+    data: { admin: newAdmin },
   });
 });
 
-// Login admin
+// ✅ Login admin (unified session)
 export const loginAdmin = catchAsync(async (req, res, next) => {
-  // console.log(req.session);
   const { email, password } = req.body;
 
-  // 1) Check if email and password exist
   if (!email || !password) {
     return next(new AppError("Please provide email and password", 400));
   }
 
-  // 2) Check if admin exists and password is correct
   const admin = await Admin.findOne({ email }).select("+password");
-
   if (!admin || !(await admin.correctPassword(password, admin.password))) {
     return next(new AppError("Incorrect email or password", 401));
   }
 
-  // 3) Check if admin is active
   if (!admin.isActive) {
     return next(new AppError("Your account has been deactivated", 401));
   }
 
-  // 4) Set session
-  req.session.admin = {
+  // ✅ Unified session — all user types stored under req.session.user
+  req.session.user = {
     id: admin._id,
-    username: admin.username,
+    name: admin.username || "Admin",
     email: admin.email,
-    role: admin.role,
+    role: admin.role || "admin",
   };
 
-  // Remove password from output
   admin.password = undefined;
 
   res.status(200).json({
     status: "success",
-    message: "Logged in successfully",
-    data: {
-      admin,
-    },
+    message: "Admin logged in successfully",
+    data: { user: req.session.user },
   });
 });
 
-// Logout admin
+// ✅ Logout (same for all)
 export const logoutAdmin = catchAsync(async (req, res, next) => {
   req.session.destroy((err) => {
-    if (err) {
-      return next(new AppError("Could not log out", 500));
-    }
+    if (err) return next(new AppError("Could not log out", 500));
 
     res.clearCookie("connect.sid");
     res.status(200).json({
@@ -101,25 +87,30 @@ export const logoutAdmin = catchAsync(async (req, res, next) => {
   });
 });
 
-// Get current admin
+// ✅ Get current admin info
 export const getMeAdmin = catchAsync(async (req, res, next) => {
   console.log("Session in getMeAdmin:", req.session);
 
-  if (!req.session.admin) {
+  if (!req.session.user || req.session.user.role !== "admin") {
     return res.status(401).json({
       status: "fail",
-      message: "Not authorized — no admin session",
+      message: "Not authorized — admin only",
     });
   }
 
   res.status(200).json({
     status: "success",
-    data: {
-      admin: req.session.admin,
-    },
+    data: { user: req.session.user },
   });
 });
 
+/**
+ * ============================
+ * ADMIN ACTIONS
+ * ============================
+ */
+
+// ✅ Approve Seller
 export const approveSeller = catchAsync(async (req, res, next) => {
   const { sellerId } = req.params;
 
@@ -135,6 +126,8 @@ export const approveSeller = catchAsync(async (req, res, next) => {
     data: seller,
   });
 });
+
+// ✅ Suspend Seller
 export const suspendSeller = catchAsync(async (req, res, next) => {
   const { sellerId } = req.params;
 
@@ -151,8 +144,8 @@ export const suspendSeller = catchAsync(async (req, res, next) => {
   });
 });
 
-export const getListingDetails = catchAsync(async (req, res) => {
-  // fetch listings with owner → seller populated
+// ✅ Get listing details with latest order
+export const getListingDetails = catchAsync(async (req, res, next) => {
   const listings = await Listing.find()
     .populate({
       path: "owner",
@@ -163,15 +156,13 @@ export const getListingDetails = catchAsync(async (req, res) => {
         select: "shopName status",
       },
     })
-    .select("title category stock"); // include stock
+    .select("title category stock");
 
-  // map listings to include **single order info**
   const result = await Promise.all(
     listings.map(async (listing) => {
-      // fetch the most recent order for this listing
       const order = await Order.findOne({ "products.product": listing._id })
-        .sort({ orderDate: -1 }) // get latest order
-        .select("_id amount orderDate status") // ✅ include status
+        .sort({ orderDate: -1 })
+        .select("_id amount orderDate status")
         .lean();
 
       return {
@@ -183,18 +174,18 @@ export const getListingDetails = catchAsync(async (req, res) => {
         orderId: order?._id || null,
         orderAmount: order?.amount || 0,
         orderDate: order?.orderDate || null,
-        orderStatus: order?.status || "N/A", // ✅ now returns actual status
+        orderStatus: order?.status || "N/A",
       };
     })
   );
 
-  res.status(200).json({ success: true, data: result });
+  res.status(200).json({ status: "success", data: result });
 });
 
-// Admin verifies buyer payment
-export const verifyPayment = async (req, res) => {
+// ✅ Verify buyer payment (hold funds in escrow)
+export const verifyPayment = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
-  if (!order) return res.status(404).json({ message: "Order not found" });
+  if (!order) return next(new AppError("Order not found", 404));
 
   order.status = "funds_held";
   await order.save();
@@ -205,19 +196,28 @@ export const verifyPayment = async (req, res) => {
     { upsert: true }
   );
 
-  res.json({ message: "Funds held in escrow", order });
-};
+  res.status(200).json({
+    status: "success",
+    message: "Funds held in escrow",
+    data: { order },
+  });
+});
 
-// Admin releases funds
-export const releaseFunds = async (req, res) => {
+// ✅ Release funds to seller
+export const releaseFunds = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
-  if (!order || order.status !== "completed")
-    return res.status(400).json({ message: "Order not ready for release" });
+  if (!order || order.status !== "completed") {
+    return next(new AppError("Order not ready for release", 400));
+  }
 
   await Wallet.findOneAndUpdate(
     { userId: order.sellerId },
     { $inc: { balance: order.totalAmount, escrowHeld: -order.totalAmount } }
   );
 
-  res.json({ message: "Funds released to seller", order });
-};
+  res.status(200).json({
+    status: "success",
+    message: "Funds released to seller",
+    data: { order },
+  });
+});
