@@ -30,6 +30,7 @@ export const updateSellerProfile = async (payload) => {
 // ---------------------
 export const getSellerProducts = async () => {
   const { data } = await API.get("/products");
+  console.log(`seller product:${data}`);
   return data;
 };
 
@@ -83,4 +84,9 @@ export const getRecentOrder = async () => {
     console.error("Failed to fetch recent orders:", error);
     return [];
   }
+};
+
+export const getWallet = async () => {
+  const response = await axios.get("/api/wallet/seller/wallet", {});
+  return response.data;
 };
