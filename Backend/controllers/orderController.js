@@ -109,12 +109,19 @@ export const uploadPaymentProof = catchAsync(async (req, res, next) => {
 
 // ✅ Admin: verify payment for a product and hold funds in escrow
 export const verifyPayment = catchAsync(async (req, res, next) => {
+  const sessionUser = req.session.user;
+  if (!sessionUser || sessionUser.role !== "admin")
+    return next(new AppError("Not authorized, admin only", 403));
+
   const { orderId, productId } = req.params;
 
   const order = await Order.findById(orderId);
   if (!order) return next(new AppError("Order not found", 404));
 
-  const product = order.products.find((p) => String(p.productId) === productId);
+  // ✅ Compare with nested productId._id
+
+  // NEW
+  const product = order.products.find((p) => String(p._id) === productId);
   if (!product) return next(new AppError("Product not found", 404));
 
   product.status = "funds_held";
@@ -301,20 +308,32 @@ export const getOrders = catchAsync(async (req, res, next) => {
   if (!sessionUser || sessionUser.role !== "admin")
     return next(new AppError("Not authorized, admin only", 403));
   const orders = await Order.find()
-    .populate("products.product")
-    .populate("user", "name email");
+    .populate("products.productId")
+    .populate("buyerId", "name email");
   res.json(orders);
 });
 export const getSellerOrders = catchAsync(async (req, res, next) => {
+  console.log("🟢 Reached getSellerOrders endpoint");
+
   const sessionUser = req.session.user;
-  if (!sessionUser || sessionUser.role !== "seller")
+  console.log("Session user:", sessionUser);
+
+  if (!sessionUser || sessionUser.role !== "seller") {
+    console.log("🚫 Not authorized:", sessionUser);
     return next(new AppError("Not authorized, sellers only", 403));
-  const orders = await Order.find({ "products.seller": sessionUser._id })
-    .populate("user", "name email")
-    .populate("products.product", "title price images")
+  }
+
+  const orders = await Order.find({ "products.sellerId": sessionUser._id })
+    .populate("buyerId", "name email") // buyer info
+    .populate("products.productId", "title price images") // listing info
     .lean();
+
+  console.log("✅ Seller Orders found:", orders.length);
+  console.dir(orders, { depth: null }); // shows full nested object structure
+
   res.json(orders);
 });
+
 export const updateSellerOrderStatus = catchAsync(async (req, res, next) => {
   const sessionUser = req.session.user;
   if (!sessionUser || sessionUser.role !== "seller")
