@@ -14,7 +14,8 @@ import {
   confirmDelivery,
   disputeProduct,
 } from "../controllers/orderController.js";
-import { upload } from "../middlewares/uploadMiddleware.js"; // ✅ use your shared multer config
+import { upload } from "../middlewares/upload.js"; // ✅ use your shared multer config
+import { restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -40,13 +41,10 @@ router.post("/:orderId/products/:productId/dispute", disputeProduct);
 router.delete("/:id/cancel", cancelOrder);
 
 // Get all orders (admin only)
-router.get("/", getOrders);
+router.get("/", restrictTo("admin"), getOrders);
 
 // Get my orders (buyer)
 router.get("/my-orders", getMyOrders);
-
-// Get a single order by ID
-router.get("/:id", getOrderById);
 
 // ================== SELLER ROUTES ==================
 
@@ -66,5 +64,8 @@ router.post("/:orderId/products/:productId/verify-payment", verifyPayment);
 
 // Admin releases funds to seller after delivery
 router.post("/:orderId/products/:productId/release-funds", releaseFunds);
+
+// Get a single order by ID (general route) – must be after all more specific routes
+router.get("/:id", getOrderById);
 
 export default router;
