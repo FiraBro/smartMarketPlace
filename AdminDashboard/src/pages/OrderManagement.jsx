@@ -1,101 +1,114 @@
 // src/pages/OrderManagement.jsx
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useAuth } from "../context/AuthContext";
-import OrderTable from "../components/order/OrderTable";
+import {
+  getAllOrders,
+  verifyPayment,
+  releaseFunds,
+} from "../services/orderService";
+
 export default function OrderManagement() {
-  const { fetchListings } = useAuth(); // ✅ default to empty array
   const [loading, setLoading] = useState(true);
   const [orders, setOrders] = useState([]);
-  console.log("OrderManagement render - orders:", orders);
+
+  // Fetch orders
+  const fetchOrders = async () => {
+    setLoading(true);
+    const data = await getAllOrders();
+    setOrders(data || []);
+    setLoading(false);
+  };
 
   useEffect(() => {
-    const loadOrders = async () => {
-      setLoading(true);
-      const data = await fetchListings();
-      setLoading(false);
-      setOrders(data);
-    };
-    loadOrders();
+    fetchOrders();
   }, []);
+
+  // Handlers for admin actions
+  const handleVerify = async (orderId, productId) => {
+    await verifyPayment(orderId, productId);
+    fetchOrders();
+  };
+
+  const handleRelease = async (orderId, productId) => {
+    await releaseFunds(orderId, productId);
+    fetchOrders();
+  };
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="space-y-6"
+      className="p-6 space-y-6"
     >
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Orders & Fulfillment
-        </h1>
-        <div className="flex space-x-3">
-          <button className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors">
-            Export Orders
-          </button>
-          <button className="bg-[#f9A03f] text-white px-4 py-2 rounded-lg hover:bg-[#faa64d] cursor-pointer transition-colors">
-            Create Order
-          </button>
-        </div>
-      </div>
+      <h1 className="text-3xl font-bold text-gray-900">Orders Management</h1>
 
-      {/* Loading state */}
       {loading ? (
         <p className="text-gray-500 text-center py-6">Loading orders...</p>
+      ) : orders.length === 0 ? (
+        <p className="text-gray-500 text-center py-6">No orders found.</p>
       ) : (
-        <>
-          {/* Order Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            {[
-              {
-                label: "Total Orders",
-                value: orders.length,
-                color: "bg-blue-500",
-              },
-              {
-                label: "Pending",
-                value: orders.filter((o) => o.status === "pending").length,
-                color: "bg-yellow-500",
-              },
-              {
-                label: "Shipped",
-                value: orders.filter((o) => o.status === "shipped").length,
-                color: "bg-green-500",
-              },
-              {
-                label: "Cancelled",
-                value: orders.filter((o) => o.status === "cancelled").length,
-                color: "bg-red-500",
-              },
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
-              >
-                <div className="flex items-center">
-                  <div
-                    className={`w-4 h-4 ${stat.color} rounded-full mr-3`}
-                  ></div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">
-                      {stat.label}
-                    </p>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {stat.value}
-                    </p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Order Table */}
-          <OrderTable orders={orders} />
-        </>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border border-gray-200 rounded-lg overflow-hidden">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="px-4 py-2 text-left">Order ID</th>
+                <th className="px-4 py-2 text-left">Product</th>
+                <th className="px-4 py-2 text-left">Quantity</th>
+                <th className="px-4 py-2 text-left">Price</th>
+                <th className="px-4 py-2 text-left">Buyer</th>
+                <th className="px-4 py-2 text-left">Payment Proof</th>
+                <th className="px-4 py-2 text-left">Status</th>
+                <th className="px-4 py-2 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {orders.map((order) =>
+                order.products.map((item) => (
+                  <tr key={item._id} className="border-b border-gray-200">
+                    <td className="px-4 py-2">{order._id}</td>
+                    <td className="px-4 py-2">
+                      {item.productId?.title || "Unknown"}
+                    </td>
+                    <td className="px-4 py-2">{item.quantity}</td>
+                    <td className="px-4 py-2">${item.price}</td>
+                    <td className="px-4 py-2">{order.buyerId?.name}</td>
+                    <td className="px-4 py-2">
+                      {item.paymentProof?.imageUrl ? (
+                        <img
+                          src={item.paymentProof.imageUrl}
+                          alt="proof"
+                          className="w-16 h-16 object-cover rounded-md"
+                        />
+                      ) : (
+                        "No proof"
+                      )}
+                    </td>
+                    <td className="px-4 py-2 capitalize">{item.status}</td>
+                    <td className="px-4 py-2 space-x-2">
+                      {item.status === "payment_submitted" && (
+                        <button
+                          onClick={() => handleVerify(order._id, item._id)}
+                          className="bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600 transition"
+                        >
+                          Verify Payment
+                        </button>
+                      )}
+                      {item.status === "completed" && (
+                        <button
+                          onClick={() => handleRelease(order._id, item._id)}
+                          className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 transition"
+                        >
+                          Release Funds
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
     </motion.div>
   );
