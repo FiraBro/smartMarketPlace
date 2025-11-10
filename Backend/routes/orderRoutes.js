@@ -16,10 +16,12 @@ import {
 } from "../controllers/orderController.js";
 import { upload } from "../middlewares/upload.js"; // ✅ use your shared multer config
 import { restrictTo } from "../middlewares/authMiddleware.js";
+import { protect } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
 // ================== ORDER ROUTES ==================
+router.use(protect);
 
 // Buyer creates an order
 router.post("/", createOrder);
