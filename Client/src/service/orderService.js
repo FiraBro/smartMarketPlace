@@ -1,114 +1,124 @@
 import axios from "axios";
 
-const API_URL =
-  import.meta.env.VITE_ORDER_URL || "http://localhost:5000/api/v1//orders";
+const API_URL = "http://localhost:5000/api/v1/orders";
 
-// ✅ Axios instance (session-based)
-const orderAPI = axios.create({
-  baseURL: API_URL,
-  withCredentials: true, // ✅ send cookies/session automatically
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// ✅ Create a new order
-export const createOrder = async ({
-  products,
-  address,
-  paymentMethod,
-  totalPrice,
-  deliveryMethod,
-}) => {
-  try {
-    const { data } = await orderAPI.post("/", {
-      products,
-      address,
-      paymentMethod,
-      totalPrice,
-      deliveryMethod,
-    });
-    return data;
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to create order";
-    throw new Error(errorMessage);
-  }
+const config = {
+  withCredentials: true, // ✅ Send session cookies
 };
 
-// ✅ Get all orders for the logged-in user
-export const getOrders = async () => {
-  try {
-    const { data } = await orderAPI.get("/myorders");
-    return data;
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to load orders";
-    throw new Error(errorMessage);
-  }
+// ==========================
+// BUYER ROUTES
+// ==========================
+
+export const createOrder = async (orderData) => {
+  const { data } = await axios.post(`${API_URL}`, orderData, config);
+  return data;
 };
 
-// ✅ Get a single order by ID
+export const getMyOrders = async () => {
+  const { data } = await axios.get(`${API_URL}/my-orders`, config);
+  return data;
+};
+
 export const getOrderById = async (orderId) => {
-  try {
-    const { data } = await orderAPI.get(`/${orderId}`);
-    return data;
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to fetch order details";
-    throw new Error(errorMessage);
-  }
+  const { data } = await axios.get(`${API_URL}/${orderId}`, config);
+  return data;
 };
 
-// ✅ Pay with Cash on Delivery (COD)
-export const payWithCOD = async (orderId) => {
-  try {
-    const { data } = await orderAPI.put(`/${orderId}/pay`, {
-      paymentMethod: "COD",
-    });
-    return data;
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to confirm COD payment";
-    throw new Error(errorMessage);
-  }
-};
-
-// ✅ Pay with TeleBirr (online)
-export const payWithTeleBirr = async (orderId, phone) => {
-  try {
-    const { data } = await orderAPI.put(`/${orderId}/pay`, {
-      paymentMethod: "TeleBirr",
-      phone,
-    });
-    return data;
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || "TeleBirr payment failed";
-    throw new Error(errorMessage);
-  }
-};
-
-// ✅ Confirm order after payment
-export const confirmOrder = async (orderId) => {
-  try {
-    const { data } = await orderAPI.post(`/${orderId}/confirm`);
-    return data;
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to confirm order";
-    throw new Error(errorMessage);
-  }
-};
-
-// ✅ Cancel an order
 export const cancelOrder = async (orderId) => {
-  try {
-    const { data } = await orderAPI.delete(`/${orderId}`);
-    return data;
-  } catch (error) {
-    const errorMessage =
-      error.response?.data?.message || "Failed to cancel order";
-    throw new Error(errorMessage);
-  }
+  const { data } = await axios.delete(`${API_URL}/${orderId}/cancel`, config);
+  return data;
+};
+
+export const uploadPaymentProof = async (
+  orderId,
+  productId,
+  file,
+  transactionId
+) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("transactionId", transactionId);
+
+  const { data } = await axios.post(
+    `${API_URL}/${orderId}/products/${productId}/payment-proof`,
+    formData,
+    { ...config, headers: { "Content-Type": "multipart/form-data" } }
+  );
+
+  return data;
+};
+
+export const confirmDelivery = async (orderId, productId) => {
+  const { data } = await axios.post(
+    `${API_URL}/${orderId}/products/${productId}/confirm-delivery`,
+    {},
+    config
+  );
+  return data;
+};
+
+export const disputeProduct = async (orderId, productId, reason, message) => {
+  const { data } = await axios.post(
+    `${API_URL}/${orderId}/products/${productId}/dispute`,
+    { reason, message },
+    config
+  );
+  return data;
+};
+
+// ==========================
+// SELLER ROUTES
+// ==========================
+
+export const getSellerOrders = async () => {
+  const { data } = await axios.get(`${API_URL}/seller/orders`, config);
+  console.log("🟢 Seller Orders (frontend):", data);
+  return data;
+};
+
+export const updateSellerOrderStatus = async (orderId, status) => {
+  const { data } = await axios.patch(
+    `${API_URL}/seller/products/status`,
+    { orderId, status },
+    config
+  );
+  return data;
+};
+
+export const markAsShipped = async (orderId, productId, trackingData = {}) => {
+  // trackingData = { courier: "DHL", trackingNumber: "123456" }
+  const { data } = await axios.post(
+    `${API_URL}/${orderId}/products/${productId}/ship`,
+    trackingData, // send courier/tracking info
+    config
+  );
+  return data;
+};
+
+// ==========================
+// ADMIN ROUTES
+// ==========================
+
+export const getAllOrders = async () => {
+  const { data } = await axios.get(`${API_URL}`, config);
+  return data;
+};
+
+export const verifyPayment = async (orderId, productId) => {
+  const { data } = await axios.post(
+    `${API_URL}/${orderId}/products/${productId}/verify-payment`,
+    {},
+    config
+  );
+  return data;
+};
+
+export const releaseFunds = async (orderId, productId) => {
+  const { data } = await axios.post(
+    `${API_URL}/${orderId}/products/${productId}/release-funds`,
+    {},
+    config
+  );
+  return data;
 };
