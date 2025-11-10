@@ -1,13 +1,17 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { getMyOrders, cancelOrder } from "../service/orderService";
+import {
+  getMyOrders,
+  cancelOrder,
+  confirmDelivery,
+} from "../service/orderService";
 import ProductStatusBadge from "../components/ProductStatusBadge";
 import toast from "react-hot-toast";
 
 const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [cancelling, setCancelling] = useState(null);
+  const [processing, setProcessing] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -40,8 +44,7 @@ const OrdersPage = () => {
               className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
               onClick={async () => {
                 toast.dismiss(t.id);
-                setCancelling(orderId);
-
+                setProcessing(orderId);
                 try {
                   await cancelOrder(orderId);
                   setOrders((prev) =>
@@ -52,17 +55,43 @@ const OrdersPage = () => {
                   console.error(error);
                   toast.error("Failed to cancel the order. Please try again.");
                 } finally {
-                  setCancelling(null);
+                  setProcessing(null);
                 }
               }}
             >
-              Yes, Delete
+              Yes, Cancel
             </button>
           </div>
         </div>
       ),
       { duration: Infinity }
     );
+  };
+
+  // ✅ Buyer confirms delivery for a specific product
+  const handleConfirmDelivery = async (orderId, productId) => {
+    setProcessing(`${orderId}-${productId}`);
+    try {
+      await confirmDelivery(orderId, productId);
+      setOrders((prev) =>
+        prev.map((order) =>
+          order._id === orderId
+            ? {
+                ...order,
+                products: order.products.map((p) =>
+                  p._id === productId ? { ...p, status: "Completed" } : p
+                ),
+              }
+            : order
+        )
+      );
+      toast.success("✅ Delivery confirmed! Admin will release funds soon.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to confirm delivery.");
+    } finally {
+      setProcessing(null);
+    }
   };
 
   if (loading)
@@ -140,7 +169,24 @@ const OrdersPage = () => {
                           Qty: {p.quantity} • Price: ${p.price * p.quantity}
                         </p>
                       </div>
-                      <ProductStatusBadge status={p.status} />
+                      <div className="flex items-center gap-2">
+                        <ProductStatusBadge status={p.status} />
+
+                        {/* ✅ Show Confirm Received if shipped */}
+                        {p.status === "Shipped" && (
+                          <button
+                            onClick={() =>
+                              handleConfirmDelivery(order._id, p._id)
+                            }
+                            disabled={processing === `${order._id}-${p._id}`}
+                            className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 transition"
+                          >
+                            {processing === `${order._id}-${p._id}`
+                              ? "Processing..."
+                              : "Confirm Received"}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   ))
                 ) : (
@@ -151,6 +197,7 @@ const OrdersPage = () => {
               </div>
             </div>
 
+            {/* Order-level actions */}
             <div className="flex flex-col md:items-end gap-3">
               <Link
                 to={`/orders/${order._id}`}
@@ -159,18 +206,17 @@ const OrdersPage = () => {
                 View Details
               </Link>
 
-              {/* Cancel button only if not already cancelled or delivered */}
               {order.status !== "Cancelled" && order.status !== "Delivered" && (
                 <button
                   onClick={() => handleCancelOrder(order._id)}
-                  disabled={cancelling === order._id}
+                  disabled={processing === order._id}
                   className={`${
-                    cancelling === order._id
+                    processing === order._id
                       ? "bg-gray-400"
                       : "bg-red-500 hover:bg-red-600"
                   } text-white px-4 py-2 rounded-lg font-medium shadow transition duration-300`}
                 >
-                  {cancelling === order._id ? "Cancelling..." : "Cancel Order"}
+                  {processing === order._id ? "Cancelling..." : "Cancel Order"}
                 </button>
               )}
             </div>
