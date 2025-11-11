@@ -144,8 +144,10 @@ export const releaseFunds = catchAsync(async (req, res, next) => {
 
   const order = await Order.findById(orderId);
   if (!order) return next(new AppError("Order not found", 404));
+  const product = order.products.find(
+    (p) => String(p.productId) === productId || String(p._id) === productId
+  );
 
-  const product = order.products.find((p) => String(p.productId) === productId);
   if (!product) return next(new AppError("Product not found", 404));
 
   if (product.status !== "completed")
