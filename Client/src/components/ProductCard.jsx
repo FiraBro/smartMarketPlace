@@ -91,9 +91,7 @@ export default function ProductCard({ product }) {
         </div>
 
         <div className="mt-2 flex items-center justify-between">
-          <p className="text-[#000] font-bold text-2xl">
-            Br {normalized.price}
-          </p>
+          <p className="text-[#000] font-bold text-2xl">$ {normalized.price}</p>
           <button
             onClick={handleAddToCart}
             className="text-yellow-500 hover:text-yellow-700 transition cursor-pointer"
