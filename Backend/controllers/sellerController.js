@@ -8,7 +8,9 @@ import {
   fetchSellerOrders,
   changeOrderStatus,
   getRecentSellerOrders,
+  getSellerWallet,
 } from "../services/sellerService.js";
+// import { getSellerDashboard } from "../services/sellerService.js";
 
 const getUserId = (req) => req.session.user?._id;
 
@@ -93,6 +95,23 @@ export const getRecentSellerOrdersControllers = catchAsync(
       success: true,
       results: recentOrders.length,
       data: recentOrders,
+    });
+  }
+);
+
+/**
+ * Controller to handle seller dashboard
+ */
+export const getSellerDashboardController = catchAsync(
+  async (req, res, next) => {
+    const sellerId = getUserId(req);
+    if (!sellerId) return next(new AppError("Unauthorized", 401));
+
+    const walletData = await getSellerWallet(sellerId);
+
+    res.status(200).json({
+      success: true,
+      wallet: walletData,
     });
   }
 );
