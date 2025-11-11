@@ -91,6 +91,8 @@ export const getRecentSellerOrdersControllers = catchAsync(
     const sellerId = getUserId(req);
     const recentOrders = await getRecentSellerOrders(sellerId, 5);
 
+    console.log(recentOrders);
+
     res.status(200).json({
       success: true,
       results: recentOrders.length,
