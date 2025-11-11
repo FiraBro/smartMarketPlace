@@ -79,9 +79,7 @@ const OrderDetailPage = () => {
     );
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      {/* Header */}
-      {/* Header */}
+    <div className="p-6 max-w-6xl mx-auto">
       {/* Header */}
       <div className="relative overflow-hidden bg-gradient-to-r from-orange-50 via-white to-orange-100 text-gray-800 p-8 rounded-2xl shadow-lg mb-10 border border-orange-200">
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/white-wall-3.png')] opacity-10"></div>
@@ -123,110 +121,107 @@ const OrderDetailPage = () => {
         </div>
       </div>
 
-      {/* Products */}
-      <div className="space-y-6">
-        {order.products.map((product) => {
-          const loading = loadingMap[product.productId._id];
-          return (
-            <div
-              key={product._id}
-              className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col md:flex-row justify-between items-start gap-4 shadow hover:shadow-xl transition-shadow duration-300"
-            >
-              {/* Product Info */}
-              <div className="flex-1">
-                <h2 className="text-2xl font-semibold text-gray-800">
-                  {product.productId?.title || "Unknown Product"}
-                </h2>
-                <p className="text-gray-500 mt-1">
-                  Seller:{" "}
-                  <span className="font-medium">{product.sellerId}</span>
-                </p>
-                <p className="text-gray-500 mt-1">
-                  Quantity:{" "}
-                  <span className="font-medium">{product.quantity}</span>
-                </p>
-                <p className="text-gray-500 mt-1">
-                  Price:{" "}
-                  <span className="font-medium">
+      {/* Products Table */}
+      <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200 bg-white">
+        <table className="min-w-full divide-y divide-gray-200 text-sm">
+          <thead className="bg-orange-100 text-gray-700 font-semibold">
+            <tr>
+              <th className="px-6 py-3 text-left">Product</th>
+              <th className="px-6 py-3 text-left">Seller</th>
+              <th className="px-6 py-3 text-center">Qty</th>
+              <th className="px-6 py-3 text-center">Price</th>
+              <th className="px-6 py-3 text-center">Status</th>
+              <th className="px-6 py-3 text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {order.products.map((product) => {
+              const loading = loadingMap[product.productId._id];
+              return (
+                <tr key={product._id} className="hover:bg-orange-50 transition">
+                  <td className="px-6 py-4 text-gray-800 font-medium">
+                    {product.productId?.title || "Unknown Product"}
+                  </td>
+                  <td className="px-6 py-4 text-gray-600 text-sm">
+                    {product.sellerId}
+                  </td>
+                  <td className="px-6 py-4 text-center">{product.quantity}</td>
+                  <td className="px-6 py-4 text-center font-semibold text-gray-800">
                     ${product.price * product.quantity}
-                  </span>
-                </p>
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    <ProductStatusBadge status={product.status} />
+                  </td>
+                  <td className="px-6 py-4 text-center">
+                    {product.paymentProof && (
+                      <a
+                        href={product.paymentProof.imageUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 text-sm underline block mb-1"
+                      >
+                        View Proof
+                      </a>
+                    )}
 
-                <div className="mt-3">
-                  <ProductStatusBadge status={product.status} />
-                </div>
+                    {(product.status === "pending" ||
+                      product.status === "payment_submitted") && (
+                      <div className="flex flex-col gap-2">
+                        <input
+                          type="text"
+                          placeholder="Transaction ID"
+                          value={transactionMap[product.productId._id] || ""}
+                          onChange={(e) =>
+                            setTransactionMap((prev) => ({
+                              ...prev,
+                              [product.productId._id]: e.target.value,
+                            }))
+                          }
+                          className="border border-orange-400 rounded-lg px-2 py-1 text-sm focus:ring-1 focus:ring-orange-400 disabled:bg-gray-100"
+                          disabled={loading}
+                        />
+                        <input
+                          type="file"
+                          onChange={(e) =>
+                            setFileMap((prev) => ({
+                              ...prev,
+                              [product.productId._id]: e.target.files[0],
+                            }))
+                          }
+                          className="border border-orange-400 rounded-lg px-2 py-1 text-sm"
+                          disabled={loading}
+                        />
+                        <button
+                          className={`bg-orange-500 text-white text-sm px-3 py-1.5 rounded-lg shadow hover:bg-orange-600 transition ${
+                            loading ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                          onClick={() => handleUpload(product.productId._id)}
+                          disabled={loading}
+                        >
+                          {loading ? "Uploading..." : "Upload Proof"}
+                        </button>
+                      </div>
+                    )}
 
-                {product.paymentProof && (
-                  <p className="text-green-600 mt-2 text-sm">
-                    Payment proof uploaded:{" "}
-                    <a
-                      href={product.paymentProof.imageUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="underline hover:text-green-800"
-                    >
-                      View
-                    </a>
-                  </p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="flex flex-col gap-3 w-full md:w-64 mt-4 md:mt-0">
-                {(product.status === "pending" ||
-                  product.status === "payment_submitted") && (
-                  <>
-                    <input
-                      type="text"
-                      placeholder="Transaction ID"
-                      value={transactionMap[product.productId._id] || ""}
-                      onChange={(e) =>
-                        setTransactionMap((prev) => ({
-                          ...prev,
-                          [product.productId._id]: e.target.value,
-                        }))
-                      }
-                      className="border border-[#f9A03f] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f9A03f] disabled:bg-gray-100"
-                      disabled={loading}
-                    />
-                    <input
-                      type="file"
-                      onChange={(e) =>
-                        setFileMap((prev) => ({
-                          ...prev,
-                          [product.productId._id]: e.target.files[0],
-                        }))
-                      }
-                      className="border border-[#f9A03f] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f9A03f] disabled:bg-gray-100"
-                      disabled={loading}
-                    />
-                    <button
-                      className={`bg-[#f9A03f] text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-orange-500 transition duration-300 ${
-                        loading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      onClick={() => handleUpload(product.productId._id)}
-                      disabled={loading}
-                    >
-                      {loading ? "Uploading..." : "Upload Payment Proof"}
-                    </button>
-                  </>
-                )}
-
-                {product.status === "shipped" && (
-                  <button
-                    className={`bg-green-500 text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-green-600 transition duration-300 ${
-                      loading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    onClick={() => handleConfirmDelivery(product.productId._id)}
-                    disabled={loading}
-                  >
-                    {loading ? "Processing..." : "Confirm Delivery"}
-                  </button>
-                )}
-              </div>
-            </div>
-          );
-        })}
+                    {product.status === "shipped" && (
+                      <button
+                        className={`bg-green-500 text-white text-sm px-3 py-1.5 rounded-lg shadow hover:bg-green-600 transition ${
+                          loading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                        onClick={() =>
+                          handleConfirmDelivery(product.productId._id)
+                        }
+                        disabled={loading}
+                      >
+                        {loading ? "Processing..." : "Confirm Delivery"}
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
