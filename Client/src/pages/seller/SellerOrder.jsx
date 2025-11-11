@@ -18,30 +18,13 @@ export default function SellerOrders() {
     trackingNumber: "",
   });
   const [updating, setUpdating] = useState(false);
-
+  console.log(orders);
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const data = await getSellerOrders();
-
-        // Flatten orders and include real productId
-        const flatOrders = data
-          .map((order) =>
-            order.products.map((p) => ({
-              _id: p._id, // product subdocument _id
-              productId: p.productId?._id, // real product _id
-              orderId: order._id,
-              product: p.productId?.title || "Product",
-              buyerName: order.buyerId?.name || "Unknown",
-              buyerEmail: order.buyerId?.email || "N/A",
-              status: p.status,
-              total: (p.productId?.price || 0) * p.quantity,
-            }))
-          )
-          .flat();
-
-        setOrders(flatOrders);
+        const data = await getSellerOrders(); // backend returns flattened array with address
+        setOrders(data);
       } catch (err) {
         console.error(err);
         toast.error("Failed to fetch seller orders.");
@@ -127,13 +110,15 @@ export default function SellerOrders() {
           transition={{ duration: 0.4 }}
           className="bg-white rounded-2xl shadow-sm border border-gray-200 p-4 sm:p-6 overflow-x-auto"
         >
-          <table className="w-full text-left min-w-[700px]">
+          <table className="w-full text-left min-w-[900px]">
             <thead>
               <tr className="text-gray-500 text-sm border-b border-gray-200">
                 <th className="py-2 px-2">Order ID</th>
                 <th className="py-2 px-2">Product</th>
                 <th className="py-2 px-2">Buyer</th>
                 <th className="py-2 px-2">Email</th>
+                <th className="py-2 px-2">Address</th>
+                <th className="py-2 px-2">Phone</th>
                 <th className="py-2 px-2">Status</th>
                 <th className="py-2 px-2">Total</th>
                 <th className="py-2 px-2">Action</th>
@@ -152,6 +137,9 @@ export default function SellerOrders() {
                   <td className="py-2 px-2">{order.product}</td>
                   <td className="py-2 px-2">{order.buyerName}</td>
                   <td className="py-2 px-2">{order.buyerEmail}</td>
+                  {/* ✅ new address and phone columns */}
+                  <td className="py-2 px-2">{order.address}</td>
+                  <td className="py-2 px-2">{order.phone}</td>
                   <td className="py-2 px-2">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
