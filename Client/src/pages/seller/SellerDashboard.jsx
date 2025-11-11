@@ -13,6 +13,7 @@ import {
   getRecentOrder,
   updateOrderStatus,
   getSellerProducts,
+  getSellerWallet, // ✅ import real wallet API
 } from "../../service/sellerService";
 
 export default function SellerDashboard() {
@@ -36,34 +37,44 @@ export default function SellerDashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        // ---------------------
         // Fetch recent orders
+        // ---------------------
         const ordersData = await getRecentOrder();
+        console.log("Recent Orders Raw:", ordersData);
+
         const formattedOrders =
           ordersData?.map((order) => ({
             id: order._id,
-            product: order.products.map((p) => p.product.title).join(", "),
+            product: order.products.map((p) => p.productId.title).join(", "), // use productId
             status: order.products.map((p) => p.status).join(", "),
-            totalAmount: order.products.reduce(
-              (sum, p) => sum + p.product.price,
-              0
-            ),
+            totalAmount: order.products.reduce((sum, p) => sum + p.price, 0), // price is in product object
             totalProducts: order.products.length,
           })) || [];
-        setOrders(formattedOrders);
 
-        // Fetch products
+        setOrders(formattedOrders);
+        console.log("Formatted Orders:", formattedOrders);
+
+        // ---------------------
+        // Fetch seller products
+        // ---------------------
         const productsData = await getSellerProducts();
         setProducts(productsData || []);
 
-        // Wallet mock data (replace with real backend call if available)
+        // ---------------------
+        // Fetch wallet
+        // ---------------------
+        const walletData = await getSellerWallet();
         setWallet({
-          balance: 12000,
-          escrowHeld: 3400,
+          balance: walletData.balance || 0,
+          escrowHeld: walletData.escrowHeld || 0,
           cardNumber: "5432123456789876",
           cardHolder: "Seller Wallet",
         });
 
+        // ---------------------
         // Calculate stats
+        // ---------------------
         const sales = formattedOrders.reduce(
           (sum, o) => sum + o.totalAmount,
           0
@@ -73,8 +84,8 @@ export default function SellerDashboard() {
         setTotalSales(sales);
         setTotalProducts(totalProductsCount);
 
-        // Calculate growth (example: compare with last month)
-        const previousSales = 10000; // Replace with real previous sales from backend
+        // Example growth calculation
+        const previousSales = 10000; // replace with backend data if available
         const growthPercentage = previousSales
           ? ((sales - previousSales) / previousSales) * 100
           : 0;
@@ -108,7 +119,7 @@ export default function SellerDashboard() {
   return (
     <div className="flex flex-col lg:flex-row h-screen bg-gray-50">
       <div className="flex-1 flex flex-col overflow-y-auto p-4 sm:p-6 md:p-8 gap-6">
-        {/* Wallet Card Section (Replaces Welcome) */}
+        {/* Wallet Card */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -124,7 +135,7 @@ export default function SellerDashboard() {
           />
         </motion.div>
 
-        {/* Stats Section */}
+        {/* Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <StatCard
             title="Total Sales"
