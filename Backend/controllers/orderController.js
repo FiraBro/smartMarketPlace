@@ -12,7 +12,7 @@ export const createOrder = catchAsync(async (req, res, next) => {
 
   const { products, address, deliveryMethod } = req.body;
 
-  // Allow standard, express, or pickup
+  // Allow standard, express, delivery, or pickup
   if (!["standard", "express", "delivery", "pickup"].includes(deliveryMethod))
     return next(new AppError("Invalid delivery method", 400));
 
@@ -27,6 +27,11 @@ export const createOrder = catchAsync(async (req, res, next) => {
       products.map(async (p) => {
         const listing = await Listing.findById(p.productId);
         if (!listing) throw new AppError("Invalid product ID", 400);
+
+        // ✅ Prevent buyer from ordering their own product
+        if (listing.owner.toString() === sessionUser._id.toString())
+          throw new AppError("You cannot order your own product", 400);
+
         return {
           productId: listing._id,
           sellerId: listing.owner,
@@ -45,6 +50,11 @@ export const createOrder = catchAsync(async (req, res, next) => {
       cart.items.map(async (item) => {
         const listing = await Listing.findById(item.listing);
         if (!listing) throw new AppError("Invalid product in cart", 400);
+
+        // ✅ Prevent self-order from cart as well
+        if (listing.owner.toString() === sessionUser._id.toString())
+          throw new AppError("You cannot order your own product", 400);
+
         return {
           productId: listing._id,
           sellerId: listing.owner,
