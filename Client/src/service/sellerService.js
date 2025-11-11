@@ -31,6 +31,7 @@ export const updateSellerProfile = async (payload) => {
 export const getSellerProducts = async () => {
   const { data } = await API.get("/products");
   console.log(`seller product:${data}`);
+
   return data;
 };
 
@@ -85,8 +86,8 @@ export const getRecentOrder = async () => {
     return [];
   }
 };
-
-export const getWallet = async () => {
-  const response = await axios.get("/api/wallet/seller/wallet", {});
-  return response.data;
+export const getSellerWallet = async () => {
+  const { data } = await API.get("/dashboard"); // relative to baseURL
+  console.log(data);
+  return data.wallet || data; // if backend returns { success: true, wallet: {...} }
 };
