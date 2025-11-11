@@ -4,7 +4,6 @@ import Cart from "../models/Cart.js";
 import { Wallet } from "../models/Wallet.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
-import mongoose from "mongoose";
 
 // ✅ Create Order (Multi-seller compatible)
 export const createOrder = catchAsync(async (req, res, next) => {
@@ -328,26 +327,45 @@ export const getOrders = catchAsync(async (req, res, next) => {
     .populate("buyerId", "name email");
   res.json(orders);
 });
-export const getSellerOrders = catchAsync(async (req, res, next) => {
-  console.log("🟢 Reached getSellerOrders endpoint");
 
+export const getSellerOrders = catchAsync(async (req, res, next) => {
   const sessionUser = req.session.user;
-  console.log("Session user:", sessionUser);
 
   if (!sessionUser || sessionUser.role !== "seller") {
-    console.log("🚫 Not authorized:", sessionUser);
     return next(new AppError("Not authorized, sellers only", 403));
   }
 
+  // Fetch orders for this seller and populate necessary references
   const orders = await Order.find({ "products.sellerId": sessionUser._id })
-    .populate("buyerId", "name email") // buyer info
-    .populate("products.productId", "title price images") // listing info
+    .populate("buyerId", "name email") // Buyer info
+    .populate("products.productId", "title price images") // Product info
+    .populate("address") // Delivery address
     .lean();
 
-  console.log("✅ Seller Orders found:", orders.length);
-  console.dir(orders, { depth: null }); // shows full nested object structure
+  // Flatten each product into its own object with address included
+  const flatOrders = orders
+    .map((order) =>
+      order.products.map((p) => ({
+        _id: p._id,
+        orderId: order._id,
+        productId: p.productId?._id,
+        product: p.productId?.title || "Product",
+        buyerName: order.buyerId?.name || "Unknown",
+        buyerEmail: order.buyerId?.email || "N/A",
+        status: p.status,
+        total: (p.productId?.price || 0) * (p.quantity || 1),
+        // Shipping address and phone
+        address: order.address
+          ? `${order.address.street || ""}, ${order.address.city || ""}, ${
+              order.address.region || ""
+            }`
+          : "No address provided",
+        phone: order.address?.phone || "N/A",
+      }))
+    )
+    .flat();
 
-  res.json(orders);
+  res.json(flatOrders);
 });
 
 export const updateSellerOrderStatus = catchAsync(async (req, res, next) => {
