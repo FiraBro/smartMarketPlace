@@ -2,12 +2,14 @@ import { FaShoppingCart, FaHeart } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
+import { useAuth } from "../context/AuthContext"; // to get logged-in user
 import { LazyLoadImage } from "react-lazy-load-image-component";
 import "react-lazy-load-image-component/src/effects/blur.css";
 import { toast } from "react-hot-toast";
 
 export default function ProductCard({ product }) {
   const navigate = useNavigate();
+  const { user } = useAuth(); // logged-in user
   const { addItem } = useCart();
   const { favorites, addToFavorites, removeFromFavorites } = useFavorites();
 
@@ -15,7 +17,7 @@ export default function ProductCard({ product }) {
 
   const baseUrl = import.meta.env.VITE_STATIC_URL || "http://localhost:5000";
 
-  // 🧩 Normalize image path
+  // Normalize image path
   const imagePath = product.images?.[0]?.url || product.image || "";
   const imageUrl = imagePath.startsWith("http")
     ? imagePath
@@ -33,6 +35,7 @@ export default function ProductCard({ product }) {
   };
 
   const isFavorite = favorites.some((item) => item._id === normalized.id);
+  const isMine = product.owner === user?._id; // check if this product belongs to logged-in user
 
   const toggleFavorite = (e) => {
     e.stopPropagation();
@@ -47,13 +50,19 @@ export default function ProductCard({ product }) {
 
   const handleAddToCart = (e) => {
     e.stopPropagation();
+    if (isMine) {
+      toast.error("You cannot add your own product to the cart.");
+      return;
+    }
     addItem(normalized, 1);
     toast.success(`${normalized.name} added to cart!`);
   };
 
   return (
     <div
-      className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-shadow duration-300 cursor-pointer w-full flex flex-col"
+      className={`bg-white rounded-2xl shadow-md hover:shadow-2xl transition-shadow duration-300 cursor-pointer w-full flex flex-col ${
+        isMine ? "opacity-70" : ""
+      }`}
       onClick={() => navigate(`/listings/${normalized.id}`)}
     >
       {/* Image */}
@@ -68,7 +77,7 @@ export default function ProductCard({ product }) {
             e.target.src = "https://via.placeholder.com/200";
           }}
         />
-        {/* ❤️ Favorite Button */}
+        {/* Favorite Button */}
         <button
           onClick={toggleFavorite}
           className="absolute top-3 right-3 bg-white p-2 rounded-full shadow-md hover:bg-red-100 transition"
@@ -94,7 +103,12 @@ export default function ProductCard({ product }) {
           <p className="text-[#000] font-bold text-2xl">$ {normalized.price}</p>
           <button
             onClick={handleAddToCart}
-            className="text-yellow-500 hover:text-yellow-700 transition cursor-pointer"
+            disabled={isMine}
+            className={`text-yellow-500 hover:text-yellow-700 transition cursor-pointer ${
+              isMine
+                ? "cursor-not-allowed opacity-50 hover:text-yellow-500"
+                : ""
+            }`}
           >
             <FaShoppingCart />
           </button>
