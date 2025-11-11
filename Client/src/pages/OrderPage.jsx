@@ -12,6 +12,7 @@ const OrdersPage = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(null);
+  const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -68,7 +69,6 @@ const OrdersPage = () => {
     );
   };
 
-  // ✅ Buyer confirms delivery for a specific product
   const handleConfirmDelivery = async (orderId, productId) => {
     setProcessing(`${orderId}-${productId}`);
     try {
@@ -127,101 +127,143 @@ const OrdersPage = () => {
     );
 
   return (
-    <div className="p-6 max-w-5xl mx-auto">
-      <div className="from-orange-50 bg-gradient-to-r via-white to-orange-100 text-gray-800 p-12 rounded-lg shadow-lg mb-8">
+    <div className="p-6 max-w-6xl mx-auto">
+      <div className="from-orange-50 bg-gradient-to-r via-white to-orange-100 text-gray-800 p-10 rounded-lg shadow mb-8">
         <h1 className="text-3xl font-bold">My Orders</h1>
       </div>
 
-      <div className="space-y-6">
-        {orders.map((order) => (
-          <div
-            key={order._id}
-            className="bg-white border border-gray-200 rounded-xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 shadow hover:shadow-xl transition-shadow duration-300"
-          >
-            <div className="flex-1">
-              <h2 className="text-xl font-semibold text-gray-800 mb-2">
-                Order #{order._id}
-              </h2>
-              <p className="text-gray-600">
-                Total Price:{" "}
-                <span className="font-medium">${order.totalPrice}</span>
-              </p>
-              <p className="text-gray-600">
-                Delivery Method:{" "}
-                <span className="font-medium">
-                  {order.deliveryMethod || "N/A"}
-                </span>
-              </p>
+      {/* Orders Table */}
+      <div className="overflow-x-auto bg-white border border-gray-200 rounded-lg shadow-md">
+        <table className="min-w-full text-sm text-gray-700 divide-y divide-gray-200">
+          <thead className="bg-orange-100 text-gray-800 text-left">
+            <tr>
+              <th className="py-3 px-6">Order ID</th>
+              <th className="py-3 px-6">Total Price</th>
+              <th className="py-3 px-6">Delivery Method</th>
+              <th className="py-3 px-6 text-center">Products</th>
+              <th className="py-3 px-6 text-center">Status</th>
+              <th className="py-3 px-6 text-center">Actions</th>
+            </tr>
+          </thead>
 
-              {/* Products */}
-              <div className="mt-3 space-y-2">
-                {order.products?.length > 0 ? (
-                  order.products.map((p) => (
-                    <div
-                      key={p._id}
-                      className="flex items-center justify-between bg-gray-50 p-3 rounded-lg"
-                    >
-                      <div className="flex-1">
-                        <p className="text-gray-900 font-medium">
-                          {p.productId?.title || "Unknown Product"}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Qty: {p.quantity} • Price: ${p.price * p.quantity}
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <ProductStatusBadge status={p.status} />
-
-                        {/* ✅ Show Confirm Received if shipped */}
-                        {p.status === "Shipped" && (
-                          <button
-                            onClick={() =>
-                              handleConfirmDelivery(order._id, p._id)
-                            }
-                            disabled={processing === `${order._id}-${p._id}`}
-                            className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 transition"
-                          >
-                            {processing === `${order._id}-${p._id}`
-                              ? "Processing..."
-                              : "Confirm Received"}
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-sm text-gray-500 italic">
-                    No products found
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Order-level actions */}
-            <div className="flex flex-col md:items-end gap-3">
-              <Link
-                to={`/orders/${order._id}`}
-                className="bg-[#f9A03f] text-white px-4 py-2 rounded-lg font-medium shadow hover:bg-orange-500 transition duration-300"
-              >
-                View Details
-              </Link>
-
-              {order.status !== "Cancelled" && order.status !== "Delivered" && (
-                <button
-                  onClick={() => handleCancelOrder(order._id)}
-                  disabled={processing === order._id}
-                  className={`${
-                    processing === order._id
-                      ? "bg-gray-400"
-                      : "bg-red-500 hover:bg-red-600"
-                  } text-white px-4 py-2 rounded-lg font-medium shadow transition duration-300`}
+          <tbody className="divide-y divide-gray-100">
+            {orders.map((order) => (
+              <>
+                <tr
+                  key={order._id}
+                  className="hover:bg-orange-50 transition cursor-pointer"
+                  onClick={() =>
+                    setExpanded(expanded === order._id ? null : order._id)
+                  }
                 >
-                  {processing === order._id ? "Cancelling..." : "Cancel Order"}
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
+                  <td className="py-4 px-6 font-medium text-gray-900">
+                    #{order._id.slice(-6)}
+                  </td>
+                  <td className="py-4 px-6">${order.totalPrice}</td>
+                  <td className="py-4 px-6">{order.deliveryMethod || "N/A"}</td>
+                  <td className="py-4 px-6 text-center">
+                    {order.products?.length || 0}
+                  </td>
+                  <td className="py-4 px-6 text-center">
+                    <ProductStatusBadge
+                      status={
+                        order.status ||
+                        order.products[0]?.status ||
+                        "Processing"
+                      }
+                    />
+                  </td>
+                  <td className="py-4 px-6 text-center flex flex-col md:flex-row gap-2 justify-center">
+                    <Link
+                      to={`/orders/${order._id}`}
+                      className="bg-[#f9A03f] text-white px-3 py-1.5 rounded-lg text-sm hover:bg-orange-500 transition"
+                    >
+                      View
+                    </Link>
+                    {order.status !== "Cancelled" &&
+                      order.status !== "Delivered" && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCancelOrder(order._id);
+                          }}
+                          disabled={processing === order._id}
+                          className={`text-white text-sm px-3 py-1.5 rounded-lg transition ${
+                            processing === order._id
+                              ? "bg-gray-400"
+                              : "bg-red-500 hover:bg-red-600"
+                          }`}
+                        >
+                          {processing === order._id
+                            ? "Cancelling..."
+                            : "Cancel"}
+                        </button>
+                      )}
+                  </td>
+                </tr>
+
+                {/* Expanded Product Details */}
+                {expanded === order._id && (
+                  <tr className="bg-gray-50">
+                    <td colSpan="6" className="px-6 py-4">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-gray-700">
+                          <thead className="bg-gray-100">
+                            <tr>
+                              <th className="py-2 px-4 text-left">Product</th>
+                              <th className="py-2 px-4 text-center">Qty</th>
+                              <th className="py-2 px-4 text-center">Price</th>
+                              <th className="py-2 px-4 text-center">Status</th>
+                              <th className="py-2 px-4 text-center">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {order.products.map((p) => (
+                              <tr
+                                key={p._id}
+                                className="border-b last:border-0 hover:bg-orange-50 transition"
+                              >
+                                <td className="py-2 px-4 font-medium text-gray-900">
+                                  {p.productId?.title || "Unknown Product"}
+                                </td>
+                                <td className="py-2 px-4 text-center">
+                                  {p.quantity}
+                                </td>
+                                <td className="py-2 px-4 text-center">
+                                  ${p.price * p.quantity}
+                                </td>
+                                <td className="py-2 px-4 text-center">
+                                  <ProductStatusBadge status={p.status} />
+                                </td>
+                                <td className="py-2 px-4 text-center">
+                                  {p.status === "Shipped" && (
+                                    <button
+                                      onClick={() =>
+                                        handleConfirmDelivery(order._id, p._id)
+                                      }
+                                      disabled={
+                                        processing === `${order._id}-${p._id}`
+                                      }
+                                      className="bg-green-600 text-white text-xs px-3 py-1 rounded-lg hover:bg-green-700 transition"
+                                    >
+                                      {processing === `${order._id}-${p._id}`
+                                        ? "Processing..."
+                                        : "Confirm Received"}
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
