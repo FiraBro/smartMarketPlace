@@ -1,5 +1,8 @@
 import express from "express";
-import {  checkSellerStatus,protectSeller } from "../middlewares/authMiddleware.js";
+import {
+  checkSellerStatus,
+  protectSeller,
+} from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/upload.js";
 import {
   createSellerProfile,
@@ -9,6 +12,7 @@ import {
   getSellerOrdersControllers,
   updateOrderStatusControllers,
   getRecentSellerOrdersControllers,
+  getSellerDashboardController,
 } from "../controllers/sellerController.js";
 
 const router = express.Router();
@@ -37,9 +41,11 @@ router.put(
 // Seller products
 router.get("/products", getSellerProductsControllers);
 
+router.get("/dashboard", getSellerDashboardController);
+
 // Seller orders
 router.get("/orders", getSellerOrdersControllers);
 router.put("/orders/:id", checkSellerStatus, updateOrderStatusControllers);
-router.get('/recent-orders',getRecentSellerOrdersControllers)
+router.get("/recent-orders", getRecentSellerOrdersControllers);
 
 export default router;
