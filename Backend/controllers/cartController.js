@@ -19,6 +19,13 @@ export const addToCart = catchAsync(async (req, res, next) => {
   const listing = await Listing.findById(listingId);
   if (!listing) return next(new AppError("Listing not found", 404));
 
+  // ✅ Prevent seller from adding their own product
+  if (listing.owner.toString() === req.session.user._id.toString()) {
+    return next(
+      new AppError("You cannot add your own product to the cart", 400)
+    );
+  }
+
   let cart = await Cart.findOne({ user: req.session.user._id });
   if (!cart) {
     cart = new Cart({
