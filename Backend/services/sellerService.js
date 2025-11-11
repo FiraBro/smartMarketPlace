@@ -2,6 +2,7 @@
 import Seller from "../models/Seller.js";
 import Listing from "../models/Listing.js";
 import Order from "../models/Order.js";
+import { Wallet } from "../models/Wallet.js";
 
 // ---------------------
 // Seller Profile Services
@@ -56,7 +57,6 @@ export const updateSeller = async ({ userId, data, files }) => {
   await seller.save();
   return seller;
 };
-
 
 // ---------------------
 // Seller Products Services
@@ -116,4 +116,27 @@ export const getRecentSellerOrders = async (sellerId, limit = 5) => {
   });
 
   return orders;
+};
+// services/sellerService.js
+
+export const getSellerWallet = async (userId) => {
+  if (!userId) throw new Error("User ID is required");
+
+  const wallet = await Wallet.findOne({ userId });
+  if (!wallet) {
+    // Return default wallet if none exists
+    return {
+      balance: 0,
+      escrowHeld: 0,
+      cardNumber: "N/A",
+      cardHolder: "Seller Wallet",
+    };
+  }
+
+  return {
+    balance: wallet.balance,
+    escrowHeld: wallet.escrowHeld,
+    cardNumber: "5432123456789876", // you can customize if needed
+    cardHolder: "Seller Wallet",
+  };
 };
