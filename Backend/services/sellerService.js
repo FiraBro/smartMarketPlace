@@ -103,20 +103,20 @@ export const changeOrderStatus = async (orderId, sellerId, status) => {
   return order;
 };
 export const getRecentSellerOrders = async (sellerId, limit = 5) => {
-  const orders = await Order.find({ "products.seller": sellerId })
-    .populate("user", "name email")
-    .populate({ path: "products.product", select: "title price images" })
-    .sort("-createdAt") // sort by newest first
-    .limit(limit) // get only the most recent
+  const orders = await Order.find({ "products.sellerId": sellerId }) // ✅ correct field
+    .populate("buyerId", "name email") // populate buyer info
+    .populate({ path: "products.productId", select: "title price images" }) // populate product info
+    .sort("-createdAt")
+    .limit(limit)
     .lean();
 
-  // Ensure user info exists
   orders.forEach((order) => {
-    if (!order.user) order.user = { name: "Unknown Buyer", email: "N/A" };
+    if (!order.buyerId) order.buyerId = { name: "Unknown Buyer", email: "N/A" };
   });
 
   return orders;
 };
+
 // services/sellerService.js
 
 export const getSellerWallet = async (userId) => {
