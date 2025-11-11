@@ -199,18 +199,37 @@ export const getListingById = catchAsync(async (req, res, next) => {
 // -----------------
 
 export const createListing = catchAsync(async (req, res, next) => {
-  const { title, description, price, category, condition, location } = req.body;
+  const {
+    title,
+    description,
+    price,
+    category,
+    condition,
+    location,
+    stock,
+    sizes,
+  } = req.body;
+
   if (!title || !description || !price || !location)
     return next(
       new AppError("title, description, price, and location are required", 400)
     );
 
+  // Process images
   const files = req.files || [];
   const images = [];
   for (const f of files) {
     const processed = await processImage(f);
     images.push({ url: processed.url, placeholder: processed.placeholder });
   }
+
+  // Ensure stock is a number
+  const stockQty = Number(stock) || 0;
+
+  // Ensure sizes is an array of strings (optional)
+  const sizeVariants = Array.isArray(sizes)
+    ? sizes.map((s) => s.toString())
+    : [];
 
   const listing = await Listing.create({
     title,
@@ -219,6 +238,8 @@ export const createListing = catchAsync(async (req, res, next) => {
     category,
     condition,
     location,
+    stock: stockQty,
+    sizes: sizeVariants,
     images,
     owner: req.session.user._id,
   });
