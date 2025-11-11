@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FaArrowRight, FaArrowLeft } from "react-icons/fa";
 import { createListing } from "../../service/listingService";
@@ -14,6 +14,8 @@ export default function AddProduct() {
     images: [],
     condition: "used",
     location: "",
+    sizes: [],
+    stock: 1,
   });
   const [preview, setPreview] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -28,23 +30,42 @@ export default function AddProduct() {
 
   const conditionOptions = ["new", "like-new", "used", "for-parts"];
 
+  const sizeOptionsMap = {
+    Footwear: [36, 37, 38, 39, 40, 41, 42, 43, 44, 45],
+    Clothing: ["XS", "S", "M", "L", "XL", "XXL"],
+  };
+
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
     if (!files.length) return;
-
     setForm({ ...form, images: files });
 
-    // Generate image previews
+    // Generate previews
     const previews = files.map((file) => URL.createObjectURL(file));
     setPreview(previews);
   };
 
-  const handleNext = () => setStep((prev) => Math.min(prev + 1, 3));
+  const handleNext = () => setStep((prev) => Math.min(prev + 1, 4));
   const handleBack = () => setStep((prev) => Math.max(prev - 1, 1));
+
+  const handleSizeToggle = (size) => {
+    setForm((prev) => {
+      const sizes = prev.sizes.includes(size)
+        ? prev.sizes.filter((s) => s !== size)
+        : [...prev.sizes, size];
+      return { ...prev, sizes };
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
+    if (form.images.length === 0) {
+      toast.error("Please upload at least one product image");
+      setLoading(false);
+      return;
+    }
 
     try {
       const formData = new FormData();
@@ -54,14 +75,14 @@ export default function AddProduct() {
       formData.append("price", form.price);
       formData.append("condition", form.condition);
       formData.append("location", form.location);
+      formData.append("stock", form.stock);
+      form.sizes.forEach((size) => formData.append("sizes[]", size));
 
       form.images.forEach((file) => formData.append("images", file));
 
       const data = await createListing(formData);
-
       toast.success(`Product ${data.title} added successfully!`);
 
-      // Reset form
       setForm({
         title: "",
         description: "",
@@ -70,6 +91,8 @@ export default function AddProduct() {
         images: [],
         condition: "used",
         location: "",
+        sizes: [],
+        stock: 1,
       });
       setPreview([]);
       setStep(1);
@@ -133,7 +156,9 @@ export default function AddProduct() {
               <label className="text-gray-600 text-sm mb-1">Category</label>
               <select
                 value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, category: e.target.value, sizes: [] })
+                }
                 className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
                 required
               >
@@ -179,7 +204,7 @@ export default function AddProduct() {
           </motion.div>
         )}
 
-        {/* Step 2: Pricing */}
+        {/* Step 2: Pricing & Stock */}
         {step === 2 && (
           <motion.div
             key="step2"
@@ -198,6 +223,48 @@ export default function AddProduct() {
                 required
               />
             </div>
+
+            <div className="flex flex-col">
+              <label className="text-gray-600 text-sm mb-1">
+                Stock Quantity
+              </label>
+              <input
+                type="number"
+                min={1}
+                value={form.stock}
+                onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
+                required
+              />
+            </div>
+
+            {/* Sizes */}
+            {form.category && sizeOptionsMap[form.category]?.length > 0 && (
+              <div className="flex flex-col">
+                <label className="text-gray-600 text-sm mb-1">
+                  Available Sizes
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {sizeOptionsMap[form.category].map((size) => {
+                    const selected = form.sizes.includes(size);
+                    return (
+                      <button
+                        key={size}
+                        type="button"
+                        onClick={() => handleSizeToggle(size)}
+                        className={`px-3 py-1 border rounded-lg transition ${
+                          selected
+                            ? "bg-amber-600 text-white border-amber-600"
+                            : "border-gray-300 text-gray-700 hover:border-amber-500"
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -216,7 +283,6 @@ export default function AddProduct() {
               accept="image/*"
               onChange={handleFileChange}
               className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 ring-indigo-500 focus:outline-none"
-              required
             />
             {preview.length > 0 && (
               <div className="flex gap-2 flex-wrap mt-2">
