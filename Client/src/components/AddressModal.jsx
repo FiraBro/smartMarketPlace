@@ -33,6 +33,7 @@ const AddressModal = ({ onSave, onCancel }) => {
   return (
     <AnimatePresence>
       <motion.div
+        id="address-modal"
         className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50"
         onClick={onCancel}
         initial={{ opacity: 0 }}
