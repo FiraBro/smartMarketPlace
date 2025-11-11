@@ -27,7 +27,7 @@ const ListingSchema = new mongoose.Schema(
       required: true,
     },
     stock: { type: Number, default: 0, min: 0 },
-
+    sizes: [String],
     isPopular: { type: Boolean, default: false },
     isMostSold: { type: Boolean, default: false },
   },
