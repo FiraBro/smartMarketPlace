@@ -1,20 +1,15 @@
-import React, { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  FaBars,
-  FaTimes,
-  FaUserCircle,
-  FaSearch,
-  FaChevronDown,
-} from "react-icons/fa";
+import { FaUserCircle, FaSearch, FaChevronDown } from "react-icons/fa";
 import { MdShoppingCart, MdFavorite } from "react-icons/md";
+import { motion, AnimatePresence } from "framer-motion"; // ✅ added
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import { useFavorites } from "../context/FavoriteContext";
-import SearchBar from "./SearchBar";
-import { fetchProductsByCategory } from "../service/categoryService";
-import NotificationList from "./NotificationList";
 import { useNotification } from "../context/NotificationContext";
+import SearchBar from "./SearchBar";
+import NotificationList from "./NotificationList";
+import { fetchProductsByCategory } from "../service/categoryService";
 
 export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const navigate = useNavigate();
@@ -23,11 +18,9 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
   const { favorites } = useFavorites();
   const { unreadCount } = useNotification();
 
-  const [menuOpen, setMenuOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
-
-  const profileRef = useRef(null); // Ref for profile dropdown
+  const profileRef = useRef(null);
 
   const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
   const totalFavItems = favorites?.length || 0;
@@ -51,7 +44,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
 
   return (
     <nav className="bg-white px-4 md:px-8 py-4 shadow-lg sticky top-0 z-50 border-b border-gray-100">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-6">
+      <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Logo */}
         <div
           onClick={() => navigate("/")}
@@ -65,7 +58,7 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           </div>
         </div>
 
-        {/* SearchBar (desktop) */}
+        {/* Search (desktop) */}
         <div className="hidden lg:flex flex-1 max-w-2xl mx-8">
           <SearchBar
             onCategorySelect={async (category) => {
@@ -82,11 +75,11 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
           />
         </div>
 
-        {/* Actions (desktop) */}
-        <div className="hidden sm:flex items-center gap-3">
+        {/* Right actions */}
+        <div className="flex items-center gap-3">
           {user ? (
             <>
-              {/* Mobile Search Toggle */}
+              {/* Mobile search toggle */}
               <button
                 onClick={() => setSearchOpen(!searchOpen)}
                 className="lg:hidden p-3 text-gray-600 hover:bg-gray-100 rounded-2xl transition-all duration-300"
@@ -139,101 +132,98 @@ export default function Navbar({ openCart, openFav, openCategoryPopup }) {
                   />
                 </button>
 
-                {profileOpen && (
-                  <div className="absolute right-0 mt-3 w-56 bg-white shadow-2xl rounded-xl py-3 z-50 border border-gray-200">
-                    <div className="px-4 py-2 border-b border-gray-100">
-                      <p className="font-semibold text-gray-900">
-                        Welcome back!
-                      </p>
-                      <p className="text-sm text-gray-600 truncate">
-                        {user.email}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        navigate("/profile");
-                        setProfileOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors duration-200"
+                <AnimatePresence>
+                  {profileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.2, ease: "easeOut" }}
+                      className="absolute right-0 mt-3 w-56 bg-white shadow-2xl rounded-xl py-3 z-50 border border-gray-200"
                     >
-                      My Profile
-                    </button>
-                    <button
-                      onClick={() => {
-                        navigate("/orders");
-                        setProfileOpen(false);
-                      }}
-                      className="block w-full text-left px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors duration-200"
-                    >
-                      My Orders
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors duration-200 border-t border-gray-100 mt-2"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                )}
+                      <div className="px-4 py-2 border-b border-gray-100">
+                        <p className="font-semibold text-gray-900">
+                          Welcome back!
+                        </p>
+                        <p className="text-sm text-gray-600 truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          navigate("/profile");
+                          setProfileOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors duration-200"
+                      >
+                        My Profile
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/orders");
+                          setProfileOpen(false);
+                        }}
+                        className="block w-full text-left px-4 py-3 hover:bg-amber-50 text-gray-700 hover:text-amber-700 transition-colors duration-200"
+                      >
+                        My Orders
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 hover:text-red-700 transition-colors duration-200 border-t border-gray-100 mt-2"
+                      >
+                        Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </>
           ) : (
             <div className="flex items-center gap-3">
               <button
                 onClick={() => navigate("/auth")}
-                className="px-6 py-2.5 text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium hover:border-gray-400"
+                className="px-4 py-2.5 text-gray-700 border border-gray-300 rounded-xl hover:bg-gray-50 transition-all duration-300 font-medium"
               >
                 Login
               </button>
               <button
                 onClick={() => navigate("/auth")}
-                className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 shadow-md hover:shadow-lg transition-all duration-300 font-semibold hover:scale-105"
+                className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 shadow-md transition-all duration-300 font-semibold"
               >
                 Get Started
               </button>
             </div>
           )}
         </div>
-
-        {/* Mobile Menu Toggle */}
-        <button
-          className="sm:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-xl transition-all duration-300"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          {menuOpen ? (
-            <FaTimes className="w-6 h-6" />
-          ) : (
-            <FaBars className="w-6 h-6" />
-          )}
-        </button>
       </div>
 
-      {/* Mobile Search Bar */}
-      {searchOpen && (
-        <div className="lg:hidden mt-4 px-2 animate-slideDown">
-          <SearchBar
-            onCategorySelect={async (category) => {
-              try {
-                const data = await fetchProductsByCategory(category);
-                openCategoryPopup(
-                  category,
-                  Array.isArray(data.items) ? data.items : []
-                );
-              } catch {
-                openCategoryPopup(category, []);
-              }
-            }}
-          />
-        </div>
-      )}
-
-      {/* Mobile Menu */}
-      {menuOpen && (
-        <div className="sm:hidden mt-4 bg-white rounded-2xl p-6 shadow-2xl border border-gray-200 animate-slideDown">
-          {/* Mobile menu content remains same */}
-        </div>
-      )}
+      {/* Mobile Search (Smooth Animated) */}
+      <AnimatePresence>
+        {searchOpen && (
+          <motion.div
+            key="searchbar"
+            initial={{ opacity: 0, y: -15 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -15 }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="lg:hidden mt-4 px-2"
+          >
+            <SearchBar
+              onCategorySelect={async (category) => {
+                try {
+                  const data = await fetchProductsByCategory(category);
+                  openCategoryPopup(
+                    category,
+                    Array.isArray(data.items) ? data.items : []
+                  );
+                } catch {
+                  openCategoryPopup(category, []);
+                }
+              }}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
