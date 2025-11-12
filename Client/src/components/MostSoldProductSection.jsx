@@ -1,5 +1,10 @@
 import React, { useRef, useState, useEffect } from "react";
-import { FaChevronLeft, FaChevronRight, FaExclamationTriangle, FaShoppingBag } from "react-icons/fa";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaExclamationTriangle,
+  FaShoppingBag,
+} from "react-icons/fa";
 import ProductCard from "./ProductCard";
 import { getTopSellingProducts } from "../service/productService";
 import { addToCart } from "../service/cartService";
@@ -17,8 +22,6 @@ const MostSoldProductSection = () => {
         setLoading(true);
         setError(null);
         const res = await getTopSellingProducts();
-
-        // Handle both array or { items: [] } API responses
         const data = res.items || res || [];
         setProducts(Array.isArray(data) ? data : []);
       } catch (err) {
@@ -34,25 +37,19 @@ const MostSoldProductSection = () => {
 
   const scroll = (direction) => {
     if (!carouselRef.current) return;
-
     const container = carouselRef.current;
-    const scrollAmount = container.offsetWidth;
-    let nextScroll =
+    const scrollAmount = container.offsetWidth * 0.8; // scroll 80% width
+    const nextScroll =
       direction === "next"
         ? container.scrollLeft + scrollAmount
         : container.scrollLeft - scrollAmount;
-
     container.scrollTo({ left: nextScroll, behavior: "smooth" });
   };
 
   const handleAddToCart = async (product) => {
     try {
       const listingId = product._id || product.id;
-      if (!listingId) {
-        console.error("Product missing ID:", product);
-        return alert("Product ID not found ❌");
-      }
-
+      if (!listingId) return alert("Product ID not found ❌");
       await addToCart(listingId, 1);
       alert(`${product.title || product.name} added to cart ✅`);
     } catch (err) {
@@ -61,9 +58,7 @@ const MostSoldProductSection = () => {
     }
   };
 
-  const handleRetry = () => {
-    window.location.reload();
-  };
+  const handleRetry = () => window.location.reload();
 
   if (loading) {
     return (
@@ -127,53 +122,34 @@ const MostSoldProductSection = () => {
             {/* Navigation buttons */}
             <button
               onClick={() => scroll("prev")}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 
-                         bg-white p-3 rounded-full hover:bg-gray-100 
-                         transition-all duration-300 z-10 shadow-lg hover:shadow-xl
-                         border border-gray-200 hover:scale-105"
-              aria-label="Previous products"
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/90 p-2 sm:p-3 rounded-full hover:bg-white transition-all duration-300 z-10 shadow-lg hover:shadow-xl border border-gray-200 hover:scale-105"
             >
-              <FaChevronLeft className="h-5 w-5 text-gray-700" />
+              <FaChevronLeft className="h-4 sm:h-5 w-4 sm:w-5 text-gray-700" />
             </button>
 
             <button
               onClick={() => scroll("next")}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 
-                         bg-white p-3 rounded-full hover:bg-gray-100 
-                         transition-all duration-300 z-10 shadow-lg hover:shadow-xl
-                         border border-gray-200 hover:scale-105"
-              aria-label="Next products"
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/90 p-2 sm:p-3 rounded-full hover:bg-white transition-all duration-300 z-10 shadow-lg hover:shadow-xl border border-gray-200 hover:scale-105"
             >
-              <FaChevronRight className="h-5 w-5 text-gray-700" />
+              <FaChevronRight className="h-4 sm:h-5 w-4 sm:w-5 text-gray-700" />
             </button>
 
             {/* Carousel Container */}
             <div
               ref={carouselRef}
-              className="flex overflow-x-auto scrollbar-hide scroll-smooth p-4 gap-6"
+              className="flex overflow-x-auto no-scrollbar scroll-smooth gap-6 p-4"
               style={{ minHeight: "420px" }}
             >
               {products.map((product) => (
                 <div
                   key={product._id || product.id}
-                  className="flex-shrink-0 transform transition-transform duration-300 hover:scale-105"
-                  style={{ width: "280px" }} // Fixed width for consistent cards
+                  className="flex-shrink-0 w-[280px] sm:w-[300px] lg:w-[320px] transition-transform duration-300 hover:scale-105"
                 >
                   <ProductCard
                     product={product.product}
                     onAddToCart={handleAddToCart}
                   />
                 </div>
-              ))}
-            </div>
-
-            {/* Scroll indicator */}
-            <div className="flex justify-center mt-6 space-x-2">
-              {products.map((_, index) => (
-                <div
-                  key={index}
-                  className="w-2 h-2 rounded-full bg-gray-300 opacity-50"
-                />
               ))}
             </div>
           </>
