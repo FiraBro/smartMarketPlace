@@ -1,5 +1,11 @@
 import React, { useRef, useState, useEffect } from "react";
-import { FaChevronLeft, FaChevronRight, FaExclamationTriangle, FaFire, FaShoppingBag } from "react-icons/fa";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaExclamationTriangle,
+  FaFire,
+  FaShoppingBag,
+} from "react-icons/fa";
 import ProductCard from "./ProductCard";
 import { getPopularProducts } from "../service/productService";
 import { addToCart } from "../service/cartService";
@@ -17,8 +23,6 @@ const PopularProducts = () => {
         setLoading(true);
         setError(null);
         const res = await getPopularProducts(12);
-
-        // More robust handling of API response
         const products = res.items || res || [];
         setPopularProducts(Array.isArray(products) ? products : []);
       } catch (err) {
@@ -34,25 +38,19 @@ const PopularProducts = () => {
 
   const scroll = (direction) => {
     if (!carouselRef.current) return;
-
     const container = carouselRef.current;
-    const scrollAmount = container.offsetWidth;
+    const scrollAmount = container.offsetWidth * 0.8; // scroll 80% of container
     let nextScroll =
       direction === "next"
         ? container.scrollLeft + scrollAmount
         : container.scrollLeft - scrollAmount;
-
     container.scrollTo({ left: nextScroll, behavior: "smooth" });
   };
 
   const handleAddToCart = async (product) => {
     try {
       const listingId = product._id || product.id;
-      if (!listingId) {
-        console.error("Product missing ID:", product);
-        return alert("Product ID not found ❌");
-      }
-
+      if (!listingId) return alert("Product ID not found ❌");
       await addToCart(listingId, 1);
       alert(`${product.title || product.name} added to cart ✅`);
     } catch (err) {
@@ -61,11 +59,9 @@ const PopularProducts = () => {
     }
   };
 
-  const handleRetry = () => {
-    window.location.reload();
-  };
+  const handleRetry = () => window.location.reload();
 
-  if (loading) {
+  if (loading)
     return (
       <section className="py-12 bg-gray-50">
         <div className="max-w-[85rem] mx-auto px-4">
@@ -75,18 +71,19 @@ const PopularProducts = () => {
         </div>
       </section>
     );
-  }
 
   return (
     <section className="py-12 bg-gray-50">
       <div className="max-w-[85rem] mx-auto relative px-4">
-        {/* Header with icon */}
+        {/* Header */}
         <div className="flex items-center justify-center mb-8">
           <div className="flex items-center gap-3">
             <div className="bg-orange-100 p-2 rounded-full">
               <FaFire className="h-6 w-6 text-orange-500" />
             </div>
-            <h2 className="text-3xl font-bold text-gray-900">Popular Products</h2>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Popular Products
+            </h2>
           </div>
         </div>
 
@@ -104,8 +101,7 @@ const PopularProducts = () => {
               onClick={handleRetry}
               className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 transition-colors duration-300 font-medium flex items-center gap-2"
             >
-              <FaFire className="h-4 w-4" />
-              Try Again
+              <FaFire className="h-4 w-4" /> Try Again
             </button>
           </div>
         )}
@@ -134,37 +130,27 @@ const PopularProducts = () => {
             {/* Navigation buttons */}
             <button
               onClick={() => scroll("prev")}
-              className="absolute left-0 top-1/2 transform -translate-y-1/2 
-                         bg-white p-3 rounded-full hover:bg-gray-100 
-                         transition-all duration-300 z-10 shadow-lg hover:shadow-xl
-                         border border-gray-200 hover:scale-105"
-              aria-label="Previous products"
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white p-2 sm:p-3 rounded-full hover:bg-gray-100 transition-all duration-300 z-10 shadow-lg hover:shadow-xl border border-gray-200 hover:scale-105"
             >
-              <FaChevronLeft className="h-5 w-5 text-gray-700" />
+              <FaChevronLeft className="h-4 sm:h-5 w-4 sm:w-5 text-gray-700" />
             </button>
 
             <button
               onClick={() => scroll("next")}
-              className="absolute right-0 top-1/2 transform -translate-y-1/2 
-                         bg-white p-3 rounded-full hover:bg-gray-100 
-                         transition-all duration-300 z-10 shadow-lg hover:shadow-xl
-                         border border-gray-200 hover:scale-105"
-              aria-label="Next products"
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white p-2 sm:p-3 rounded-full hover:bg-gray-100 transition-all duration-300 z-10 shadow-lg hover:shadow-xl border border-gray-200 hover:scale-105"
             >
-              <FaChevronRight className="h-5 w-5 text-gray-700" />
+              <FaChevronRight className="h-4 sm:h-5 w-4 sm:w-5 text-gray-700" />
             </button>
 
             {/* Carousel Container */}
             <div
               ref={carouselRef}
-              className="flex overflow-x-auto scrollbar-hide scroll-smooth p-4 gap-6"
-              style={{ minHeight: "420px" }}
+              className="flex overflow-x-auto no-scrollbar snap-x snap-mandatory scroll-smooth gap-6 p-4"
             >
               {popularProducts.map((product) => (
                 <div
                   key={product._id || product.id}
-                  className="flex-shrink-0 transform transition-transform duration-300 hover:scale-105"
-                  style={{ width: "280px" }}
+                  className="flex-shrink-0 snap-start w-[260px] sm:w-[280px] md:w-[300px] lg:w-[320px] transition-transform duration-300 hover:scale-105"
                 >
                   <ProductCard
                     product={product}
@@ -172,21 +158,6 @@ const PopularProducts = () => {
                   />
                 </div>
               ))}
-            </div>
-
-            {/* Scroll indicator and product count */}
-            <div className="flex flex-col items-center mt-6">
-              <div className="flex justify-center space-x-2 mb-3">
-                {popularProducts.slice(0, 6).map((_, index) => (
-                  <div
-                    key={index}
-                    className="w-2 h-2 rounded-full bg-gray-300 opacity-50"
-                  />
-                ))}
-              </div>
-              <p className="text-sm text-gray-500">
-                Showing {popularProducts.length} popular products
-              </p>
             </div>
           </>
         )}
