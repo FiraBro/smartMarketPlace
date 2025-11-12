@@ -11,14 +11,38 @@ import {
 
 const steps = {
   buyer: [
-    { icon: <FaSearch />, title: "Browse Products", desc: "Explore thousands of products from verified sellers." },
-    { icon: <FaShoppingCart />, title: "Add to Cart", desc: "Add your favorite products to the cart easily." },
-    { icon: <FaCreditCard />, title: "Checkout Securely", desc: "Pay safely using trusted payment gateways." },
+    {
+      icon: <FaSearch />,
+      title: "Browse Products",
+      desc: "Explore thousands of products from verified sellers.",
+    },
+    {
+      icon: <FaShoppingCart />,
+      title: "Add to Cart",
+      desc: "Add your favorite products to the cart easily.",
+    },
+    {
+      icon: <FaCreditCard />,
+      title: "Checkout Securely",
+      desc: "Pay safely CBE 1000043484277.",
+    },
   ],
   seller: [
-    { icon: <FaUserPlus />, title: "Register as Seller", desc: "Create your seller account in minutes." },
-    { icon: <FaListAlt />, title: "List Your Products", desc: "Upload products and manage your inventory." },
-    { icon: <FaMoneyBillWave />, title: "Start Earning", desc: "Sell to buyers and withdraw your earnings anytime." },
+    {
+      icon: <FaUserPlus />,
+      title: "Register as Seller",
+      desc: "Create your seller account in minutes.",
+    },
+    {
+      icon: <FaListAlt />,
+      title: "List Your Products",
+      desc: "Upload products and manage your inventory.",
+    },
+    {
+      icon: <FaMoneyBillWave />,
+      title: "Start Earning",
+      desc: "Sell to buyers and withdraw your earnings anytime.",
+    },
   ],
 };
 
@@ -29,7 +53,9 @@ export default function HowItWorks() {
     <section className="py-16 bg-[#FFF]">
       <div className="max-w-6xl mx-auto px-6 text-center">
         <h2 className="text-3xl font-bold mb-6 text-gray-800">How It Works</h2>
-        <p className="text-gray-600 mb-10">Simple steps for both Buyers and Sellers</p>
+        <p className="text-gray-600 mb-10">
+          Simple steps for both Buyers and Sellers
+        </p>
 
         {/* Tabs */}
         <div className="flex justify-center gap-6 mb-10">
@@ -74,7 +100,9 @@ export default function HowItWorks() {
                 transition={{ type: "spring", stiffness: 200 }}
               >
                 <div className="text-4xl text-[#F9A03F] mb-4">{step.icon}</div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">{step.title}</h3>
+                <h3 className="text-lg font-semibold mb-2 text-gray-800">
+                  {step.title}
+                </h3>
                 <p className="text-gray-600 text-sm">{step.desc}</p>
               </motion.div>
             ))}
