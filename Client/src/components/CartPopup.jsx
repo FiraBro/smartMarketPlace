@@ -14,24 +14,19 @@ import { useNavigate } from "react-router-dom";
 import { createOrder } from "../service/orderService";
 import { getAddresses } from "../service/addressService";
 import AddressModal from "./AddressModal";
-import {
-  initializeChapaPayment,
-  initializeTelebirrPayment,
-} from "../service/paymentService";
 
 const CartPopup = ({ isOpen, onClose }) => {
   const { cart, increaseQuantity, decreaseQuantity, removeItem, clear } =
     useCart();
   const navigate = useNavigate();
 
-  const [paymentMethod, setPaymentMethod] = useState("COD");
   const [loading, setLoading] = useState(false);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [addingAddress, setAddingAddress] = useState(false);
-  const [deliveryOption, setDeliveryOption] = useState("standard");
+  const [deliveryOption, setDeliveryOption] = useState("delivery");
 
-  const popupRef = useRef(null); // Ref for the popup panel
+  const popupRef = useRef(null);
 
   const SHIPPING_COST = 10;
   const TAX_RATE = 0.07;
@@ -39,18 +34,23 @@ const CartPopup = ({ isOpen, onClose }) => {
   // Close popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (popupRef.current && !popupRef.current.contains(event.target)) {
+      const modal = document.getElementById("address-modal");
+      if (
+        popupRef.current &&
+        !popupRef.current.contains(event.target) &&
+        (!modal || !modal.contains(event.target))
+      ) {
         onClose();
       }
     };
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
+
+    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+    else document.removeEventListener("mousedown", handleClickOutside);
+
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isOpen, onClose]);
 
+  // Fetch addresses
   useEffect(() => {
     const fetchAddresses = async () => {
       try {
@@ -79,46 +79,17 @@ const CartPopup = ({ isOpen, onClose }) => {
 
     try {
       setLoading(true);
-
       const orderPayload = {
         products: cart.map((item) => ({
-          product: item.id,
+          productId: item.id,
           quantity: item.quantity,
         })),
         address: deliveryOption !== "pickup" ? selectedAddress._id : null,
-        paymentMethod,
         totalPrice: total,
         deliveryMethod: deliveryOption,
       };
 
-      const order = await createOrder(orderPayload);
-      const tx_ref = `${paymentMethod.toUpperCase()}-${Date.now()}`;
-
-      if (paymentMethod === "Telebirr") {
-        const redirectUrl = await initializeTelebirrPayment({
-          amount: total,
-          first_name: order.customerFirstName,
-          last_name: order.customerLastName,
-          phone_number: order.customerPhone,
-          tx_ref,
-        });
-        if (redirectUrl) window.location.href = redirectUrl;
-        return;
-      }
-
-      if (paymentMethod === "Chapa") {
-        const data = await initializeChapaPayment({
-          amount: total,
-          first_name: order.customerFirstName,
-          last_name: order.customerLastName,
-          email: order.customerEmail,
-          phone_number: order.customerPhone,
-          tx_ref,
-        });
-        if (data?.checkout_url) window.location.href = data.checkout_url;
-        return;
-      }
-
+      await createOrder(orderPayload);
       clear();
       onClose();
       navigate("/orders");
@@ -152,7 +123,7 @@ const CartPopup = ({ isOpen, onClose }) => {
 
           {/* Cart Panel */}
           <motion.div
-            ref={popupRef} // attach ref here
+            ref={popupRef}
             initial={{ y: "100%" }}
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
@@ -186,9 +157,9 @@ const CartPopup = ({ isOpen, onClose }) => {
             </div>
 
             {/* Main Content */}
-            <div className="flex-1 flex overflow-hidden">
-              {/* Left: Product List */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+            <div className="flex-1 flex flex-col md:flex-row gap-6 p-4 md:p-6 overflow-hidden">
+              {/* Product List */}
+              <div className="flex-1 overflow-y-auto no-scrollbar space-y-4 bg-gray-50 p-4 rounded-xl">
                 {cart.length === 0 ? (
                   <motion.div
                     className="flex flex-col items-center justify-center h-full text-center p-8"
@@ -196,38 +167,25 @@ const CartPopup = ({ isOpen, onClose }) => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
                   >
-                    {/* Icon / Illustration */}
                     <div className="w-28 h-28 mb-6 flex items-center justify-center bg-gray-100 rounded-full shadow-inner">
                       <FiShoppingBag className="w-12 h-12 text-gray-400" />
                     </div>
-
-                    {/* Headline */}
                     <h3 className="text-2xl font-semibold text-gray-900 mb-2">
                       Your Cart is Empty
                     </h3>
-
-                    {/* Message */}
                     <p className="text-gray-500 mb-6 max-w-xs">
                       Looks like you haven’t added anything yet. Start exploring
                       and fill your cart with products you’ll love!
                     </p>
-
-                    {/* Call-to-Action */}
                     <button
                       onClick={() => {
                         onClose();
-                        navigate("/all-listings"); // redirect to your products page if applicable
+                        navigate("/all-listings");
                       }}
                       className="px-6 py-3 bg-[#f9A03f] text-white rounded-xl hover:bg-[#faa64d] transition-all cursor-pointer font-medium shadow-md"
                     >
                       Start Shopping
                     </button>
-
-                    {/* Optional Tip */}
-                    <p className="text-sm text-gray-400 mt-6">
-                      Tip: You can save items for later by adding them to your
-                      favorites ❤️
-                    </p>
                   </motion.div>
                 ) : (
                   cart.map((item) => (
@@ -235,6 +193,7 @@ const CartPopup = ({ isOpen, onClose }) => {
                       key={item.id}
                       className="flex items-start justify-between gap-4 bg-white p-3 rounded-xl shadow-sm hover:shadow-md transition"
                     >
+                      {/* Image */}
                       <img
                         src={item.image}
                         alt={item.name}
@@ -249,7 +208,6 @@ const CartPopup = ({ isOpen, onClose }) => {
                         <p className="text-sm text-gray-500 mb-2">
                           {item.category}
                         </p>
-
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-lg font-semibold text-gray-900">
                             ${item.price}
@@ -260,7 +218,6 @@ const CartPopup = ({ isOpen, onClose }) => {
                             </span>
                           )}
                         </div>
-
                         {item.stock < 10 && (
                           <p className="text-xs text-orange-600">
                             Only {item.stock} left in stock
@@ -268,7 +225,7 @@ const CartPopup = ({ isOpen, onClose }) => {
                         )}
                       </div>
 
-                      {/* Quantity Controls */}
+                      {/* Quantity & Remove */}
                       <div className="flex flex-col items-end gap-3">
                         <div className="flex items-center gap-2">
                           <button
@@ -289,13 +246,9 @@ const CartPopup = ({ isOpen, onClose }) => {
                             <FiPlus className="w-4 h-4" />
                           </button>
                         </div>
-
-                        <div className="text-right">
-                          <p className="font-semibold text-gray-900">
-                            ${(item.price * item.quantity).toFixed(2)}
-                          </p>
-                        </div>
-
+                        <p className="font-semibold text-gray-900">
+                          ${(item.price * item.quantity).toFixed(2)}
+                        </p>
                         <button
                           onClick={() => removeItem(item.id)}
                           className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
@@ -308,96 +261,101 @@ const CartPopup = ({ isOpen, onClose }) => {
                 )}
               </div>
 
-              {/* Right: Order Summary */}
+              {/* Order Summary */}
               {cart.length > 0 && (
-                <div className="w-full md:w-96 flex-shrink-0 bg-white p-6 border-l border-gray-200 flex flex-col justify-between">
-                  <h3 className="text-2xl font-semibold mb-4">Order Summary</h3>
+                <div className="w-full md:w-96 flex flex-col bg-white p-6 border border-gray-200 rounded-xl shadow-sm">
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-semibold mb-4">
+                      Order Summary
+                    </h3>
 
-                  {/* Delivery Options */}
-                  <div className="mb-4 space-y-2">
-                    <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                      <FiTruck className="w-4 h-4" /> Delivery Method
+                    {/* Delivery Options */}
+                    <div className="mb-4 space-y-2">
+                      <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                        <FiTruck className="w-4 h-4" /> Delivery Method
+                      </div>
+
+                      {["delivery", "pickup"].map((option) => (
+                        <label
+                          key={option}
+                          className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all ${
+                            deliveryOption === option
+                              ? "border-blue-500 bg-blue-50"
+                              : "border-gray-200 hover:border-gray-300"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="delivery"
+                            value={option}
+                            checked={deliveryOption === option}
+                            onChange={(e) => setDeliveryOption(e.target.value)}
+                            className="text-[#f9A03f] focus:ring-[#faa64d]"
+                          />
+                          <span className="capitalize">{option}</span>
+                        </label>
+                      ))}
                     </div>
 
-                    {["standard", "express", "pickup"].map((option) => (
-                      <label
-                        key={option}
-                        className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all ${
-                          deliveryOption === option
-                            ? "border-blue-500 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name="delivery"
-                          value={option}
-                          checked={deliveryOption === option}
-                          onChange={(e) => setDeliveryOption(e.target.value)}
-                          className="text-[#f9A03f] focus:ring-[#faa64d]"
-                        />
-                        <span className="capitalize">{option}</span>
-                      </label>
-                    ))}
-                  </div>
-
-                  {/* Address */}
-                  {deliveryOption !== "pickup" && (
-                    <div className="mb-4">
-                      <span className="text-sm font-medium text-gray-700">
-                        Delivery Address
-                      </span>
-                      {selectedAddress ? (
-                        <div className="p-3 bg-gray-50 rounded-lg mt-2 flex justify-between items-start">
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {selectedAddress.name}
-                            </p>
-                            <p className="text-sm text-gray-600 mt-1">
-                              {selectedAddress.street}, {selectedAddress.city},{" "}
-                              {selectedAddress.state} {selectedAddress.zipCode}
-                            </p>
+                    {/* Address */}
+                    {deliveryOption !== "pickup" && (
+                      <div className="mb-4">
+                        <span className="text-sm font-medium text-gray-700">
+                          Delivery Address
+                        </span>
+                        {selectedAddress ? (
+                          <div className="p-3 bg-gray-50 rounded-lg mt-2 flex justify-between items-start">
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {selectedAddress.name}
+                              </p>
+                              <p className="text-sm text-gray-600 mt-1">
+                                {selectedAddress.street}, {selectedAddress.city}
+                                , {selectedAddress.state}{" "}
+                                {selectedAddress.zipCode}
+                              </p>
+                            </div>
+                            <button
+                              onClick={() => setAddingAddress(true)}
+                              className="text-[#f9A03f] hover:text-[#faa64d] cursor-pointer text-sm font-medium"
+                            >
+                              Change
+                            </button>
                           </div>
+                        ) : (
                           <button
                             onClick={() => setAddingAddress(true)}
-                            className="text-[#f9A03f] hover:text-[#faa64d] cursor-pointer text-sm font-medium"
+                            className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors text-left mt-2"
                           >
-                            Change
+                            + Add Delivery Address
                           </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => setAddingAddress(true)}
-                          className="w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-gray-400 hover:text-gray-700 transition-colors text-left mt-2"
-                        >
-                          + Add Delivery Address
-                        </button>
-                      )}
-                    </div>
-                  )}
+                        )}
+                      </div>
+                    )}
 
-                  {/* Price Summary */}
-                  <div className="mb-4 bg-gray-50 p-4 rounded-xl shadow-inner space-y-2">
-                    <div className="flex justify-between text-gray-600">
-                      <span>Subtotal</span>
-                      <span>${subtotal.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Shipping</span>
-                      <span>
-                        {shippingCost === 0
-                          ? "Free"
-                          : `$${shippingCost.toFixed(2)}`}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-gray-600">
-                      <span>Tax</span>
-                      <span>${tax.toFixed(2)}</span>
-                    </div>
-                    <hr className="my-2" />
-                    <div className="flex justify-between font-bold text-gray-900 text-lg">
-                      <span>Total</span>
-                      <span>${total.toFixed(2)}</span>
+                    {/* Price Summary */}
+                    <div className="mb-4 bg-gray-50 p-4 rounded-xl shadow-inner space-y-2">
+                      <div className="flex justify-between text-gray-600">
+                        <span>Subtotal</span>
+                        <span>${subtotal.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Shipping</span>
+                        <span>
+                          {shippingCost === 0
+                            ? "Free"
+                            : `$${shippingCost.toFixed(2)}`}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Tax</span>
+                        <span>${tax.toFixed(2)}</span>
+                      </div>
+                      <hr className="my-2" />
+                      <div className="flex justify-between font-bold text-gray-900 text-lg">
+                        <span>Total</span>
+                        <span>${total.toFixed(2)}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -405,7 +363,7 @@ const CartPopup = ({ isOpen, onClose }) => {
                   <button
                     onClick={handleCheckout}
                     disabled={loading || cart.length === 0}
-                    className="w-full py-4 bg-[#f9A03f] text-white rounded-xl font-semibold hover:bg-[#faa64d] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                    className="w-full py-4 bg-[#f9A03f] text-white rounded-xl font-semibold hover:bg-[#faa64d] cursor-pointer disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 mt-4"
                   >
                     {loading ? (
                       <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
