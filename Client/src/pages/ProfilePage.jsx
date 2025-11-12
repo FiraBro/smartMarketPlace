@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHome, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
@@ -8,8 +8,7 @@ import OrderTab from "../components/OrderTab";
 import AddressesTab from "../components/AddressTab";
 import SettingsTab from "../components/SettingTab";
 import NotificationTabs from "../components/NotificationTab";
-
-import { getOrders } from "../service/orderService";
+import { getMyOrders } from "../service/orderService";
 import {
   getAddresses,
   createAddress,
@@ -35,6 +34,10 @@ const ProfilePage = () => {
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Refs for scrolling tabs
+  const tabContainerRef = useRef(null);
+  const tabRefs = useRef([]);
+
   useEffect(() => {
     if (user) {
       setUserData({
@@ -55,7 +58,7 @@ const ProfilePage = () => {
       setLoading(true);
       try {
         const [ordersRes, addressesRes] = await Promise.all([
-          getOrders(),
+          getMyOrders(),
           getAddresses(),
         ]);
         setOrders(ordersRes);
@@ -95,7 +98,8 @@ const ProfilePage = () => {
   };
 
   const handleDelete = async (addr) => {
-    if (!window.confirm("Are you sure you want to delete this address?")) return;
+    if (!window.confirm("Are you sure you want to delete this address?"))
+      return;
     try {
       await deleteAddress(addr._id);
       setAddresses((prev) => prev.filter((a) => a._id !== addr._id));
@@ -106,7 +110,10 @@ const ProfilePage = () => {
 
   const handleSetDefault = async (addr) => {
     try {
-      const updated = await updateAddress(addr._id, { ...addr, isDefault: true });
+      const updated = await updateAddress(addr._id, {
+        ...addr,
+        isDefault: true,
+      });
       setAddresses((prev) =>
         prev.map((a) => ({ ...a, isDefault: a._id === updated._id }))
       );
@@ -114,6 +121,24 @@ const ProfilePage = () => {
       console.error("Failed to set default address:", err);
     }
   };
+
+  // Scroll clicked tab into center
+  const handleTabClick = (index, id) => {
+    setActiveTab(id);
+    tabRefs.current[index]?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+    });
+  };
+
+  // Center active tab on mount
+  useEffect(() => {
+    const activeIndex = tabs.findIndex((t) => t.id === activeTab);
+    tabRefs.current[activeIndex]?.scrollIntoView({
+      behavior: "smooth",
+      inline: "center",
+    });
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -151,20 +176,28 @@ const ProfilePage = () => {
       </div>
 
       {/* TABS */}
-      <div className="bg-white border-b border-gray-100">
-        <div className="max-w-6xl mx-auto px-4 flex gap-3 overflow-x-auto py-3">
-          {tabs.map((t) => (
+      <div className="bg-white border-b border-gray-100 relative">
+        <div
+          ref={tabContainerRef}
+          className="max-w-6xl mx-auto px-4 flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory no-scrollbar py-3"
+        >
+          {tabs.map((t, idx) => (
             <button
               key={t.id}
-              className={`px-4 py-2 rounded-bl-xl text-sm font-medium transition
-                ${
-                  activeTab === t.id
-                    ? "bg-[#f9A03f] text-white"
-                    : "bg-gray-50 text-gray-700 hover:bg-gray-100"
-                }`}
-              onClick={() => setActiveTab(t.id)}
+              ref={(el) => (tabRefs.current[idx] = el)}
+              className={`flex-shrink-0 snap-center px-4 py-2 rounded-bl-xl text-sm font-medium relative transition ${
+                activeTab === t.id
+                  ? "text-white bg-[#f9A03f]"
+                  : "text-gray-700 bg-gray-50 hover:bg-gray-100"
+              }`}
+              onClick={() => handleTabClick(idx, t.id)}
             >
               {t.label}
+
+              {/* Animated underline for active tab */}
+              {activeTab === t.id && (
+                <span className="absolute bottom-0 left-0 w-full h-1 bg-white rounded-full animate-slideIn"></span>
+              )}
             </button>
           ))}
         </div>
