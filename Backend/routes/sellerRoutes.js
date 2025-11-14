@@ -17,8 +17,9 @@ import {
 
 const router = express.Router();
 
-// ✅ All routes are protected and seller-only
+// All routes are protected and seller-only
 router.use(protectSeller);
+
 // Seller profile
 router.post(
   "/profile",
@@ -41,6 +42,7 @@ router.put(
 // Seller products
 router.get("/products", getSellerProductsControllers);
 
+// Seller dashboard
 router.get("/dashboard", getSellerDashboardController);
 
 // Seller orders
