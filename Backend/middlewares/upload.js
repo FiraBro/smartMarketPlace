@@ -1,29 +1,24 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
-
-const uploadDir = path.join(process.cwd(), "uploads");
-if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    cb(null, `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}`);
+import { CloudinaryStorage } from "multer-storage-cloudinary";
+import cloudinary from "../utils/cloudinary";
+const storage = new CloudinaryStorage({
+  cloudinary, // shorthand, same as cloudinary: cloudinary
+  params: (req, file) => {
+    // Dynamically choose folder based on route or file type
+    let folder = "smartmarketplace";
+    if (file.fieldname === "banner") folder = "smartmarketplace/banners";
+    if (file.fieldname === "product") folder = "smartmarketplace/products";
+    return {
+      folder,
+      allowed_formats: ["jpg", "jpeg", "png", "webp", "gif", "avif", "mp4"],
+    };
   },
 });
 
 export const upload = multer({
   storage,
   limits: {
-    fileSize: 7 * 1024 * 1024,
-    files: 10,
-  },
-  fileFilter: (req, file, cb) => {
-    if (/^image\/(jpe?g|png|webp|gif|avif)$/.test(file.mimetype))
-      cb(null, true);
-    else cb(new Error("Only image files are allowed"));
+    fileSize: 20 * 1024 * 1024, // 20MB max
+    files: 10, // max 10 files per request
   },
 });
