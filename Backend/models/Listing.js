@@ -13,11 +13,12 @@ const ListingSchema = new mongoose.Schema(
     },
     location: { type: String, required: true },
 
-    // ✅ allow objects instead of plain strings
+    // ✅ Store Cloudinary info
     images: [
       {
-        url: { type: String, required: true },
-        placeholder: { type: String },
+        url: { type: String, required: true }, // Cloudinary URL
+        placeholder: { type: String }, // Base64 blur placeholder (optional)
+        public_id: { type: String }, // Cloudinary public_id for deletion
       },
     ],
 
@@ -34,6 +35,7 @@ const ListingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Full-text search on title and description
 ListingSchema.index({ title: "text", description: "text" });
 
 export default mongoose.model("Listing", ListingSchema);
