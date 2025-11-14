@@ -1,9 +1,5 @@
 import { Router } from "express";
-import {
-  protect,
-  protectSeller,
-  // checkSellerStatus,
-} from "../middlewares/authMiddleware.js";
+import { protect, protectSeller } from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/upload.js";
 import {
   listListings,
@@ -17,7 +13,7 @@ import {
 
 const router = Router();
 
-// ✅ Specific routes first
+// ✅ Public routes
 router.get("/", listListings);
 router.get("/all", getAllListings);
 router.get("/categories", getCategories); // must be above "/:id"
@@ -27,19 +23,19 @@ router.get("/:id", getListingById);
 router.post(
   "/create",
   protect,
-  // checkSellerStatus,
   protectSeller,
-  upload.array("images", 10),
+  upload.array("images", 10), // Cloudinary will store in "products" folder
   createListing
 );
+
 router.patch(
   "/:id",
   protect,
-  // checkSellerStatus,
   protectSeller,
   upload.array("images", 10),
   updateListing
 );
+
 router.delete("/:id", protect, protectSeller, deleteListing);
 
 export default router;
