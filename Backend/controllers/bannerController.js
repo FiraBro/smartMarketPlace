@@ -2,9 +2,7 @@
 import Banner from "../models/Banner.js";
 import catchAsync from "../utils/catchAsync.js";
 import AppError from "../utils/AppError.js";
-import fs from "fs";
-import path from "path";
-
+import cloudinary from "../utils/cloudinary.js";
 export const uploadBanner = catchAsync(async (req, res, next) => {
   if (!req.file) {
     return next(new AppError("Please upload an image", 400));
@@ -17,12 +15,9 @@ export const uploadBanner = catchAsync(async (req, res, next) => {
   if (banners.length >= 5) {
     const oldest = banners[0];
 
-    // Delete file from uploads directory
-    if (oldest.image) {
-      const oldPath = path.join(process.cwd(), oldest.image);
-      fs.unlink(oldPath, (err) => {
-        if (err) console.error("Error deleting old banner:", err);
-      });
+    // Delete file from Cloudinary
+    if (oldest.imagePublicId) {
+      await cloudinary.uploader.destroy(oldest.imagePublicId);
     }
 
     // Remove from DB
@@ -31,7 +26,8 @@ export const uploadBanner = catchAsync(async (req, res, next) => {
 
   // Save new banner to DB
   const newBanner = await Banner.create({
-    image: `uploads/${req.file.filename}`, // relative path
+    image: req.file.path || req.file.location, // Cloudinary URL
+    imagePublicId: req.file.filename || req.file.public_id, // needed for deletion later
   });
 
   res.status(201).json({
@@ -42,7 +38,7 @@ export const uploadBanner = catchAsync(async (req, res, next) => {
   });
 });
 
-// ✅ New: Fetch all banners
+// Fetch all banners
 export const getBanners = catchAsync(async (req, res, next) => {
   const banners = await Banner.find().sort({ createdAt: -1 }); // newest first
 
