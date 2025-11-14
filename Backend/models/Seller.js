@@ -8,8 +8,17 @@ const sellerSchema = new mongoose.Schema({
     unique: true,
   },
   shopName: { type: String, required: true },
-  banner: { type: String, default: null }, // URL/path to banner image
-  logo: { type: String, default: null },
+
+  // Store Cloudinary info instead of plain string
+  banner: {
+    url: { type: String, default: null },
+    public_id: { type: String, default: null },
+  },
+  logo: {
+    url: { type: String, default: null },
+    public_id: { type: String, default: null },
+  },
+
   contact: { type: String },
   description: String,
   address: String,
