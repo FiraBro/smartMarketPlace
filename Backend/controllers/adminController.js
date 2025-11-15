@@ -8,104 +8,6 @@ import { Wallet } from "../models/Wallet.js";
 
 /**
  * ============================
- * ADMIN AUTH CONTROLLERS
- * ============================
- */
-
-// ✅ Register admin
-export const registerAdmin = catchAsync(async (req, res, next) => {
-  const { email, password, passwordConfirm, role } = req.body;
-
-  if (password !== passwordConfirm) {
-    return next(new AppError("Passwords do not match", 400));
-  }
-
-  const existingAdmin = await Admin.findOne({ email });
-  if (existingAdmin) {
-    return next(new AppError("Admin with this email already exists", 400));
-  }
-
-  const newAdmin = await Admin.create({
-    email,
-    password,
-    role: role || "admin",
-  });
-
-  newAdmin.password = undefined;
-
-  res.status(201).json({
-    status: "success",
-    message: "Admin registered successfully",
-    data: { admin: newAdmin },
-  });
-});
-
-// ✅ Login admin (unified session)
-export const loginAdmin = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return next(new AppError("Please provide email and password", 400));
-  }
-
-  const admin = await Admin.findOne({ email }).select("+password");
-  if (!admin || !(await admin.correctPassword(password, admin.password))) {
-    return next(new AppError("Incorrect email or password", 401));
-  }
-
-  if (!admin.isActive) {
-    return next(new AppError("Your account has been deactivated", 401));
-  }
-
-  // ✅ Unified session — all user types stored under req.session.user
-  req.session.user = {
-    id: admin._id,
-    name: admin.username || "Admin",
-    email: admin.email,
-    role: admin.role || "admin",
-  };
-
-  admin.password = undefined;
-
-  res.status(200).json({
-    status: "success",
-    message: "Admin logged in successfully",
-    data: { user: req.session.user },
-  });
-});
-
-// ✅ Logout (same for all)
-export const logoutAdmin = catchAsync(async (req, res, next) => {
-  req.session.destroy((err) => {
-    if (err) return next(new AppError("Could not log out", 500));
-
-    res.clearCookie("connect.sid");
-    res.status(200).json({
-      status: "success",
-      message: "Logged out successfully",
-    });
-  });
-});
-
-// ✅ Get current admin info
-export const getMeAdmin = catchAsync(async (req, res, next) => {
-  console.log("Session in getMeAdmin:", req.session);
-
-  if (!req.session.user || req.session.user.role !== "admin") {
-    return res.status(401).json({
-      status: "fail",
-      message: "Not authorized — admin only",
-    });
-  }
-
-  res.status(200).json({
-    status: "success",
-    data: { user: req.session.user },
-  });
-});
-
-/**
- * ============================
  * ADMIN ACTIONS
  * ============================
  */
@@ -219,5 +121,30 @@ export const releaseFunds = catchAsync(async (req, res, next) => {
     status: "success",
     message: "Funds released to seller",
     data: { order },
+  });
+});
+
+export const getAllSellers = catchAsync(async (req, res, next) => {
+  // Fetch all users with role 'seller'
+  const sellers = await User.find({ role: "seller" });
+
+  res.status(200).json({
+    status: "success",
+    results: sellers.length,
+    data: {
+      sellers,
+    },
+  });
+});
+export const getAllBuyer = catchAsync(async (req, res, next) => {
+  // Fetch all users
+  const users = await User.find({ role: "buyer" });
+
+  res.status(200).json({
+    status: "success",
+    results: users.length,
+    data: {
+      users,
+    },
   });
 });
