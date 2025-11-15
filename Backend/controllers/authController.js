@@ -1,56 +1,39 @@
-import { User } from "../models/User.js";
+// src/controllers/authController.js
 import bcrypt from "bcryptjs";
+import { User } from "../models/User.js";
+import Admin from "../models/Admin.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
-import Admin from "../models/Admin.js";
 
 // ---------------------
-// ✅ Register
-// ✅ Register
-// export const registerUser = catchAsync(async (req, res, next) => {
-//   const { name, email, password, role, phone } = req.body;
+// Helper: create session object
+// ---------------------
+const createSessionUser = (user) => ({
+  _id: user._id,
+  name: user.name || user.username || "Admin",
+  email: user.email,
+  role: user.role || "buyer",
+  avatar: user.avatar || null,
+});
 
-//   const existingUser = await User.findOne({ email });
-//   if (existingUser) return next(new AppError("User already exists", 400));
-
-//   const hashedPassword = await bcrypt.hash(password, 10);
-
-//   const user = await User.create({
-//     name,
-//     email,
-//     password: hashedPassword,
-//     role,
-//     phone,
-//   });
-
-//   // Store user in session (use _id!)
-//   req.session.user = {
-//     _id: user._id,
-//     name: user.name,
-//     email: user.email,
-//     role: user.role,
-//   };
-
-//   res.status(201).json({
-//     message: "User registered successfully",
-//     user: req.session.user,
-//   });
-// });
-
+// ---------------------
+// Register (user/admin)
+// ---------------------
 export const registerUser = catchAsync(async (req, res, next) => {
   const { name, email, password, passwordConfirm, role, phone } = req.body;
 
   if (role === "admin") {
-    // Admin registration
+    // ⚠️ Only allow admin registration if authorized (optional)
     if (password !== passwordConfirm)
       return next(new AppError("Passwords do not match", 400));
 
     const existing = await Admin.findOne({ email });
     if (existing) return next(new AppError("Admin already exists", 400));
 
+    const hashedPassword = await bcrypt.hash(password, 10);
     const admin = await Admin.create({
       email,
-      password,
+      password: hashedPassword,
       role: "admin",
     });
 
@@ -68,7 +51,6 @@ export const registerUser = catchAsync(async (req, res, next) => {
   if (existingUser) return next(new AppError("User already exists", 400));
 
   const hashed = await bcrypt.hash(password, 10);
-
   const user = await User.create({
     name,
     email,
@@ -86,44 +68,23 @@ export const registerUser = catchAsync(async (req, res, next) => {
   });
 });
 
-// ✅ Login
-// export const loginUser = catchAsync(async (req, res, next) => {
-//   const { email, password } = req.body;
-
-//   const user = await User.findOne({ email });
-//   if (!user) return next(new AppError("Invalid credentials", 400));
-
-//   const isMatch = await bcrypt.compare(password, user.password);
-//   if (!isMatch) return next(new AppError("Invalid credentials", 400));
-
-//   // Store user in session (use _id!)
-//   req.session.user = {
-//     _id: user._id,
-//     name: user.name,
-//     email: user.email,
-//     role: user.role,
-//   };
-
-//   res.json({
-//     message: "Login successful",
-//     user: req.session.user,
-//   });
-// });
-
+// ---------------------
+// Login (user/admin)
+// ---------------------
 export const loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
   // 1️⃣ Try admin login
   let admin = await Admin.findOne({ email }).select("+password");
   if (admin) {
-    const ok = await admin.correctPassword(password, admin.password);
-    if (!ok) return next(new AppError("Invalid credentials", 400));
+    const match = await bcrypt.compare(password, admin.password);
+    if (!match) return next(new AppError("Invalid credentials", 400));
 
     req.session.user = createSessionUser(admin);
 
     return res.json({
       status: "success",
-      message: "Admin logged in",
+      message: "Admin logged in successfully",
       user: req.session.user,
     });
   }
@@ -132,8 +93,8 @@ export const loginUser = catchAsync(async (req, res, next) => {
   let user = await User.findOne({ email }).select("+password");
   if (!user) return next(new AppError("Invalid credentials", 400));
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return next(new AppError("Invalid credentials", 400));
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) return next(new AppError("Invalid credentials", 400));
 
   req.session.user = createSessionUser(user);
 
@@ -145,22 +106,21 @@ export const loginUser = catchAsync(async (req, res, next) => {
 });
 
 // ---------------------
-// ✅ Get current user
+// Get current user
 // ---------------------
 export const getMe = catchAsync(async (req, res, next) => {
-  if (!req.session.user) {
+  if (!req.session.user)
     return res.status(401).json({ message: "Not authorized" });
-  }
+
   res.json({ user: req.session.user });
 });
 
 // ---------------------
-// ✅ Update Profile
+// Update Profile
 // ---------------------
 export const updateMe = catchAsync(async (req, res, next) => {
-  if (!req.session.user) {
+  if (!req.session.user)
     return res.status(401).json({ message: "Not authorized" });
-  }
 
   const { name, email, password, phone } = req.body;
   const updates = {};
@@ -171,73 +131,42 @@ export const updateMe = catchAsync(async (req, res, next) => {
   if (password) updates.password = await bcrypt.hash(password, 10);
 
   // Handle uploaded avatar
-  if (req.file) {
-    updates.avatar = `/uploads/${req.file.filename}`;
-  }
+  if (req.file) updates.avatar = `/uploads/${req.file.filename}`;
 
-  const updatedUser = await User.findByIdAndUpdate(
+  // Choose correct model
+  const Model = req.session.user.role === "admin" ? Admin : User;
+  const updatedUser = await Model.findByIdAndUpdate(
     req.session.user._id,
     updates,
     { new: true, runValidators: true }
   );
 
-  req.session.user = {
-    _id: updatedUser._id,
-    name: updatedUser.name,
-    email: updatedUser.email,
-    role: updatedUser.role,
-    avatar: updatedUser.avatar,
-  };
+  req.session.user = createSessionUser(updatedUser);
 
   res.json({
+    status: "success",
     message: "Profile updated successfully",
     user: req.session.user,
   });
 });
 
 // ---------------------
-// ✅ Logout
+// Logout
 // ---------------------
 export const logoutUser = catchAsync(async (req, res, next) => {
   req.session.destroy((err) => {
     if (err) return next(new AppError("Logout failed", 500));
-    res.clearCookie("connect.sid"); // Clear session cookie
+    res.clearCookie("connect.sid");
     res.json({ message: "Logged out successfully" });
   });
 });
 
-// ✅ check login status
+// ---------------------
+// Check auth status
+// ---------------------
 export const checkAuth = catchAsync(async (req, res) => {
-  if (req.session === undefined) {
-    return res.json({ loggedIn: false });
+  if (req.session?.user) {
+    return res.json({ loggedIn: true, user: req.session.user });
   }
-  if (req.session.user) {
-    res.json({ loggedIn: true, user: req.session.user });
-  } else {
-    res.json({ loggedIn: false });
-  }
-});
-export const getAllSellers = catchAsync(async (req, res, next) => {
-  // Fetch all users with role 'seller'
-  const sellers = await User.find({ role: "seller" });
-
-  res.status(200).json({
-    status: "success",
-    results: sellers.length,
-    data: {
-      sellers,
-    },
-  });
-});
-export const getAllBuyer = catchAsync(async (req, res, next) => {
-  // Fetch all users
-  const users = await User.find({ role: "buyer" });
-
-  res.status(200).json({
-    status: "success",
-    results: users.length,
-    data: {
-      users,
-    },
-  });
+  res.json({ loggedIn: false });
 });
