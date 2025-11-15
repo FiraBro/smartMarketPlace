@@ -7,7 +7,6 @@ import {
   createListing,
   updateListing,
   deleteListing,
-  getAllListings,
   getCategories,
 } from "../controllers/listingController.js";
 
@@ -15,7 +14,6 @@ const router = Router();
 
 // ✅ Public routes
 router.get("/", listListings);
-router.get("/all", getAllListings);
 router.get("/categories", getCategories); // must be above "/:id"
 router.get("/:id", getListingById);
 
