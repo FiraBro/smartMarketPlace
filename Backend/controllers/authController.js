@@ -2,59 +2,143 @@ import { User } from "../models/User.js";
 import bcrypt from "bcryptjs";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
+import Admin from "../models/Admin.js";
 
 // ---------------------
 // ✅ Register
 // ✅ Register
-export const registerUser = catchAsync(async (req, res, next) => {
-  const { name, email, password, role, phone } = req.body;
+// export const registerUser = catchAsync(async (req, res, next) => {
+//   const { name, email, password, role, phone } = req.body;
 
+//   const existingUser = await User.findOne({ email });
+//   if (existingUser) return next(new AppError("User already exists", 400));
+
+//   const hashedPassword = await bcrypt.hash(password, 10);
+
+//   const user = await User.create({
+//     name,
+//     email,
+//     password: hashedPassword,
+//     role,
+//     phone,
+//   });
+
+//   // Store user in session (use _id!)
+//   req.session.user = {
+//     _id: user._id,
+//     name: user.name,
+//     email: user.email,
+//     role: user.role,
+//   };
+
+//   res.status(201).json({
+//     message: "User registered successfully",
+//     user: req.session.user,
+//   });
+// });
+
+export const registerUser = catchAsync(async (req, res, next) => {
+  const { name, email, password, passwordConfirm, role, phone } = req.body;
+
+  if (role === "admin") {
+    // Admin registration
+    if (password !== passwordConfirm)
+      return next(new AppError("Passwords do not match", 400));
+
+    const existing = await Admin.findOne({ email });
+    if (existing) return next(new AppError("Admin already exists", 400));
+
+    const admin = await Admin.create({
+      email,
+      password,
+      role: "admin",
+    });
+
+    req.session.user = createSessionUser(admin);
+
+    return res.status(201).json({
+      status: "success",
+      message: "Admin registered successfully",
+      user: req.session.user,
+    });
+  }
+
+  // Normal user (buyer/seller)
   const existingUser = await User.findOne({ email });
   if (existingUser) return next(new AppError("User already exists", 400));
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  const hashed = await bcrypt.hash(password, 10);
 
   const user = await User.create({
     name,
     email,
-    password: hashedPassword,
-    role,
+    password: hashed,
+    role: role || "buyer",
     phone,
   });
 
-  // Store user in session (use _id!)
-  req.session.user = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
+  req.session.user = createSessionUser(user);
 
   res.status(201).json({
+    status: "success",
     message: "User registered successfully",
     user: req.session.user,
   });
 });
 
 // ✅ Login
+// export const loginUser = catchAsync(async (req, res, next) => {
+//   const { email, password } = req.body;
+
+//   const user = await User.findOne({ email });
+//   if (!user) return next(new AppError("Invalid credentials", 400));
+
+//   const isMatch = await bcrypt.compare(password, user.password);
+//   if (!isMatch) return next(new AppError("Invalid credentials", 400));
+
+//   // Store user in session (use _id!)
+//   req.session.user = {
+//     _id: user._id,
+//     name: user.name,
+//     email: user.email,
+//     role: user.role,
+//   };
+
+//   res.json({
+//     message: "Login successful",
+//     user: req.session.user,
+//   });
+// });
+
 export const loginUser = catchAsync(async (req, res, next) => {
   const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+  // 1️⃣ Try admin login
+  let admin = await Admin.findOne({ email }).select("+password");
+  if (admin) {
+    const ok = await admin.correctPassword(password, admin.password);
+    if (!ok) return next(new AppError("Invalid credentials", 400));
+
+    req.session.user = createSessionUser(admin);
+
+    return res.json({
+      status: "success",
+      message: "Admin logged in",
+      user: req.session.user,
+    });
+  }
+
+  // 2️⃣ Try normal user login
+  let user = await User.findOne({ email }).select("+password");
   if (!user) return next(new AppError("Invalid credentials", 400));
 
-  const isMatch = await bcrypt.compare(password, user.password);
-  if (!isMatch) return next(new AppError("Invalid credentials", 400));
+  const match = await bcrypt.compare(password, user.password);
+  if (!match) return next(new AppError("Invalid credentials", 400));
 
-  // Store user in session (use _id!)
-  req.session.user = {
-    _id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  };
+  req.session.user = createSessionUser(user);
 
   res.json({
+    status: "success",
     message: "Login successful",
     user: req.session.user,
   });
@@ -110,7 +194,6 @@ export const updateMe = catchAsync(async (req, res, next) => {
     user: req.session.user,
   });
 });
-
 
 // ---------------------
 // ✅ Logout
