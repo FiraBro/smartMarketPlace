@@ -29,13 +29,13 @@ export default function ProductCard({ product }) {
     id: product._id || product.id,
     name: product.title || product.name || "Unnamed Product",
     price: product.price || 0,
-    image: imageUrl,
+    image: product.images?.[0]?.url,
     placeholder:
-      product.images?.[0]?.placeholder || "https://via.placeholder.com/20",
+      product.images?.[0]?.placeholder || "https://via.placeholder.com/200",
     rating: product.rating || 0,
     reviews: product.reviews || 0,
-    category: product.category || "Clothing", // fallback category
-    sizes: product.sizes || ["Standard"], // available sizes
+    category: product.category || "Clothing",
+    sizes: product.sizes || ["Standard"],
     stockPerSize: product.stockPerSize || {}, // { size: stock }
     owner: product.owner,
   };
@@ -60,7 +60,18 @@ export default function ProductCard({ product }) {
       toast.error("You cannot add your own product to the cart.");
       return;
     }
-    setShowSizePopup(true); // show size selection popup
+
+    const totalStock = Object.values(normalized.stockPerSize).reduce(
+      (sum, qty) => sum + qty,
+      0
+    );
+
+    if (totalStock <= 0) {
+      toast.error("This product is out of stock!");
+      return;
+    }
+
+    setShowSizePopup(true); // show size selection
   };
 
   const handleConfirmAddToCart = () => {
@@ -68,7 +79,8 @@ export default function ProductCard({ product }) {
       toast.error("Please select a size!");
       return;
     }
-    const stock = normalized.stockPerSize[selectedSize] ?? 1;
+
+    const stock = normalized.stockPerSize[selectedSize] ?? 0;
     if (stock <= 0) {
       toast.error("Selected size is out of stock!");
       return;
@@ -102,9 +114,7 @@ export default function ProductCard({ product }) {
             effect="blur"
             alt={normalized.name}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = "https://via.placeholder.com/200";
-            }}
+            onError={(e) => (e.target.src = "https://via.placeholder.com/200")}
           />
           <button
             onClick={toggleFavorite}
@@ -155,14 +165,14 @@ export default function ProductCard({ product }) {
             onClick={() => {
               setShowSizePopup(false);
               setSelectedSize(null);
-            }} // clicking outside closes
+            }}
           >
             <motion.div
               className="bg-white rounded-2xl p-6 w-[90%] max-w-md flex flex-col gap-6 relative"
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.8, opacity: 0 }}
-              onClick={(e) => e.stopPropagation()} // prevent modal clicks from closing
+              onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-xl font-semibold text-gray-900 text-center">
                 Select Size
@@ -170,14 +180,14 @@ export default function ProductCard({ product }) {
 
               <div className="flex flex-wrap gap-3 justify-center">
                 {sizeOptions.map((size) => {
-                  const stock = normalized.stockPerSize[size] ?? 1;
+                  const stock = normalized.stockPerSize[size] ?? 0;
                   const selected = selectedSize === size;
                   return (
                     <button
                       key={size}
                       disabled={stock <= 0}
                       onClick={(e) => {
-                        e.stopPropagation(); // prevent bubbling
+                        e.stopPropagation();
                         setSelectedSize(size);
                       }}
                       className={`px-4 py-2 border rounded-lg transition ${
