@@ -11,7 +11,6 @@ const FavoriteContext = createContext();
 
 export const FavoriteProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([]);
-
   useEffect(() => {
     fetchFavorites();
   }, []);
@@ -26,24 +25,21 @@ export const FavoriteProvider = ({ children }) => {
   };
 
   const addToFavoritesContext = async (product) => {
-    
-   const normalized = {
-  _id: product._id || product.id || product.listing?._id,
-  name: product.name || product.title || product.listing?.title || "Unnamed Product",
-  image:
-    product.image ||
-    product.images?.[0]?.url ||
-    product.listing?.images?.[0]?.url || // ✅ handle nested case
-    "https://via.placeholder.com/200",
-  price: product.price || product.listing?.price || 0,
-};
-
+    const normalized = {
+      _id: product._id || product.id || product.listing?._id,
+      name:
+        product.name ||
+        product.title ||
+        product.listing?.title ||
+        "Unnamed Product",
+      image: product.image || "https://via.placeholder.com/200",
+      price: product.price || product.listing?.price || 0,
+    };
 
     setFavorites((prev) => {
       if (prev.find((item) => item._id === normalized._id)) return prev;
       return [...prev, normalized];
     });
-
     try {
       await addFavorite(normalized);
       fetchFavorites(); // sync with backend
