@@ -9,8 +9,6 @@ import {
   getListingDetails,
   verifyPayment,
   releaseFunds,
-  getAllBuyer,
-  getAllSellers,
 } from "../controllers/adminController.js";
 
 import {
@@ -33,10 +31,6 @@ const router = express.Router();
 router.use(protect); // All routes below require authentication
 
 // --------------------------
-// Users
-// --------------------------
-router.get("/buyers", restrictTo("admin", "super-admin"), getAllBuyer);
-router.get("/sellers", restrictTo("admin", "super-admin"), getAllSellers);
 
 // --------------------------
 // Listings
