@@ -20,7 +20,7 @@ export default function ProductDetailView({
 
   useEffect(() => {
     if (product?.images?.[0]?.url) {
-      const imgUrl = `${BASE_URL}${product.images[0].url}`;
+      const imgUrl = `${product.images[0].url}`;
       setMainImage(imgUrl);
       const img = new Image();
       img.src = imgUrl;
@@ -57,8 +57,11 @@ export default function ProductDetailView({
       </div>
     );
 
+  // Determine available stock
+  const availableStock = product.stock ?? product.inStockQty ?? 0;
+
   const handleAddToCart = () => {
-    if (!product.inStock) return toast.error("Product is out of stock!");
+    if (availableStock <= 0) return toast.error("Product is out of stock!");
     if (product.sizes?.length > 0 && !selectedSize)
       return toast.error("Please select a size!");
 
@@ -68,7 +71,7 @@ export default function ProductDetailView({
         name: product.title,
         price: product.price,
         image: mainImage || fallbackImage,
-        stock: product.stock || 10,
+        stock: availableStock,
         size: selectedSize,
       },
       1
@@ -90,7 +93,7 @@ export default function ProductDetailView({
           animate={{ opacity: 1, x: 0 }}
           className="flex flex-col"
         >
-          <div className="relative rounded-3xl overflow-hidden shadow-lg bg-white/70 backdrop-blur-md border border-gray-100">
+          <div className="relative rounded-3xl overflow-hidden shadow-lg bg-white/70 backdrop-blur-md border border-gray-100 flex items-center justify-center">
             {imageLoading && (
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-10 h-10 border-4 border-amber-300 border-t-amber-600 rounded-full animate-spin"></div>
@@ -100,7 +103,7 @@ export default function ProductDetailView({
               src={mainImage || fallbackImage}
               alt={product.title}
               effect="blur"
-              className="w-full h-[450px] object-cover transition-transform duration-300 hover:scale-105"
+              className="max-w-full max-h-[450px] object-contain"
               onLoad={() => setImageLoading(false)}
               onError={(e) => (e.target.src = fallbackImage)}
             />
@@ -110,9 +113,7 @@ export default function ProductDetailView({
           {product.images?.length > 0 && (
             <div className="flex gap-3 mt-4 overflow-x-auto pb-2">
               {product.images.map((img, i) => {
-                const imgUrl = img?.url
-                  ? `${BASE_URL}${img.url}`
-                  : fallbackImage;
+                const imgUrl = img?.url ? `${img.url}` : fallbackImage;
                 const selected = mainImage === imgUrl;
                 return (
                   <button
@@ -167,8 +168,7 @@ export default function ProductDetailView({
           </p>
 
           <div className="text-sm font-semibold text-gray-700">
-            Stock:{" "}
-            {product.stock != null ? product.stock : product.inStockQty || 10}
+            Stock: {availableStock}
           </div>
 
           {product.sizes?.length > 0 && (
@@ -194,7 +194,7 @@ export default function ProductDetailView({
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <button
               onClick={handleAddToCart}
-              disabled={!product.inStock}
+              disabled={availableStock <= 0}
               className="flex-1 bg-amber-600 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-amber-500 active:scale-95 transition-all duration-150 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               Add to Cart
@@ -202,7 +202,7 @@ export default function ProductDetailView({
 
             <button
               onClick={handleBuyNow}
-              disabled={!product.inStock}
+              disabled={availableStock <= 0}
               className="flex-1 bg-gray-900 text-white py-3 rounded-xl font-semibold shadow-md hover:bg-gray-800 active:scale-95 transition-all duration-150 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               Buy Now
@@ -214,8 +214,8 @@ export default function ProductDetailView({
       {/* RELATED PRODUCTS */}
       {related?.length > 0 && (
         <section className="mt-20 border-t border-gray-100 pt-12">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-            You may also like
+          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-left">
+            Related Product
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {related.map((r) => (
