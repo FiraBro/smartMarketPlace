@@ -8,12 +8,14 @@ import { Toaster } from "react-hot-toast";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { FavoriteProvider } from "./context/FavoriteContext";
-import { SocketProvider } from "./context/SocketContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { SocketProvider } from "./context/SocketContext";
+import { AdminAuthProvider } from "./context/AdminContext.jsx";
 
 // ========================
 // LAYOUT COMPONENTS
 // ========================
+import { AdminLayout } from "./util/AdminLayout.jsx";
 import Layout from "./util/Layout";
 import SellerLayout from "./util/SellerLayout";
 
@@ -27,27 +29,38 @@ import Unauthorized from "./pages/Unauthorized";
 // ========================
 // BUYER PAGES
 // ========================
-import HomePage from "./pages/HomePage";
-import ProductDetail from "./pages/ProductDetail";
-import ProfilePage from "./pages/ProfilePage";
 import AllListingsPage from "./pages/AllListingPage";
-import OrdersPage from "./pages/OrderPage";
+import BuyerNotificationsPage from "./pages/buyer/BuyerNotificationsPage";
+import HomePage from "./pages/HomePage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import OrderSuccessPage from "./pages/OrderSuccussPage";
-import BuyerNotificationsPage from "./pages/buyer/BuyerNotificationsPage";
+import OrdersPage from "./pages/OrderPage";
+import ProductDetail from "./pages/ProductDetail";
+import ProfilePage from "./pages/ProfilePage";
 
 // ========================
 // SELLER PAGES
 // ========================
-import SellerDashboard from "./pages/seller/SellerDashboard";
-import SellerProducts from "./pages/seller/SellerProduct";
-import SellerOrders from "./pages/seller/SellerOrder";
 import AddProduct from "./pages/seller/SellerAddProduct";
-import UpdateProduct from "./pages/seller/UpdateProduct";
 import EditProduct from "./pages/seller/EditProduct";
-import SellerProfile from "./pages/seller/SellerProfile";
+import SellerDashboard from "./pages/seller/SellerDashboard";
 import SellerNotificationsPage from "./pages/seller/SellerNotificationsPage";
+import SellerOrders from "./pages/seller/SellerOrder";
+import SellerProducts from "./pages/seller/SellerProduct";
+import SellerProfile from "./pages/seller/SellerProfile";
+import UpdateProduct from "./pages/seller/UpdateProduct";
 
+// ========================
+// ADMIN PAGES
+// ========================
+import { Dashboard } from "./pages/Admin/Dashboard";
+import DisputeResolution from "./pages/Admin/DisputeResolution.jsx";
+import Notifications from "./pages/Admin/Notifications";
+import OrderManagement from "./pages/Admin/OrderManagement";
+import ProductManagement from "./pages/Admin/ProductManagement";
+import UserManagement from "./pages/Admin/UserManagement";
+
+import BannerManagement from "./pages/Admin/BannerManagement.jsx";
 // ========================
 // CONTENT PAGES
 // ========================
@@ -62,9 +75,6 @@ import FAQPage from "./pages/FaqPage";
 import Spinner from "./components/Spinner";
 
 export default function App() {
-  // ========================
-  // MODAL STATES
-  // ========================
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isFavOpen, setIsFavOpen] = useState(false);
 
@@ -103,7 +113,6 @@ export default function App() {
         { path: "contact", element: <ContactPage /> },
         { path: "faq", element: <FAQPage /> },
 
-        // Protected Buyer Pages
         {
           path: "orders",
           element: (
@@ -168,7 +177,38 @@ export default function App() {
       ],
     },
 
-    // FALLBACK ROUTE (404)
+    // ========================
+    // ADMIN ROUTES
+    // ========================
+    {
+      path: "/admin",
+      element: (
+        <AdminAuthProvider>
+          <PrivateRoute requireRole="admin">
+            <AdminLayout />
+          </PrivateRoute>
+        </AdminAuthProvider>
+      ),
+      children: [
+        { index: true, element: <Dashboard /> },
+
+        // User Management
+        { path: "users-management", element: <UserManagement /> },
+
+        // Product Management
+        { path: "products", element: <ProductManagement /> },
+        { path: "manage/banners", element: <BannerManagement /> },
+
+        // Order Management
+        { path: "order", element: <OrderManagement /> },
+        { path: "orders/:id", element: <DisputeResolution /> },
+
+        // Notifications
+        { path: "notifications", element: <Notifications /> },
+      ],
+    },
+
+    // 404 ROUTE
     {
       path: "*",
       element: (
@@ -194,7 +234,6 @@ export default function App() {
         <NotificationProvider>
           <CartProvider>
             <FavoriteProvider>
-              {/* ✅ Toaster for toast notifications */}
               <Toaster position="top-right" reverseOrder={false} />
 
               <Suspense
