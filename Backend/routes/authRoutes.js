@@ -3,6 +3,7 @@ import { protect } from "../middlewares/authMiddleware.js";
 import * as authController from "../controllers/authController.js";
 import * as oauthController from "../controllers/oauthController.js";
 import { upload } from "../middlewares/upload.js"; // your multer setup
+import { restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -17,6 +18,19 @@ router.post("/logout", authController.logoutUser);
 router.get("/check", authController.checkAuth);
 
 // ---------------------
+// Users
+// --------------------------
+router.get(
+  "/buyers",
+  restrictTo("admin", "super-admin"),
+  authController.getAllBuyer
+);
+router.get(
+  "/sellers",
+  restrictTo("admin", "super-admin"),
+  authController.getAllSellers
+);
+
 // GitHub OAuth
 // ---------------------
 router.get("/github", oauthController.githubLogin);
