@@ -172,9 +172,7 @@ export const checkAuth = catchAsync(async (req, res) => {
 });
 
 export const getAllSellers = catchAsync(async (req, res, next) => {
-  // Fetch all users with role 'seller'
   const sellers = await User.find({ role: "seller" });
-
   res.status(200).json({
     status: "success",
     results: sellers.length,
@@ -184,14 +182,10 @@ export const getAllSellers = catchAsync(async (req, res, next) => {
   });
 });
 export const getAllBuyer = catchAsync(async (req, res, next) => {
-  // Fetch all users
   const users = await User.find({ role: "buyer" });
-
   res.status(200).json({
     status: "success",
     results: users.length,
-    data: {
-      users,
-    },
+    data: { users },
   });
 });
