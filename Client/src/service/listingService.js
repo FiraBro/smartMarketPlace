@@ -90,7 +90,7 @@ export const getAllListings = async ({
     if (minPrice !== undefined) params.minPrice = minPrice;
     if (maxPrice !== undefined) params.maxPrice = maxPrice;
 
-    const { data } = await LISTING_API.get(`/all`, { params });
+    const { data } = await LISTING_API.get(`/`, { params });
 
     // Optional: Compute frontend-friendly flags
     data.items.forEach((item) => {
@@ -100,7 +100,7 @@ export const getAllListings = async ({
         new Date() - new Date(item.createdAt) < 30 * 24 * 60 * 60 * 1000; // 30 days
       item.isBestSeller = (item.popularity || 0) > 100;
     });
-
+    console.log(data);
     return data;
   } catch (error) {
     console.error("Error in getAllListings:", error);
