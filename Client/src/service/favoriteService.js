@@ -18,23 +18,29 @@ export const addFavorite = async (product) => {
 // 🧾 Get user favorites
 export const getFavorites = async () => {
   const { data } = await FAVORITE_API.get("/"); // full favorites object
-
   return {
-    items: data.items.map((item) => {
-      const listing = item.listing;
-      const imageUrl = listing.images?.[0]?.url || listing.images?.[0];
+    items: data.items
+      .map((item) => {
+        const listing = item.listing;
 
-      return {
-        _id: listing._id,
-        name: listing.title,
-        price: listing.price,
-        image: imageUrl
-          ? `${
-              import.meta.env.VITE_STATIC_URL || "http://localhost:5000"
-            }${imageUrl}`
-          : "https://via.placeholder.com/200",
-      };
-    }),
+        if (!listing) return null;
+
+        // Choose the first image URL
+        const imageUrl = listing.images?.[0]?.url || listing.image || "";
+
+        // Only prepend BASE_URL if it's a relative path
+        const finalImage = imageUrl.startsWith("http")
+          ? imageUrl
+          : `${import.meta.env.VITE_BASE_URL}${imageUrl}`;
+
+        return {
+          _id: listing._id,
+          name: listing.title || listing.name || "Unnamed Product",
+          price: listing.price || 0,
+          image: finalImage || "https://via.placeholder.com/200",
+        };
+      })
+      .filter(Boolean),
   };
 };
 
