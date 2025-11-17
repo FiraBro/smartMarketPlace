@@ -10,8 +10,7 @@ export default function SellerProducts() {
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
-
-  const BaseURL = import.meta.VITE_STATIC_URL || "http://localhost:5000";
+  console.log(products);
 
   // Fetch products on mount
   useEffect(() => {
@@ -19,6 +18,7 @@ export default function SellerProducts() {
       setLoading(true);
       try {
         const data = await getSellerProducts();
+        console.log(data);
         setProducts(data);
       } catch (err) {
         console.error(err);
@@ -121,7 +121,7 @@ export default function SellerProducts() {
                     <img
                       src={
                         product.images?.[0]?.url
-                          ? `${BaseURL}${product.images[0].url}`
+                          ? `${product.images[0].url}`
                           : product.images?.[0]?.placeholder ||
                             "/default-placeholder.jpg"
                       }
