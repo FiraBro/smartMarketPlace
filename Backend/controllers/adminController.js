@@ -123,28 +123,3 @@ export const releaseFunds = catchAsync(async (req, res, next) => {
     data: { order },
   });
 });
-
-export const getAllSellers = catchAsync(async (req, res, next) => {
-  // Fetch all users with role 'seller'
-  const sellers = await User.find({ role: "seller" });
-
-  res.status(200).json({
-    status: "success",
-    results: sellers.length,
-    data: {
-      sellers,
-    },
-  });
-});
-export const getAllBuyer = catchAsync(async (req, res, next) => {
-  // Fetch all users
-  const users = await User.find({ role: "buyer" });
-
-  res.status(200).json({
-    status: "success",
-    results: users.length,
-    data: {
-      users,
-    },
-  });
-});
