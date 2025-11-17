@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import {
-  loginUser,
-  registerUser,
-  logoutUser,
+  login,
+  register,
+  logout,
   updateProfile,
   checkAuthStatus,
   getCurrentUser,
+  getAllBuyers,
+  getAllSellers,
 } from "../service/AuthService";
 
 const AuthContext = createContext();
@@ -14,8 +16,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Seller & Buyer state
+  const [sellers, setSellers] = useState([]);
+  const [buyers, setBuyers] = useState([]);
+
   // -----------------------------
-  // Check if user is logged in initially
+  // Auth State Check on Load
   // -----------------------------
   useEffect(() => {
     const verifyAuth = async () => {
@@ -25,7 +31,6 @@ export const AuthProvider = ({ children }) => {
         else setUser(null);
       } catch (err) {
         console.error("Auth check failed:", err);
-        setUser(null);
       } finally {
         setLoading(false);
       }
@@ -34,22 +39,46 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   // -----------------------------
+  // Fetch Sellers
+  // -----------------------------
+  const fetchSellers = async () => {
+    try {
+      const res = await getAllSellers();
+      setSellers(res.data || res);
+    } catch (err) {
+      console.error("Failed to fetch sellers:", err);
+    }
+  };
+
+  // -----------------------------
+  // Fetch Buyers
+  // -----------------------------
+  const fetchBuyers = async () => {
+    try {
+      const res = await getAllBuyers();
+      setBuyers(res.data || res);
+    } catch (err) {
+      console.error("Failed to fetch buyers:", err);
+    }
+  };
+
+  // -----------------------------
   // Auth Actions
   // -----------------------------
-  const login = async (credentials) => {
-    const data = await loginUser(credentials);
+  const loginUser = async (credentials) => {
+    const data = await login(credentials);
     setUser(data.user);
     return data.user;
   };
 
-  const register = async (info) => {
-    const data = await registerUser(info);
+  const registerUserFunc = async (info) => {
+    const data = await register(info);
     setUser(data.user);
     return data.user;
   };
 
-  const logout = async () => {
-    await logoutUser();
+  const logoutUserFunc = async () => {
+    await logout();
     setUser(null);
   };
 
@@ -74,16 +103,24 @@ export const AuthProvider = ({ children }) => {
     <AuthContext.Provider
       value={{
         user,
-        login,
-        register,
-        logout,
-        updateUser,
-        fetchCurrentUser,
         loading,
         isAuthenticated: !!user,
+
+        // existing
+        login: loginUser,
+        register: registerUserFunc,
+        logout: logoutUserFunc,
+        updateUser,
+        fetchCurrentUser,
+
+        // NEW seller/buyer management
+        sellers,
+        buyers,
+        fetchSellers,
+        fetchBuyers,
       }}
     >
-      {children} {/* always render children */}
+      {children}
     </AuthContext.Provider>
   );
 };
