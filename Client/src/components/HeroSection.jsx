@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { FaChevronLeft, FaChevronRight, FaShoppingBag, FaTags } from "react-icons/fa";
+import {
+  FaChevronLeft,
+  FaChevronRight,
+  FaShoppingBag,
+  FaTags,
+} from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
-import { getBanners } from "../service/bannerService";
 import { useNavigate } from "react-router-dom";
+import { getBannersService } from "../service/bannerService";
 
 export const HeroSection = () => {
   const [images, setImages] = useState([]);
@@ -14,14 +19,10 @@ export const HeroSection = () => {
   useEffect(() => {
     const fetchBanners = async () => {
       try {
-        const banners = await getBanners();
-        const bannerUrls = banners
+        const res = await getBannersService();
+        const bannerUrls = res.data.banners
           .map(
-            (banner) =>
-              banner?.image &&
-              `${import.meta.env.VITE_STATIC_URL || "http://localhost:5000"}/${
-                banner.image
-              }`
+            (banner) => banner?.image && `${banner.image}` // since you already store full Cloudinary URL
           )
           .filter(Boolean);
         setImages(bannerUrls);
@@ -43,10 +44,13 @@ export const HeroSection = () => {
     setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   }, [images.length]);
 
-  const goToSlide = useCallback((index) => {
-    setDirection(index > currentIndex ? 1 : -1);
-    setCurrentIndex(index);
-  }, [currentIndex]);
+  const goToSlide = useCallback(
+    (index) => {
+      setDirection(index > currentIndex ? 1 : -1);
+      setCurrentIndex(index);
+    },
+    [currentIndex]
+  );
 
   // Robust auto-slide with proper cleanup
   useEffect(() => {
@@ -93,45 +97,45 @@ export const HeroSection = () => {
     enter: (direction) => ({
       x: direction > 0 ? 1000 : -1000,
       opacity: 0,
-      scale: 1.1
+      scale: 1.1,
     }),
     center: {
       x: 0,
       opacity: 1,
-      scale: 1
+      scale: 1,
     },
     exit: (direction) => ({
       x: direction < 0 ? 1000 : -1000,
       opacity: 0,
-      scale: 0.9
-    })
+      scale: 0.9,
+    }),
   };
 
   const contentVariants = {
     hidden: {
       opacity: 0,
-      y: 50
+      y: 50,
     },
     visible: {
       opacity: 1,
       y: 0,
       transition: {
         duration: 0.8,
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   const itemVariants = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0 }
+    visible: { opacity: 1, y: 0 },
   };
 
   // Reset progress bar animation when slide changes
   const progressBarKey = `${currentIndex}-${Date.now()}`;
 
   return (
-    <section 
+    <section
       className="relative w-full h-[500px] md:h-[700px] mt-6 overflow-hidden rounded-3xl shadow-2xl flex items-center justify-center text-center"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
@@ -151,7 +155,7 @@ export const HeroSection = () => {
             transition={{
               x: { type: "spring", stiffness: 300, damping: 30 },
               opacity: { duration: 0.8 },
-              scale: { duration: 0.8 }
+              scale: { duration: 0.8 },
             }}
             className="absolute inset-0 w-full h-full"
           >
@@ -162,10 +166,10 @@ export const HeroSection = () => {
               whileHover={{ scale: 1.05 }}
               transition={{ duration: 10 }}
             />
-            
+
             {/* Enhanced Gradient Overlay */}
             <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30"></div>
-            
+
             {/* Subtle Pattern Overlay */}
             <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-transparent via-black/20 to-black/60"></div>
           </motion.div>
@@ -178,7 +182,9 @@ export const HeroSection = () => {
             className="text-center"
           >
             <div className="w-16 h-16 border-4 border-white/30 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="text-white text-lg font-medium">Loading amazing deals...</p>
+            <p className="text-white text-lg font-medium">
+              Loading amazing deals...
+            </p>
           </motion.div>
         </div>
       )}
@@ -197,7 +203,9 @@ export const HeroSection = () => {
             className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/30 mb-4"
           >
             <FaShoppingBag className="text-orange-400" />
-            <span className="text-sm font-semibold">Premium Shopping Experience</span>
+            <span className="text-sm font-semibold">
+              Premium Shopping Experience
+            </span>
           </motion.div>
 
           {/* Main Heading */}
@@ -217,8 +225,11 @@ export const HeroSection = () => {
             variants={itemVariants}
             className="text-xl sm:text-2xl md:text-3xl text-gray-200 font-light max-w-4xl leading-relaxed"
           >
-            Discover <span className="text-orange-300 font-semibold">exclusive deals</span>, 
-            trending products, and seamless shopping—all in one destination.
+            Discover{" "}
+            <span className="text-orange-300 font-semibold">
+              exclusive deals
+            </span>
+            , trending products, and seamless shopping—all in one destination.
           </motion.p>
 
           {/* CTA Buttons */}
@@ -228,9 +239,9 @@ export const HeroSection = () => {
           >
             {/* Primary Button */}
             <motion.button
-              whileHover={{ 
+              whileHover={{
                 scale: 1.05,
-                boxShadow: "0 20px 40px rgba(249, 115, 22, 0.3)"
+                boxShadow: "0 20px 40px rgba(249, 115, 22, 0.3)",
               }}
               whileTap={{ scale: 0.95 }}
               onClick={() => navigate("/all-listings")}
@@ -248,9 +259,9 @@ export const HeroSection = () => {
 
             {/* Secondary Button */}
             <motion.button
-              whileHover={{ 
+              whileHover={{
                 scale: 1.05,
-                backgroundColor: "rgba(255,255,255,0.1)"
+                backgroundColor: "rgba(255,255,255,0.1)",
               }}
               whileTap={{ scale: 0.95 }}
               onClick={scrollToCategory}
@@ -286,7 +297,10 @@ export const HeroSection = () => {
       {images.length > 1 && (
         <>
           <motion.button
-            whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.3)" }}
+            whileHover={{
+              scale: 1.1,
+              backgroundColor: "rgba(255,255,255,0.3)",
+            }}
             whileTap={{ scale: 0.9 }}
             onClick={prevImage}
             aria-label="Previous image"
@@ -296,7 +310,10 @@ export const HeroSection = () => {
           </motion.button>
 
           <motion.button
-            whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255,0.3)" }}
+            whileHover={{
+              scale: 1.1,
+              backgroundColor: "rgba(255,255,255,0.3)",
+            }}
             whileTap={{ scale: 0.9 }}
             onClick={nextImage}
             aria-label="Next image"
@@ -323,7 +340,7 @@ export const HeroSection = () => {
               }`}
               style={{
                 width: idx === currentIndex ? "24px" : "12px",
-                height: "12px"
+                height: "12px",
               }}
             >
               {idx === currentIndex && (
@@ -352,8 +369,12 @@ export const HeroSection = () => {
       {/* Auto-slide status indicator */}
       {images.length > 1 && (
         <div className="absolute top-4 right-4 z-30">
-          <div className={`w-3 h-3 rounded-full ${isPaused ? 'bg-yellow-400' : 'bg-green-400'} shadow-lg`} 
-               title={isPaused ? 'Auto-slide paused' : 'Auto-slide active'} />
+          <div
+            className={`w-3 h-3 rounded-full ${
+              isPaused ? "bg-yellow-400" : "bg-green-400"
+            } shadow-lg`}
+            title={isPaused ? "Auto-slide paused" : "Auto-slide active"}
+          />
         </div>
       )}
     </section>
