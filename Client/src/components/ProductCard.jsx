@@ -19,12 +19,6 @@ export default function ProductCard({ product }) {
 
   if (!product) return null;
 
-  const baseUrl = import.meta.env.VITE_STATIC_URL || "http://localhost:5000";
-  const imagePath = product.images?.[0]?.url || product.image || "";
-  const imageUrl = imagePath.startsWith("http")
-    ? imagePath
-    : `${baseUrl}${imagePath.startsWith("/") ? "" : "/"}${imagePath}`;
-
   const normalized = {
     id: product._id || product.id,
     name: product.title || product.name || "Unnamed Product",
@@ -36,8 +30,18 @@ export default function ProductCard({ product }) {
     reviews: product.reviews || 0,
     category: product.category || "Clothing",
     sizes: product.sizes || ["Standard"],
-    stockPerSize: product.stockPerSize || {}, // { size: stock }
     owner: product.owner,
+
+    // ✅ FIX: auto-generate size-wise stock if not provided
+    stockPerSize:
+      product.stockPerSize && Object.keys(product.stockPerSize).length > 0
+        ? product.stockPerSize
+        : Object.fromEntries(
+            (product.sizes || ["Standard"]).map((size) => [
+              size,
+              product.stock ?? 0,
+            ])
+          ),
   };
 
   const isFavorite = favorites.some((item) => item._id === normalized.id);
