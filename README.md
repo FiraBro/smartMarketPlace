@@ -40,7 +40,7 @@ Responsive Design: A seamless experience on desktops, tablets, and mobile device
 
 Scalable Architecture: Built to handle growth in users, sellers, and transactions.
 
-###Tech Stack
+### Tech Stack
 
 Frontend: React.js / Tailwind Css 
 
@@ -75,15 +75,19 @@ Git
 ### 1. Clone the Repository
 git clone https://github.com/FiraBro/smartMarketPlace.git
 cd smartMarketPlace
+
 ### 2. Environment Configuration
- PORT=5000
- SECRET=*****
- MONGODB_URI=mongodb://localhost:27017/smartmerketplace
- CLOUDINARY_NAME=********
- CLOUDINARY_API_KEY=******
- CLOUDINARY_API_SECRET=******
- GOOGLE_CLIENT_ID=******
- GOOGLE_CLIENT_SECRET=******
+PORT=5000
+SECRET=your_secret_key
+MONGODB_URI=mongodb://localhost:27017/smartmarketplace
+
+CLOUDINARY_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+GOOGLE_CLIENT_ID=your_google_id
+GOOGLE_CLIENT_SECRET=your_google_secret
+
 ### 3. Start the Application
 
 docker-compose up -d
