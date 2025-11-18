@@ -1,13 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import io from "socket.io-client";
-import { toast } from "react-toastify";
 import { useAuth } from "./AuthContext"; // ✅ Import your AuthContext hook
 
 const SocketContext = createContext();
 
 export const useSocket = () => {
   const context = useContext(SocketContext);
-  if (!context) throw new Error("useSocket must be used within a SocketProvider");
+  if (!context)
+    throw new Error("useSocket must be used within a SocketProvider");
   return context;
 };
 
@@ -20,7 +20,8 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (!user?._id) return; // Wait for user to be available
 
-    const socketUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+    const socketUrl =
+      import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
     const newSocket = io(socketUrl, {
       query: { userId: user._id },
       transports: ["websocket", "polling"],
@@ -49,21 +50,19 @@ export const SocketProvider = ({ children }) => {
       console.log("📩 New notification received:", notification);
       setNotifications((prev) => [notification, ...prev]);
 
-      toast.info(notification.message, {
-        position: "top-right",
-        autoClose: 5000,
-        closeOnClick: true,
-        draggable: true,
-        theme: "light",
-      });
+      // toast.info(notification.message, {
+      //   position: "top-right",
+      //   autoClose: 5000,
+      //   closeOnClick: true,
+      //   draggable: true,
+      //   theme: "light",
+      // });
     });
 
     newSocket.on("notification_read", ({ notificationId }) => {
       console.log("🔖 Notification marked as read:", notificationId);
       setNotifications((prev) =>
-        prev.map((n) =>
-          n._id === notificationId ? { ...n, read: true } : n
-        )
+        prev.map((n) => (n._id === notificationId ? { ...n, read: true } : n))
       );
     });
 
@@ -90,8 +89,6 @@ export const SocketProvider = ({ children }) => {
   };
 
   return (
-    <SocketContext.Provider value={value}>
-      {children}
-    </SocketContext.Provider>
+    <SocketContext.Provider value={value}>{children}</SocketContext.Provider>
   );
 };

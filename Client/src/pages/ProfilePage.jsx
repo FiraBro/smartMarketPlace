@@ -1,13 +1,18 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaHome, FaSignOutAlt } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
+import toast from "react-hot-toast";
 
 import ProfileTab from "../components/ProfileTab";
 import OrderTab from "../components/OrderTab";
 import AddressesTab from "../components/AddressTab";
 import SettingsTab from "../components/SettingTab";
 import NotificationTabs from "../components/NotificationTab";
+import NotificationCard from "../components/NotificationCard";
+import NotificationSkeleton from "../components/NotificationSkeleton";
+import EmptyState from "../components/EmptyState";
+
 import { getMyOrders } from "../service/orderService";
 import {
   getAddresses,
@@ -15,6 +20,8 @@ import {
   updateAddress,
   deleteAddress,
 } from "../service/addressService";
+
+import { fetchNotifications, markAsRead } from "../service/notificationService";
 
 const tabs = [
   { id: "profile", label: "Profile" },
@@ -34,10 +41,17 @@ const ProfilePage = () => {
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  // Notifications state
+  const [notifications, setNotifications] = useState([]);
+  const [activeNotificationTab, setActiveNotificationTab] = useState("all");
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+
   // Refs for scrolling tabs
   const tabContainerRef = useRef(null);
   const tabRefs = useRef([]);
 
+  // Load user info
   useEffect(() => {
     if (user) {
       setUserData({
@@ -53,6 +67,7 @@ const ProfilePage = () => {
     }
   }, [user]);
 
+  // Fetch orders and addresses
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -72,11 +87,13 @@ const ProfilePage = () => {
     fetchData();
   }, []);
 
+  // Logout
   const handleLogout = () => {
     logout();
     navigate("/");
   };
 
+  // Address handlers
   const handleAdd = async (addressData) => {
     try {
       const created = await createAddress(addressData);
@@ -122,7 +139,7 @@ const ProfilePage = () => {
     }
   };
 
-  // Scroll clicked tab into center
+  // Scroll tabs
   const handleTabClick = (index, id) => {
     setActiveTab(id);
     tabRefs.current[index]?.scrollIntoView({
@@ -131,7 +148,6 @@ const ProfilePage = () => {
     });
   };
 
-  // Center active tab on mount
   useEffect(() => {
     const activeIndex = tabs.findIndex((t) => t.id === activeTab);
     tabRefs.current[activeIndex]?.scrollIntoView({
@@ -139,6 +155,77 @@ const ProfilePage = () => {
       inline: "center",
     });
   }, []);
+
+  // ------------------- Notification logic -------------------
+
+  const notificationCounts = {
+    all: notifications.length,
+    info: notifications.filter((n) => n.type === "info").length,
+    alert: notifications.filter((n) => n.type === "alert").length,
+    reminder: notifications.filter((n) => n.type === "reminder").length,
+    order: notifications.filter((n) => n.type === "order").length,
+    payment: notifications.filter((n) => n.type === "payment").length,
+  };
+
+  const unreadCounts = {
+    all: notifications.filter((n) => !n.read).length,
+    info: notifications.filter((n) => n.type === "info" && !n.read).length,
+    alert: notifications.filter((n) => n.type === "alert" && !n.read).length,
+    reminder: notifications.filter((n) => n.type === "reminder" && !n.read)
+      .length,
+    order: notifications.filter((n) => n.type === "order" && !n.read).length,
+    payment: notifications.filter((n) => n.type === "payment" && !n.read)
+      .length,
+  };
+
+  const loadNotifications = useCallback(
+    async (pageNum = 1, shouldAppend = false) => {
+      try {
+        setLoading(true);
+        const data = await fetchNotifications(pageNum, 15);
+
+        if (shouldAppend) {
+          setNotifications((prev) => {
+            const existingIds = new Set(prev.map((n) => n._id));
+            const newNotifications = data.notifications.filter(
+              (n) => !existingIds.has(n._id)
+            );
+            return [...prev, ...newNotifications];
+          });
+        } else {
+          setNotifications(data.notifications);
+        }
+
+        setHasMore(data.notifications.length === 15);
+      } catch (err) {
+        console.error("Failed to load notifications:", err);
+        toast.error("Failed to load notifications");
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
+
+  // Only load notifications when Notifications tab is active
+  useEffect(() => {
+    if (activeTab === "notifications") {
+      loadNotifications(1, false);
+      setPage(1);
+    }
+  }, [activeTab, loadNotifications]);
+
+  const filteredNotifications = notifications.filter((n) =>
+    activeNotificationTab === "all" ? true : n.type === activeNotificationTab
+  );
+
+  const loadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    loadNotifications(nextPage, true);
+  };
+
+  // -------------------------------------------------------------
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -193,11 +280,6 @@ const ProfilePage = () => {
               onClick={() => handleTabClick(idx, t.id)}
             >
               {t.label}
-
-              {/* Animated underline for active tab */}
-              {activeTab === t.id && (
-                <span className="absolute bottom-0 left-0 w-full h-1 bg-white rounded-full animate-slideIn"></span>
-              )}
             </button>
           ))}
         </div>
@@ -225,7 +307,60 @@ const ProfilePage = () => {
           />
         )}
         {activeTab === "settings" && <SettingsTab logout={handleLogout} />}
-        {activeTab === "notifications" && <NotificationTabs />}
+        {activeTab === "notifications" && (
+          <div>
+            <NotificationTabs
+              activeTab={activeNotificationTab}
+              setActiveTab={setActiveNotificationTab}
+              counts={notificationCounts}
+              unreadCounts={unreadCounts}
+              role={user.role}
+            />
+
+            <div className="rounded-2xl shadow-sm border-none overflow-hidden mt-4">
+              {loading && notifications.length === 0 ? (
+                <div className="divide-y divide-gray-100">
+                  {[...Array(5)].map((_, index) => (
+                    <NotificationSkeleton key={index} />
+                  ))}
+                </div>
+              ) : filteredNotifications.length === 0 ? (
+                <EmptyState type={activeNotificationTab} />
+              ) : (
+                filteredNotifications.map((n) => (
+                  <NotificationCard
+                    key={n._id}
+                    notification={n}
+                    onMarkAsRead={async (id) => {
+                      try {
+                        await markAsRead(id);
+                        setNotifications((prev) =>
+                          prev.map((notif) =>
+                            notif._id === id ? { ...notif, read: true } : notif
+                          )
+                        );
+                        toast.success("Marked as read!");
+                      } catch {
+                        toast.error("Failed to mark as read");
+                      }
+                    }}
+                  />
+                ))
+              )}
+
+              {hasMore && !loading && (
+                <div className="p-6 text-center border-t border-gray-100">
+                  <button
+                    onClick={loadMore}
+                    className="px-6 py-3 bg-gradient-to-r from-orange-400 to-orange-500 text-white rounded-lg font-medium hover:from-orange-500 hover:to-orange-600 transition-all cursor-pointer duration-200 shadow-sm"
+                  >
+                    Load More
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

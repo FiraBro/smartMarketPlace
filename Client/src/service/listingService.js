@@ -132,3 +132,10 @@ export const deleteListing = async (id) => {
     throw error;
   }
 };
+// 🔹 GET LISTING DETAILS (example)
+// -----------------------------
+export const getListingDetails = async () => {
+  const { data } = await LISTING_API.get("/details");
+  console.log("getListingDetails response data:", data);
+  return data;
+};

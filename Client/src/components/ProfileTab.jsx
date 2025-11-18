@@ -1,8 +1,6 @@
-import React, { useRef, useState} from "react";
+import React, { useRef, useState } from "react";
 import { FaCheck, FaEdit } from "react-icons/fa";
 import { updateProfile } from "../service/AuthService";
-import { toast, ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
 const ProfileTab = ({ userData, setUserData, updateUser }) => {
   const fileInputRef = useRef(null);
@@ -29,16 +27,16 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
 
       const updatedUser = await updateProfile(formData); // FormData is detected
       updateUser(updatedUser);
-      toast.success("Profile updated successfully!");
+      // toast.success("Profile updated successfully!");
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update profile.");
+      // toast.error("Failed to update profile.");
     }
   };
 
   return (
     <div className="space-y-6">
-      <ToastContainer position="top-right" autoClose={3000} theme="colored" />
+      {/* <ToastContainer position="top-right" autoClose={3000} theme="colored" /> */}
 
       <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
@@ -62,15 +60,14 @@ const ProfileTab = ({ userData, setUserData, updateUser }) => {
             className="hidden"
           />
 
-        <button
-  type="button"
-  onClick={() => fileInputRef.current.click()}
-  className="flex items-center justify-center space-x-2 px-4 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
->
-  <FaEdit className="w-4 h-4" />
-</button>
-
-      </div>
+          <button
+            type="button"
+            onClick={() => fileInputRef.current.click()}
+            className="flex items-center justify-center space-x-2 px-4 py-2 bg-orange-400 text-white rounded-lg hover:bg-orange-600 transition-colors text-sm font-medium"
+          >
+            <FaEdit className="w-4 h-4" />
+          </button>
+        </div>
 
         {/* Input Fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

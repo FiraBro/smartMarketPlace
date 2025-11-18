@@ -2,7 +2,13 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { FaGithub, FaGoogle, FaStore, FaShoppingCart } from "react-icons/fa";
+import {
+  FaGithub,
+  FaGoogle,
+  FaStore,
+  FaShoppingCart,
+  FaUserShield,
+} from "react-icons/fa";
 
 export default function AuthPage() {
   const { user, login, register, loading } = useAuth();
@@ -13,7 +19,8 @@ export default function AuthPage() {
     email: "",
     password: "",
     phone: "",
-    role: "buyer",
+    role: "buyer", // default role
+    store_name: "",
   });
   const [isLogin, setIsLogin] = useState(true);
 
@@ -22,8 +29,9 @@ export default function AuthPage() {
   // -----------------------------
   useEffect(() => {
     if (!loading && user) {
-      if (user.role === "seller") navigate("/seller/dashboard");
-      else navigate("/");
+      if (user.role === "admin") navigate("/admin");
+      else if (user.role === "seller") navigate("/seller/dashboard");
+      else navigate("/"); // buyer
     }
   }, [user, loading, navigate]);
 
@@ -39,18 +47,28 @@ export default function AuthPage() {
     e.preventDefault();
     try {
       let loggedInUser;
-      if (isLogin)
+
+      if (isLogin) {
         loggedInUser = await login({
           email: form.email,
           password: form.password,
         });
-      else loggedInUser = await register(form);
+      } else {
+        if (form.role === "admin") {
+          alert("Admin registration is not allowed.");
+          return;
+        }
+        loggedInUser = await register(form);
+      }
 
-      // Use actual role from backend
-      if (loggedInUser.role === "seller") navigate("/seller/dashboard");
-      else navigate("/");
+      // Redirect based on role
+      if (loggedInUser.role === "admin") navigate("/admin");
+      else if (loggedInUser.role === "seller") navigate("/seller/dashboard");
+      else navigate("/"); // buyer
     } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+      alert(
+        err.response?.data?.message || err.message || "Something went wrong"
+      );
     }
   };
 
@@ -64,19 +82,14 @@ export default function AuthPage() {
     window.location.href = `${import.meta.env.VITE_AUTH_URL}/google`;
   };
 
-  // -----------------------------
-  // Render
-  // -----------------------------
-  if (loading) {
+  if (loading)
     return (
       <div className="flex items-center justify-center h-screen">
         Loading...
       </div>
     );
-  }
 
-  // Don't render login form if user is already logged in
-  if (user) return null;
+  if (user) return null; // Prevent rendering form if logged in
 
   const socialButtonClass =
     "flex items-center justify-center gap-2 w-full py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition";
@@ -120,9 +133,9 @@ export default function AuthPage() {
           {!isLogin && (
             <div className="mb-6">
               <label className="block text-sm font-medium text-gray-700 mb-3">
-                I want to:
+                Register as:
               </label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <button
                   type="button"
                   onClick={() => handleRoleChange("buyer")}
@@ -132,7 +145,7 @@ export default function AuthPage() {
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <FaShoppingCart /> <span>Shop</span>
+                  <FaShoppingCart /> Buyer
                 </button>
                 <button
                   type="button"
@@ -143,7 +156,7 @@ export default function AuthPage() {
                       : "border-gray-200 hover:border-gray-300"
                   }`}
                 >
-                  <FaStore /> <span>Sell</span>
+                  <FaStore /> Seller
                 </button>
               </div>
             </div>
@@ -167,7 +180,7 @@ export default function AuthPage() {
                     type="text"
                     name="store_name"
                     placeholder="Store Name"
-                    value={form.store_name || ""}
+                    value={form.store_name}
                     onChange={handleChange}
                     required
                     className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-green-400 outline-none"
@@ -235,7 +248,12 @@ export default function AuthPage() {
               <button
                 onClick={() => {
                   setIsLogin(!isLogin);
-                  if (!isLogin) setForm((prev) => ({ ...prev, role: "buyer" }));
+                  if (!isLogin)
+                    setForm((prev) => ({
+                      ...prev,
+                      role: "buyer",
+                      store_name: "",
+                    }));
                 }}
                 className="text-yellow-500 font-semibold hover:underline ml-1"
               >

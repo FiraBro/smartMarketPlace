@@ -27,6 +27,7 @@ export const CartProvider = ({ children }) => {
   };
 
   // ✅ Add item to cart
+  // CartContext.js
   const addItem = async (item, quantity = 1) => {
     // Optimistic update
     setCart((prev) => {
@@ -40,11 +41,13 @@ export const CartProvider = ({ children }) => {
     });
 
     try {
-      await addToCartService(item._id, quantity);
-      fetchCart(); // sync with backend
+      // send _id to backend
+      await addToCartService(item.id, quantity);
+      // no need to immediately fetchCart() — your optimistic update is enough
     } catch (err) {
       console.error("Failed to add item:", err);
-      fetchCart(); // rollback
+      // rollback if backend fails
+      fetchCart();
     }
   };
 

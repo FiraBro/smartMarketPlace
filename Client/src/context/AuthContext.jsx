@@ -8,7 +8,6 @@ import {
   getCurrentUser,
   getAllBuyers,
   getAllSellers,
-  getListingDetails,
 } from "../service/AuthService";
 
 const AuthContext = createContext();
@@ -60,18 +59,6 @@ export const AuthProvider = ({ children }) => {
       setBuyers(res.data.data.users); // ✔ actual buyer array
     } catch (err) {
       console.error("Failed to fetch buyers:", err);
-    }
-  };
-
-  // -----------------------------
-  // Fetch Listings
-  // -----------------------------
-  const fetchListings = async () => {
-    try {
-      const res = await getListingDetails(); // ⬅ FIX: call actual service
-      setListings(res.data || res);
-    } catch (err) {
-      console.error("Failed to fetch listings:", err);
     }
   };
 
@@ -132,7 +119,6 @@ export const AuthProvider = ({ children }) => {
         listings, // ⬅ FIX: export it
         fetchSellers,
         fetchBuyers,
-        fetchListings, // ⬅ FIX: export function
       }}
     >
       {children}

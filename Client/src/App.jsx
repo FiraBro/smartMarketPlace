@@ -10,7 +10,6 @@ import { CartProvider } from "./context/CartContext";
 import { FavoriteProvider } from "./context/FavoriteContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { SocketProvider } from "./context/SocketContext";
-import { AdminAuthProvider } from "./context/AdminContext.jsx";
 
 // ========================
 // LAYOUT COMPONENTS
@@ -54,7 +53,7 @@ import UpdateProduct from "./pages/seller/UpdateProduct";
 // ADMIN PAGES
 // ========================
 import { Dashboard } from "./pages/Admin/Dashboard";
-import DisputeResolution from "./pages/Admin/DisputeResolution.jsx";
+// import DisputeResolution from "./pages/Admin/DisputeResolution.jsx";
 import Notifications from "./pages/Admin/Notifications";
 import OrderManagement from "./pages/Admin/OrderManagement";
 import ProductManagement from "./pages/Admin/ProductManagement";
@@ -73,6 +72,7 @@ import FAQPage from "./pages/FaqPage";
 // UI COMPONENTS
 // ========================
 import Spinner from "./components/Spinner";
+import DisputeResolution from "./pages/Admin/DisputeResolution.jsx";
 
 export default function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -183,11 +183,9 @@ export default function App() {
     {
       path: "/admin",
       element: (
-        <AdminAuthProvider>
-          <PrivateRoute requireRole="admin">
-            <AdminLayout />
-          </PrivateRoute>
-        </AdminAuthProvider>
+        <PrivateRoute requireRole="admin">
+          <AdminLayout />
+        </PrivateRoute>
       ),
       children: [
         { index: true, element: <Dashboard /> },
@@ -198,10 +196,10 @@ export default function App() {
         // Product Management
         { path: "products", element: <ProductManagement /> },
         { path: "manage/banners", element: <BannerManagement /> },
-
         // Order Management
         { path: "order", element: <OrderManagement /> },
-        { path: "orders/:id", element: <DisputeResolution /> },
+        { path: "orders", element: <DisputeResolution /> },
+        // { path: "orders/:id", element: <DisputeResolution /> },
 
         // Notifications
         { path: "notifications", element: <Notifications /> },
