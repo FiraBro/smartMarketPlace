@@ -6,7 +6,6 @@ import express from "express";
 import {
   approveSeller,
   suspendSeller,
-  getListingDetails,
   verifyPayment,
   releaseFunds,
 } from "../controllers/adminController.js";
