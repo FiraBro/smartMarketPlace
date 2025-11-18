@@ -201,19 +201,49 @@ export const getCategories = catchAsync(async (req, res, next) => {
   res.json(categories);
 });
 // ✅ Get listing details with latest order
-export const getListingDetails = catchAsync(async (req, res, next) => {
-  const listings = await Listing.find()
-    .populate({
-      path: "owner",
-      select: "_id",
-      populate: {
-        path: "seller",
-        model: "Seller",
-        select: "shopName status",
-      },
-    })
-    .select("title category stock");
 
+export const getListingDetails = catchAsync(async (req, res, next) => {
+  // Aggregation pipeline
+  const listings = await Listing.aggregate([
+    // Join with User (owner)
+    {
+      $lookup: {
+        from: "users", // MongoDB collection for User
+        localField: "owner",
+        foreignField: "_id",
+        as: "ownerInfo",
+      },
+    },
+    { $unwind: "$ownerInfo" },
+
+    // Join with Seller via owner._id
+    {
+      $lookup: {
+        from: "sellers", // MongoDB collection for Seller
+        let: { ownerId: "$ownerInfo._id" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$user", "$$ownerId"] } } },
+          { $project: { shopName: 1, status: 1 } },
+        ],
+        as: "sellerInfo",
+      },
+    },
+    { $unwind: { path: "$sellerInfo", preserveNullAndEmptyArrays: true } },
+
+    // Select the fields we need
+    {
+      $project: {
+        _id: 1,
+        title: 1,
+        category: 1,
+        stock: 1,
+        sellerName: "$sellerInfo.shopName",
+        sellerStatus: "$sellerInfo.status",
+      },
+    },
+  ]);
+
+  // Attach latest order per listing
   const result = await Promise.all(
     listings.map(async (listing) => {
       const order = await Order.findOne({ "products.product": listing._id })
@@ -225,8 +255,8 @@ export const getListingDetails = catchAsync(async (req, res, next) => {
         productTitle: listing.title,
         category: listing.category,
         stock: listing.stock || 0,
-        sellerName: listing.owner?.seller?.shopName || "Unknown",
-        sellerStatus: listing.owner?.seller?.status || "pending",
+        sellerName: listing.sellerName || "Unknown",
+        sellerStatus: listing.sellerStatus || "pending",
         orderId: order?._id || null,
         orderAmount: order?.amount || 0,
         orderDate: order?.orderDate || null,
