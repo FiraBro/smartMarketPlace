@@ -16,21 +16,15 @@ export const addToCart = async (listingId, quantity = 1) => {
 export const getCart = async () => {
   const { data } = await CART_API.get("/");
   const items = data.items || [];
+  console.log(items);
 
   return {
     items: items.map((item) => {
-      const imagePath =
-        item.listing?.images?.[0]?.url || item.listing?.images?.[0] || null;
-
       return {
         id: item.listing?._id || item.listing,
         name: item.listing?.title || "Unknown Item",
         price: item.listing?.price || 0,
-        image: imagePath
-          ? `${
-              import.meta.env.VITE_STATIC_URL || "http://localhost:5000"
-            }${imagePath}`
-          : "https://via.placeholder.com/200",
+        image: items.listing.images,
         quantity: item.quantity,
       };
     }),
