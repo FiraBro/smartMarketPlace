@@ -18,6 +18,7 @@ import AddressModal from "./AddressModal";
 const CartPopup = ({ isOpen, onClose }) => {
   const { cart, increaseQuantity, decreaseQuantity, removeItem, clear } =
     useCart();
+  console.log("ccccccccccccccccccccccc", cart);
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(false);
