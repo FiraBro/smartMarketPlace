@@ -33,9 +33,6 @@ router.use(protect); // All routes below require authentication
 // --------------------------
 
 // --------------------------
-// Listings
-// --------------------------
-router.get("/listings/details", restrictTo("admin"), getListingDetails);
 
 // --------------------------
 // Seller Actions
