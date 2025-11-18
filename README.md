@@ -71,12 +71,16 @@ Docker Engine 20.10+
 Docker Compose 2.0+
 
 Git
-
 ### 1. Clone the Repository
+
+```bash
 git clone https://github.com/FiraBro/smartMarketPlace.git
 cd smartMarketPlace
+```
 
 ### 2. Environment Configuration
+
+```env
 PORT=5000
 SECRET=your_secret_key
 MONGODB_URI=mongodb://localhost:27017/smartmarketplace
@@ -87,10 +91,10 @@ CLOUDINARY_API_SECRET=your_api_secret
 
 GOOGLE_CLIENT_ID=your_google_id
 GOOGLE_CLIENT_SECRET=your_google_secret
+```
 
-### 3. Start the Application
+### 3. Start the Applications
 
+```bash
 docker-compose up -d
-
-docker-compose -f docker-compose.dev.yml up -d
-
+```
