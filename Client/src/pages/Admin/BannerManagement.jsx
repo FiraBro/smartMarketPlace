@@ -15,6 +15,7 @@ const BannerManager = () => {
   const fetchBanners = async () => {
     try {
       const res = await getBannersService();
+      console.log(res.data);
       setBanners(res.data.data.banners);
     } catch (error) {
       console.log("Error fetching banners", error);
@@ -35,7 +36,7 @@ const BannerManager = () => {
     if (!selectedFile) return alert("Please select an image");
 
     const formData = new FormData();
-    formData.append("image", selectedFile);
+    formData.append("banner", selectedFile);
 
     setLoading(true);
     try {
