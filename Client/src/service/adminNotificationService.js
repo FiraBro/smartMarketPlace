@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api/admin";
+  import.meta.env.VITE_ADMIN_URL || "http://localhost:5000/api/v1/admin";
 
 // Configure Axios to send cookies with every request
 axios.defaults.withCredentials = true;
