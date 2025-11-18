@@ -46,44 +46,6 @@ export const suspendSeller = catchAsync(async (req, res, next) => {
   });
 });
 
-// ✅ Get listing details with latest order
-export const getListingDetails = catchAsync(async (req, res, next) => {
-  const listings = await Listing.find()
-    .populate({
-      path: "owner",
-      select: "_id",
-      populate: {
-        path: "seller",
-        model: "Seller",
-        select: "shopName status",
-      },
-    })
-    .select("title category stock");
-
-  const result = await Promise.all(
-    listings.map(async (listing) => {
-      const order = await Order.findOne({ "products.product": listing._id })
-        .sort({ orderDate: -1 })
-        .select("_id amount orderDate status")
-        .lean();
-
-      return {
-        productTitle: listing.title,
-        category: listing.category,
-        stock: listing.stock || 0,
-        sellerName: listing.owner?.seller?.shopName || "Unknown",
-        sellerStatus: listing.owner?.seller?.status || "pending",
-        orderId: order?._id || null,
-        orderAmount: order?.amount || 0,
-        orderDate: order?.orderDate || null,
-        orderStatus: order?.status || "N/A",
-      };
-    })
-  );
-
-  res.status(200).json({ status: "success", data: result });
-});
-
 // ✅ Verify buyer payment (hold funds in escrow)
 export const verifyPayment = catchAsync(async (req, res, next) => {
   const order = await Order.findById(req.params.id);
