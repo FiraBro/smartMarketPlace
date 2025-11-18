@@ -26,7 +26,11 @@ router.post(
   createListing
 );
 
-router.patch(
+rou;
+// Listings
+// --------------------------
+router.get("/listings/details", restrictTo("admin"), getListingDetails);
+ter.patch(
   "/:id",
   protect,
   protectSeller,
