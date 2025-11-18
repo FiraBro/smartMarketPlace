@@ -4,6 +4,7 @@ import { User } from "../models/User.js";
 import Admin from "../models/Admin.js";
 import AppError from "../utils/AppError.js";
 import catchAsync from "../utils/catchAsync.js";
+import Seller from "../models/Seller.js";
 
 // ---------------------
 // Helper: create session object
@@ -15,15 +16,15 @@ const createSessionUser = (user) => ({
   role: user.role || "buyer",
   avatar: user.avatar || null,
 });
-
 // ---------------------
 // Register (user/admin)
 // ---------------------
 export const registerUser = catchAsync(async (req, res, next) => {
-  const { name, email, password, passwordConfirm, role, phone } = req.body;
+  const { name, email, password, passwordConfirm, role, phone, shopName } =
+    req.body;
 
+  // ---------------- Admin Registration ----------------
   if (role === "admin") {
-    // ⚠️ Only allow admin registration if authorized (optional)
     if (password !== passwordConfirm)
       return next(new AppError("Passwords do not match", 400));
 
@@ -46,7 +47,7 @@ export const registerUser = catchAsync(async (req, res, next) => {
     });
   }
 
-  // Normal user (buyer/seller)
+  // ---------------- Normal User (buyer/seller) ----------------
   const existingUser = await User.findOne({ email });
   if (existingUser) return next(new AppError("User already exists", 400));
 
@@ -59,12 +60,23 @@ export const registerUser = catchAsync(async (req, res, next) => {
     phone,
   });
 
+  let seller = null;
+  if (role === "seller") {
+    // ✅ Create Seller document linked to this user
+    seller = await Seller.create({
+      user: user._id,
+      shopName: shopName || `${name}'s Shop`,
+      status: "pending",
+    });
+  }
+
   req.session.user = createSessionUser(user);
 
   res.status(201).json({
     status: "success",
     message: "User registered successfully",
     user: req.session.user,
+    sellerId: seller?._id || null,
   });
 });
 
