@@ -1,4 +1,5 @@
 import Listing from "../models/Listing.js";
+import Order from "../models/Order.js";
 import ProductView from "../models/ProductView.js";
 import Newsletter from "../models/NewsLetter.js";
 import { sendEmail } from "../utils/sendEmail.js";
@@ -198,4 +199,41 @@ export const deleteListing = catchAsync(async (req, res, next) => {
 export const getCategories = catchAsync(async (req, res, next) => {
   const categories = await Listing.distinct("category");
   res.json(categories);
+});
+// ✅ Get listing details with latest order
+export const getListingDetails = catchAsync(async (req, res, next) => {
+  const listings = await Listing.find()
+    .populate({
+      path: "owner",
+      select: "_id",
+      populate: {
+        path: "seller",
+        model: "Seller",
+        select: "shopName status",
+      },
+    })
+    .select("title category stock");
+
+  const result = await Promise.all(
+    listings.map(async (listing) => {
+      const order = await Order.findOne({ "products.product": listing._id })
+        .sort({ orderDate: -1 })
+        .select("_id amount orderDate status")
+        .lean();
+
+      return {
+        productTitle: listing.title,
+        category: listing.category,
+        stock: listing.stock || 0,
+        sellerName: listing.owner?.seller?.shopName || "Unknown",
+        sellerStatus: listing.owner?.seller?.status || "pending",
+        orderId: order?._id || null,
+        orderAmount: order?.amount || 0,
+        orderDate: order?.orderDate || null,
+        orderStatus: order?.status || "N/A",
+      };
+    })
+  );
+
+  res.status(200).json({ status: "success", data: result });
 });
