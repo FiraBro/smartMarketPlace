@@ -1,95 +1,46 @@
-import Cart from "../models/Cart.js";
-import Listing from "../models/Listing.js";
 import catchAsync from "../utils/catchAsync.js";
-import AppError from "../utils/AppError.js";
+import * as cartService from "../services/cartService.js";
 
-// ✅ Get the current user's cart
+// ✅ Get current user's cart
 export const getCart = catchAsync(async (req, res, next) => {
-  const cart = await Cart.findOne({ user: req.session.user._id }).populate(
-    "items.listing"
-  );
-  if (!cart) return res.json({ items: [] });
+  const cart = await cartService.getCartService(req.session.user._id);
   res.json(cart);
 });
 
-// ✅ Add a listing to the cart
+// ✅ Add listing to cart
 export const addToCart = catchAsync(async (req, res, next) => {
-  const { listingId, quantity = 1 } = req.body;
-
-  const listing = await Listing.findById(listingId);
-  if (!listing) return next(new AppError("Listing not found", 404));
-
-  // ✅ Prevent seller from adding their own product
-  if (listing.owner.toString() === req.session.user._id.toString()) {
-    return next(
-      new AppError("You cannot add your own product to the cart", 400)
-    );
-  }
-
-  let cart = await Cart.findOne({ user: req.session.user._id });
-  if (!cart) {
-    cart = new Cart({
-      user: req.session.user._id,
-      items: [{ listing: listingId, quantity }],
-    });
-  } else {
-    const itemIndex = cart.items.findIndex(
-      (item) => item.listing.toString() === listingId
-    );
-    if (itemIndex > -1) {
-      cart.items[itemIndex].quantity += quantity;
-    } else {
-      cart.items.push({ listing: listingId, quantity });
-    }
-  }
-
-  await cart.save();
+  const { listingId, quantity } = req.body;
+  const cart = await cartService.addToCartService(
+    req.session.user._id,
+    listingId,
+    quantity
+  );
   res.json(cart);
 });
 
-// ✅ Update quantity of a listing in the cart
+// ✅ Update listing quantity
 export const updateCartItem = catchAsync(async (req, res, next) => {
   const { listingId, quantity } = req.body;
-
-  if (quantity < 1)
-    return next(new AppError("Quantity must be at least 1", 400));
-
-  const cart = await Cart.findOne({ user: req.session.user._id });
-  if (!cart) return next(new AppError("Cart not found", 404));
-
-  const itemIndex = cart.items.findIndex(
-    (item) => item.listing.toString() === listingId
+  const cart = await cartService.updateCartItemService(
+    req.session.user._id,
+    listingId,
+    quantity
   );
-  if (itemIndex === -1) return next(new AppError("Listing not in cart", 404));
-
-  cart.items[itemIndex].quantity = quantity;
-  await cart.save();
-
   res.json(cart);
 });
 
-// ✅ Remove a listing from the cart
+// ✅ Remove listing from cart
 export const removeFromCart = catchAsync(async (req, res, next) => {
   const { listingId } = req.body;
-
-  const cart = await Cart.findOne({ user: req.session.user._id });
-  if (!cart) return next(new AppError("Cart not found", 404));
-
-  cart.items = cart.items.filter(
-    (item) => item.listing.toString() !== listingId
+  const cart = await cartService.removeFromCartService(
+    req.session.user._id,
+    listingId
   );
-  await cart.save();
-
   res.json(cart);
 });
 
 // ✅ Clear the cart
 export const clearCart = catchAsync(async (req, res, next) => {
-  const cart = await Cart.findOne({ user: req.session.user._id });
-  if (!cart) return next(new AppError("Cart not found", 404));
-
-  cart.items = [];
-  await cart.save();
-
+  const cart = await cartService.clearCartService(req.session.user._id);
   res.json(cart);
 });
