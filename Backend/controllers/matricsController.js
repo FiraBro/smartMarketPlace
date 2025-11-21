@@ -1,45 +1,16 @@
-import ProductView from "../models/ProductView.js";
-import Product from "../models/Listing.js";
-import Order from "../models/Order.js";
 import catchAsync from "../utils/catchAsync.js";
+import * as productService from "../services/matricService.js";
 
 // Track a single product view
-export const trackView = catchAsync(async (req, res, next) => {
-  const { productId } = req.params;
-
-  let view = await ProductView.findOne({ product: productId });
-  if (!view) {
-    view = new ProductView({ product: productId, views: 1 });
-  } else {
-    view.views += 1;
-  }
-  await view.save();
-
+export const trackView = catchAsync(async (req, res) => {
+  const view = await productService.trackViewService(req.params.productId);
   res.json(view);
 });
 
 // Get popular products
-export const getPopularProducts = catchAsync(async (req, res, next) => {
+export const getPopularProducts = catchAsync(async (req, res) => {
   const limit = parseInt(req.query.limit) || 12;
-
-  const popular = await ProductView.aggregate([
-    {
-      $lookup: {
-        from: "listings",
-        localField: "product",
-        foreignField: "_id",
-        as: "product",
-      },
-    },
-    { $unwind: "$product" }, // automatically removes null
-    { $match: { "product._id": { $exists: true } } }, // only keep existing products
-    { $sort: { views: -1 } },
-    { $limit: limit },
-  ]);
-
-  // map only the listing object
-  const products = popular.map((p) => p.product);
-  console.log(products)
+  const products = await productService.getPopularProductsService(limit);
 
   res.json({
     page: 1,
@@ -52,40 +23,15 @@ export const getPopularProducts = catchAsync(async (req, res, next) => {
 });
 
 // Get top selling products
-export const getTopSellingProducts = catchAsync(async (req, res, next) => {
-  const topSelling = await Order.aggregate([
-    { $unwind: "$products" },
-    {
-      $group: {
-        _id: "$products.product",
-        totalSold: { $sum: "$products.quantity" },
-      },
-    },
-    { $sort: { totalSold: -1 } },
-    { $limit: 5 },
-    {
-      $lookup: {
-        from: "listings",
-        localField: "_id",
-        foreignField: "_id",
-        as: "product",
-      },
-    },
-    { $unwind: "$product" },
-    { $match: { "product._id": { $exists: true } } }, // FILTER DELETED LISTINGS
-    {
-      $project: {
-        totalSold: 1,
-        product: 1,
-      },
-    },
-  ]);
-
+export const getTopSellingProducts = catchAsync(async (req, res) => {
+  const limit = parseInt(req.query.limit) || 5;
+  const topSelling = await productService.getTopSellingProductsService(limit);
   res.json(topSelling);
 });
 
 // Get newly added products
-export const getNewProducts = catchAsync(async (req, res, next) => {
-  const products = await Product.find().sort({ createdAt: -1 }).limit(10);
+export const getNewProducts = catchAsync(async (req, res) => {
+  const limit = parseInt(req.query.limit) || 10;
+  const products = await productService.getNewProductsService(limit);
   res.json(products);
 });
