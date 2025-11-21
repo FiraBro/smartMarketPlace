@@ -1,40 +1,36 @@
-import Address from "../models/Address.js";
 import catchAsync from "../utils/catchAsync.js";
-import AppError from "../utils/AppError.js";
+import * as addressService from "../services/addressService.js";
 
 // ✅ Get all addresses for logged-in user
 export const getAddresses = catchAsync(async (req, res, next) => {
-  const addresses = await Address.find({ userId: req.session.user._id });
+  const addresses = await addressService.getAllAddresses(req.session.user._id);
   res.status(200).json(addresses);
 });
 
 // ✅ Create or Update address
 export const createOrUpdateAddress = catchAsync(async (req, res, next) => {
-  const address = await Address.findOneAndUpdate(
-    { userId: req.session.user._id },
-    { ...req.body, userId: req.session.user._id },
-    { new: true, upsert: true }
+  const address = await addressService.createOrUpdateAddressService(
+    req.session.user._id,
+    req.body
   );
   res.status(200).json(address);
 });
 
 // ✅ Update an address
 export const updateAddress = catchAsync(async (req, res, next) => {
-  const updated = await Address.findOneAndUpdate(
-    { _id: req.params.id, userId: req.session.user._id },
-    req.body,
-    { new: true }
+  const updated = await addressService.updateAddressService(
+    req.params.id,
+    req.session.user._id,
+    req.body
   );
-  if (!updated) return next(new AppError("Address not found", 404));
   res.status(200).json(updated);
 });
 
 // ✅ Delete an address
 export const deleteAddress = catchAsync(async (req, res, next) => {
-  const deleted = await Address.findOneAndDelete({
-    _id: req.params.id,
-    userId: req.session.user._id,
-  });
-  if (!deleted) return next(new AppError("Address not found", 404));
+  await addressService.deleteAddressService(
+    req.params.id,
+    req.session.user._id
+  );
   res.status(200).json({ message: "Address deleted successfully" });
 });
