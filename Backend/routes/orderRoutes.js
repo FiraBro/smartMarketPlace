@@ -30,7 +30,7 @@ router.post("/", createOrder);
 router.post(
   "/:orderId/products/:productId/payment-proof",
   upload.single("file"),
-  uploadPaymentProof
+  uploadPaymentProof,
 );
 
 // Buyer confirms delivery per product
