@@ -13,7 +13,7 @@ export const addToCart = catchAsync(async (req, res, next) => {
   const cart = await cartService.addToCartService(
     req.session.user._id,
     listingId,
-    quantity
+    quantity,
   );
   res.json(cart);
 });
@@ -24,7 +24,7 @@ export const updateCartItem = catchAsync(async (req, res, next) => {
   const cart = await cartService.updateCartItemService(
     req.session.user._id,
     listingId,
-    quantity
+    quantity,
   );
   res.json(cart);
 });
@@ -34,7 +34,7 @@ export const removeFromCart = catchAsync(async (req, res, next) => {
   const { listingId } = req.body;
   const cart = await cartService.removeFromCartService(
     req.session.user._id,
-    listingId
+    listingId,
   );
   res.json(cart);
 });
