@@ -1,11 +1,19 @@
 import express from "express";
-import {getUserNotifications,markAllAsRead,markAsRead} from '../controllers/userNotificationController.js'
+// Update these names to match exactly what is in your controller file
+import {
+  getUserNotificationsController,
+  markAllAsReadController,
+  markAsReadController,
+} from "../controllers/userNotificationController.js";
 import { protect } from "../middlewares/authMiddleware.js";
+
 const router = express.Router();
 
+router.use(protect); // Applies protection to all routes below
+
 // ============================ USER ROUTES ============================== //
-router.route("/user").get(protect, getUserNotifications);
-router.route("/read-all").patch(protect, markAllAsRead);
-router.route("/:id/read").patch(protect, markAsRead);
+router.get("/user", getUserNotificationsController);
+router.patch("/read-all", markAllAsReadController);
+router.patch("/:id/read", markAsReadController);
 
 export default router;
