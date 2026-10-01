@@ -29,10 +29,9 @@ export const registerUserService = async (data) => {
     const existing = await Admin.findOne({ email });
     if (existing) throw new AppError("Admin already exists", 400);
 
-    const hashedPassword = await bcrypt.hash(password, 10);
     const admin = await Admin.create({
       email,
-      password: hashedPassword,
+      password,
       role: "admin",
     });
     return { user: admin, seller: null };

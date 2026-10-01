@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   mongo:
     image: mongo:6
@@ -19,11 +17,24 @@ services:
       - "5000:5000"
     env_file:
       - ./Backend/.env # contains Cloudinary and other variables
+    environment:
+      MONGO_URI: mongodb://mongo:27017/smartMarketplace
+      FRONTEND_URL: http://localhost:3002
     volumes:
       - ./Backend:/app
       - /app/node_modules
     depends_on:
       - mongo
+
+  client:
+    build:
+      context: ./Client
+    container_name: smart-client
+    restart: always
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
 
 volumes:
   mongo_data:

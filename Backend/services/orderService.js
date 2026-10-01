@@ -156,10 +156,19 @@ export const confirmDeliveryService = async (orderId, productId, userId) => {
 
 // --- SELLER SERVICES ---
 export const getSellerOrdersService = async (sellerId) => {
-  // Finds orders that contain at least one product belonging to this seller
-  return await Order.find({ "products.sellerId": sellerId }).populate(
-    "products.productId",
-  );
+  const orders = await Order.find({ "products.sellerId": sellerId })
+    .populate("buyerId", "name email phone")
+    .populate("products.productId")
+    .sort({ createdAt: -1 });
+
+  // Only return this seller's items, not other sellers' products in the same order
+  return orders.map((order) => {
+    const o = order.toObject();
+    o.products = o.products.filter(
+      (p) => String(p.sellerId) === String(sellerId),
+    );
+    return o;
+  });
 };
 
 export const markAsShippedService = async (orderId, productId, sellerId) => {

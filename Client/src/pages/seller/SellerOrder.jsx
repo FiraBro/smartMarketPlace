@@ -8,6 +8,28 @@ import {
 } from "../../service/orderService";
 import toast from "react-hot-toast";
 
+// Turn the raw backend orders (products nested inside each order)
+// into one flat row per product, which is what the table expects.
+const flattenOrders = (data) => {
+  if (!Array.isArray(data)) return [];
+
+  return data.flatMap((order) =>
+    (order.products || []).map((item) => ({
+      _id: item._id, // unique row id (the item inside the order)
+      orderId: order._id,
+      productId: item.productId?._id || item.productId,
+      product: item.productId?.title || "Unknown product",
+      buyerName: order.buyerId?.name || "N/A",
+      buyerEmail: order.buyerId?.email || "N/A",
+      address:
+        order.address || (order.deliveryMethod === "pickup" ? "Pickup" : "N/A"),
+      phone: order.phone || order.buyerId?.phone || "N/A",
+      status: item.status || "pending",
+      total: (item.price ?? 0) * (item.quantity ?? 1),
+    })),
+  );
+};
+
 export default function SellerOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -18,13 +40,14 @@ export default function SellerOrders() {
     trackingNumber: "",
   });
   const [updating, setUpdating] = useState(false);
-  console.log(orders);
+  console.log("SellerOrders component rendered. Current orders:", orders);
   useEffect(() => {
     const fetchOrders = async () => {
       setLoading(true);
       try {
-        const data = await getSellerOrders(); // backend returns flattened array with address
-        setOrders(data);
+        const data = await getSellerOrders();
+        console.log("Fetched seller orders:", data);
+        setOrders(flattenOrders(data));
       } catch (err) {
         console.error(err);
         toast.error("Failed to fetch seller orders.");
@@ -43,8 +66,8 @@ export default function SellerOrders() {
       await updateSellerOrderStatus(id, newStatus);
       setOrders((prev) =>
         prev.map((order) =>
-          order._id === id ? { ...order, status: newStatus } : order
-        )
+          order._id === id ? { ...order, status: newStatus } : order,
+        ),
       );
       toast.success(`Status updated to "${newStatus}"`);
     } catch (err) {
@@ -70,8 +93,8 @@ export default function SellerOrders() {
       await markAsShipped(currentOrder.orderId, currentOrder.productId);
       setOrders((prev) =>
         prev.map((o) =>
-          o._id === currentOrder._id ? { ...o, status: "shipped" } : o
-        )
+          o._id === currentOrder._id ? { ...o, status: "shipped" } : o,
+        ),
       );
       toast.success("Order marked as shipped!");
       setModalOpen(false);
@@ -84,7 +107,9 @@ export default function SellerOrders() {
   };
 
   const getStatusColor = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
+      case "pending":
+        return "text-gray-600 bg-gray-100";
       case "funds_held":
       case "payment_submitted":
         return "text-yellow-600 bg-yellow-50";
@@ -125,6 +150,14 @@ export default function SellerOrders() {
               </tr>
             </thead>
             <tbody>
+              {orders.length === 0 && (
+                <tr>
+                  <td colSpan={9} className="py-6 text-center text-gray-400">
+                    No orders yet.
+                  </td>
+                </tr>
+              )}
+
               {orders.map((order) => (
                 <motion.tr
                   key={order._id}
@@ -133,47 +166,51 @@ export default function SellerOrders() {
                   transition={{ delay: 0.05 }}
                   className="border-b border-gray-100 hover:bg-gray-50 text-sm"
                 >
-                  <td className="py-2 px-2 font-medium">{order.orderId}</td>
+                  <td className="py-2 px-2 font-medium">
+                    #{String(order.orderId).slice(-6)}
+                  </td>
                   <td className="py-2 px-2">{order.product}</td>
                   <td className="py-2 px-2">{order.buyerName}</td>
                   <td className="py-2 px-2">{order.buyerEmail}</td>
-                  {/* ✅ new address and phone columns */}
                   <td className="py-2 px-2">{order.address}</td>
                   <td className="py-2 px-2">{order.phone}</td>
                   <td className="py-2 px-2">
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(
-                        order.status
+                        order.status,
                       )}`}
                     >
-                      {order.status}
+                      {order.status.replace(/_/g, " ")}
                     </span>
                   </td>
                   <td className="py-2 px-2">${order.total}</td>
-                  <td className="py-2 px-2 flex flex-wrap items-center gap-2">
-                    {order.status === "funds_held" && (
-                      <button
-                        onClick={() => handleShip(order)}
-                        className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition text-sm"
-                      >
-                        <FaShippingFast /> Ship
-                      </button>
-                    )}
-                    {order.status === "shipped" && (
-                      <button
-                        onClick={() =>
-                          handleStatusUpdate(order._id, "completed")
-                        }
-                        className="flex items-center gap-1 text-green-600 hover:text-green-800 transition text-sm"
-                      >
-                        <FaCheckCircle /> Complete
-                      </button>
-                    )}
-                    {order.status === "completed" && (
-                      <span className="text-gray-400 flex items-center gap-1 text-sm">
-                        <FaClock /> Done
-                      </span>
-                    )}
+                  <td className="py-2 px-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {order.status === "funds_held" && (
+                        <button
+                          onClick={() => handleShip(order)}
+                          className="flex items-center gap-1 text-blue-500 hover:text-blue-700 transition text-sm"
+                        >
+                          <FaShippingFast /> Ship
+                        </button>
+                      )}
+                      {order.status === "shipped" && (
+                        <button
+                          onClick={() =>
+                            handleStatusUpdate(order._id, "completed")
+                          }
+                          disabled={updating}
+                          className="flex items-center gap-1 text-green-600 hover:text-green-800 transition text-sm disabled:opacity-50"
+                        >
+                          <FaCheckCircle /> Complete
+                        </button>
+                      )}
+                      {order.status === "completed" && (
+                        <span className="text-gray-400 flex items-center gap-1 text-sm">
+                          <FaClock /> Done
+                        </span>
+                      )}
+                    </div>
                   </td>
                 </motion.tr>
               ))}
@@ -184,7 +221,7 @@ export default function SellerOrders() {
 
       {/* Modal for Shipping */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
             <h3 className="text-xl font-semibold mb-4">Ship Product</h3>
             <div className="flex flex-col gap-3">

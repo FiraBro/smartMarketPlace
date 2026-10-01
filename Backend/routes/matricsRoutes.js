@@ -5,7 +5,7 @@ import {
   getPopularProducts,
   getTopSellingProducts,
   getNewProducts,
-} from "../controllers/matricsController.js";
+} from "../controllers/metricsController.js";
 import { cacheTTL } from "../middlewares/cacheTTL.js";
 
 const router = Router();
